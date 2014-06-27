@@ -23,33 +23,45 @@
 
 void setup()
 {
+  Serial.setTimeout(500);
+  Serial.begin(115200);
+ 
+  Serial.println("------------------------------ Booting ------------------------------\n");
+  
   // Join I2C bus (I2Cdev library doesn't do this automatically).
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
   TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
+  Serial.println("Using Arduino Wire library.\n");
 #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
   Fastwire::setup(400, true);
+  Serial.println("Using Fastwire library.\n");
 #endif
 
-  Serial.setTimeout(500);
-  Serial.begin(115200);
-
-  // Encoder interrupts.
+  // Setup the encoders.
+  Serial.println("Attaching encoder interrupts...");
   attachInterrupt(LEFT_INTERRUPT, leftEncoderInterrupt, CHANGE);    // Init the interrupt mode for the left encoder.
   attachInterrupt(RIGHT_INTERRUPT, rightEncoderInterrupt, CHANGE);  // Init the interrupt mode for the right encoder. 
-
-  // Setup the sonar.
-  pinMode(ECHO_PIN, INPUT);
-  pinMode(TRIG_PIN, OUTPUT);
-
-  // Setup the encoders.
   pinMode(LEFT_ENCODER, INPUT);
   pinMode(RIGHT_ENCODER, INPUT);
 
+  // Setup the sonar.
+  Serial.print("Attaching sonar pins echo: ");
+  Serial.print(ECHO_PIN);
+  Serial.print(" and trig: ");
+  Serial.print(TRIG_PIN);
+  Serial.println("...");
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+
   // Attach sonar servo.
-  sonarServo.attach(8);
+  Serial.print("Attaching servo to pin ");
+  Serial.print(SERVO_PIN);
+  Serial.println("...");
+  sonarServo.attach(SERVO_PIN);
 
   // Setup the motors.
+  Serial.println("Attaching motors 1 to 4...");
   for (int i = 4; i <= 7; i++)
   {
     pinMode(i, OUTPUT);
@@ -61,12 +73,12 @@ void setup()
   /* MPU_6050 Configuration */
 
   // Initialize device.
-  Serial.println(F("Initializing MPU6050..."));
+  Serial.println(F("\nInitializing MPU6050..."));
   mpu.initialize();
 
   // Verify connection.
   Serial.println(F("Testing MPU6050 connection..."));
-  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful\n") : F("MPU6050 connection failed\n"));
 
   // Load and configure the DMP.
   Serial.println(F("Initializing DMP..."));
@@ -74,9 +86,9 @@ void setup()
 
   // Supply your own gyro offsets here, scaled for min sensitivity.
   mpu.setXGyroOffset(220);
-  mpu.setYGyroOffset(76);
+  mpu.setYGyroOffset(1200);
   mpu.setZGyroOffset(-85);
-  mpu.setZAccelOffset(1788); // 1688 factory default for my test chip.
+  mpu.setZAccelOffset(1788); // 1788 factory default for my test chip.
 
   // Make sure it worked (returns 0 if so).
   if (devStatus == 0) 
@@ -107,6 +119,8 @@ void setup()
     Serial.print(devStatus);
     Serial.println(F(")"));
   }
+  
+  Serial.println("\n------------------------------ Ready ------------------------------\n");
 }
 
 void loop()

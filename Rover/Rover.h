@@ -28,6 +28,9 @@
 #define TRIG_PIN 22
 #define ECHO_PIN 24
 
+// Servo pin.
+#define SERVO_PIN 8
+
 // Speed to run motors at.
 #define MOTOR_SPEED 255
 
