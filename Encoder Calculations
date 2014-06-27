@@ -1,0 +1,26 @@
+// How to get odometry using encoders alone.
+
+void updateOdometry(signed long deltaLeft, signed long deltaRight)
+{
+  double deltaDistance = (double) ((deltaLeft + deltaRight) * DISTANCE_PER_TICK) / 2;
+  double deltaX = deltaDistance * cos(theta);
+  double deltaY = deltaDistance * sin(theta);
+  double deltaHeading = (double)(deltaRight - deltaLeft) * RADIANS_PER_TICK;
+
+  x += deltaX;
+  y += deltaY;
+  theta += deltaHeading;
+
+  // Limit heading to 0 < heading & headin < 6.28
+  if (theta < 0)
+  {
+    theta += PI * 2;
+  }
+  else if (theta >= PI * 2)
+  {
+    theta -= PI * 2;
+  }
+
+  lastLeftTicks = leftTicks;
+  lastRightTicks = rightTicks;  
+}

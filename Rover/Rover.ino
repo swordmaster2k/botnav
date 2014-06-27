@@ -1,5 +1,5 @@
 /**
- * File: Robot.h
+ * File: Robot.ino
  * 
  * 
  *  
@@ -7,51 +7,371 @@
  * @version 14/04/2014
  */
 
+#include <Servo.h>
+#include "I2Cdev.h"
+#include "MPU6050_6Axis_MotionApps20.h"
+
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+#include "Wire.h"
+#endif
+
 #include "Rover.h"
+
+/************************************************************
+ * Arduino Functions
+ ************************************************************/
 
 void setup()
 {
-  Serial.begin(9600);                            
-  attachInterrupt(LEFT_INTERRUPT, leftEncoderInterrupt, CHANGE);    // Init the interrupt mode for the digital pin 2.
-  attachInterrupt(RIGHT_INTERRUPT, rightEncoderInterrupt, CHANGE);  // Init the interrupt mode for the digital pin 3.
+  // Join I2C bus (I2Cdev library doesn't do this automatically).
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
+  Wire.begin();
+  TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
+#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
+  Fastwire::setup(400, true);
+#endif
 
-  heading = 1.57;
+  Serial.setTimeout(500);
+  Serial.begin(115200);
+
+  // Encoder interrupts.
+  attachInterrupt(LEFT_INTERRUPT, leftEncoderInterrupt, CHANGE);    // Init the interrupt mode for the left encoder.
+  attachInterrupt(RIGHT_INTERRUPT, rightEncoderInterrupt, CHANGE);  // Init the interrupt mode for the right encoder. 
+
+  // Setup the sonar.
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(TRIG_PIN, OUTPUT);
+
+  // Setup the encoders.
+  pinMode(LEFT_ENCODER, INPUT);
+  pinMode(RIGHT_ENCODER, INPUT);
+
+  // Attach sonar servo.
+  sonarServo.attach(8);
+
+  // Setup the motors.
+  for (int i = 4; i <= 7; i++)
+  {
+    pinMode(i, OUTPUT);
+  }  
+
+  digitalWrite(M1_SPEED_CONTROL,LOW);   
+  digitalWrite(M2_SPEED_CONTROL,LOW);
+
+  /* MPU_6050 Configuration */
+
+  // Initialize device.
+  Serial.println(F("Initializing MPU6050..."));
+  mpu.initialize();
+
+  // Verify connection.
+  Serial.println(F("Testing MPU6050 connection..."));
+  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
+
+  // Load and configure the DMP.
+  Serial.println(F("Initializing DMP..."));
+  devStatus = mpu.dmpInitialize();
+
+  // Supply your own gyro offsets here, scaled for min sensitivity.
+  mpu.setXGyroOffset(220);
+  mpu.setYGyroOffset(76);
+  mpu.setZGyroOffset(-85);
+  mpu.setZAccelOffset(1788); // 1688 factory default for my test chip.
+
+  // Make sure it worked (returns 0 if so).
+  if (devStatus == 0) 
+  {
+    // Turn on the DMP, now that it's ready.
+    Serial.println(F("Enabling DMP..."));
+    mpu.setDMPEnabled(true);
+
+    // Enable Arduino interrupt detection.
+    Serial.println(F("Enabling interrupt detection (Arduino external interrupt 4)..."));
+    attachInterrupt(DMP_INTERRUPT, dmpDataReady, RISING);
+    mpuIntStatus = mpu.getIntStatus();
+
+    // Set our DMP Ready flag so the main loop() function knows it's okay to use it.
+    Serial.println(F("DMP ready! Waiting for first interrupt..."));
+    dmpReady = true;
+
+    // Get expected DMP packet size for later comparison.
+    packetSize = mpu.dmpGetFIFOPacketSize();
+  } 
+  else 
+  {
+    // ERROR!
+    // 1 = initial memory load failed.
+    // 2 = DMP configuration updates failed.
+    // (if it's going to break, usually the code will be 1).
+    Serial.print(F("DMP Initialization failed (code "));
+    Serial.print(devStatus);
+    Serial.println(F(")"));
+  }
 }
 
 void loop()
 {
-  if (millis() - timer > 100)
+  // If programming failed, don't try to do anything.
+  if (!dmpReady) 
+    return;
+
+  // Wait for MPU interrupt or extra packet(s) available.
+  while (!mpuInterrupt && fifoCount < packetSize) 
   {
-    updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
-    lastLeftTicks = leftTicks;
-    lastRightTicks = rightTicks;
-    
-    
-    timer = millis();
+    // Check to see if at least one character is available.
+    if (Serial.available()) 
+    {
+      // Redeclare this every time to clear the buffer.
+      char buffer[MAX_CHARACTERS]; 
+
+      bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
+
+      if (bytes > 0)
+      {
+        processCommand(buffer);
+      }
+    }
+
+    if (millis() - timer > messageRate)
+    {
+      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+
+      // Send odometry data to host.
+      Serial.print(odometryHeader);
+      Serial.print(separator);
+      Serial.print(x, DEC);
+      Serial.print(separator);
+      Serial.print(y, DEC);
+      Serial.print(separator);
+      Serial.print(theta, DEC);
+      Serial.println(); // Message terminated by \n.
+
+      timer = millis();
+    }
   }
+
+  // Wait for MPU interrupt or extra packet(s) available.
+  while (!mpuInterrupt && fifoCount < packetSize) 
+  {
+    // Check to see if at least one character is available.
+    if (Serial.available()) 
+    {
+      // Redeclare this every time to clear the buffer.
+      char buffer[MAX_CHARACTERS]; 
+
+      bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
+
+      if (bytes > 0)
+      {
+        processCommand(buffer);
+      }
+    }
+
+    if (millis() - timer > messageRate)
+    {
+      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+
+      // Send odometry data to host.
+      Serial.print(odometryHeader);
+      Serial.print(separator);
+      Serial.print(x, DEC);
+      Serial.print(separator);
+      Serial.print(y, DEC);
+      Serial.print(separator);
+      Serial.print(theta, DEC);
+      Serial.println(); // Message terminated by \n.
+
+      timer = millis();
+    }
+  }
+
+  // Reset interrupt flag and get INT_STATUS byte.
+  mpuInterrupt = false;
+  mpuIntStatus = mpu.getIntStatus();
+
+  // Get current FIFO count.
+  fifoCount = mpu.getFIFOCount();
+
+  // Check for overflow (this should never happen unless our code is too inefficient).
+  if ((mpuIntStatus & 0x10) || fifoCount == 1024) 
+  {
+    // Reset so we can continue cleanly.
+    mpu.resetFIFO();
+    Serial.println(F("FIFO overflow!"));
+  } 
+  else if (mpuIntStatus & 0x02) // Otherwise, check for DMP data ready interrupt (this should happen frequently).
+  {
+    // Wait for correct available data length, should be a VERY short wait.
+    while (fifoCount < packetSize) 
+      fifoCount = mpu.getFIFOCount();
+
+    // Read a packet from FIFO.
+    mpu.getFIFOBytes(fifoBuffer, packetSize);
+
+    // Track FIFO count here in case there is > 1 packet available
+    // (this lets us immediately read more without waiting for an interrupt).
+    fifoCount -= packetSize;
+
+    // Display Euler angles in degrees.
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+
+    theta = ypr[0];
+
+    // Limit heading to 0 < heading < 6.28.
+    if (theta < 0)
+    {
+      theta += PI * 2;
+    }
+    else if (theta >= PI * 2)
+    {
+      theta -= PI * 2;
+    }
+  }
+}
+
+/************************************************************
+ * Rover Functions
+ ************************************************************/
+
+void processCommand(char command[])
+{
+  switch (tolower(command[0]))
+  {
+  case 'w':
+#if DEBUG
+    Serial.println("Forward");
+#endif
+    goForward();
+    break;
+  case 's':
+#if DEBUG
+    Serial.println("Backward");
+#endif
+    goBackward();
+    break;
+  case 'a':
+#if DEBUG
+    Serial.println("Left");
+#endif
+    turnLeft();
+    break;
+  case 'd':
+#if DEBUG
+    Serial.println("Right");
+#endif
+    turnRight();
+    break;  
+  case 'q':
+#if DEBUG
+    Serial.println("Halt");
+#endif
+    halt();
+    break;
+  case 'r':
+    //    // Second byte is the angle to rotate too,
+    //    // divide by 100 to get radians.
+    //    double angle = command[1] / 100;
+    //    
+    //    if (command[1] >= 0 && command[1] <= 6.28)
+    //    {
+    //      // Rotate the robot to this degreeition.
+    //    }
+    //    else
+    //    {
+    //      Serial.print("Rotation outside of bounds: ");
+    //      Serial.println((short)command[1]); 
+    //    }
+    break;
+  case 'e':
+#if DEBUG
+    Serial.println("Scan");
+#endif
+    halt();
+    scan();
+    break;
+  default: 
+    Serial.print("Unknown command \"");
+    Serial.print(command[0]);
+    Serial.println("\"");
+  }  
 }
 
 void updateOdometry(signed long deltaLeft, signed long deltaRight)
 {
   double deltaDistance = (double) ((deltaLeft + deltaRight) * DISTANCE_PER_TICK) / 2;
-  double deltaX = deltaDistance * cos(heading);
-  double deltaY = deltaDistance * sin(heading);
-  double deltaHeading = (double)(deltaRight - deltaLeft) * RADIANS_PER_TICK;
+  double deltaX = deltaDistance * cos(theta);
+  double deltaY = deltaDistance * sin(theta);
 
   x += deltaX;
   y += deltaY;
-  heading += deltaHeading;
 
-  // Limit heading to 0 < - > 6.28
-  if (heading < 0)
+  // Limit heading to 0 < heading < 6.28.
+  if (theta < 0)
   {
-    heading += PI * 2;
+    theta += PI * 2;
   }
-  else if (heading >= PI * 2)
+  else if (theta >= PI * 2)
   {
-    heading -= PI * 2;
-  }  
+    theta -= PI * 2;
+  }
+
+  lastLeftTicks = leftTicks;
+  lastRightTicks = rightTicks;  
 }
+
+void scan()
+{
+  unsigned char degree;
+
+  for (degree = 0; degree < 170; degree++)        // Goes from 11 degrees to 180 degrees 
+  {                                               // in steps of 1 degree.  
+    sonarServo.write(degree + 11);                // Account for the fact that we start at 0 instead of 11.
+    delay(25);                                    // Waits 25ms for the servo to reach the degreeition.
+    distances[degree] = takeReading();            // Store sonar reading at current degreeition.
+  } 
+
+  // Return to center degreeition.
+  sonarServo.write(90);
+
+  // Send readings back to the host.
+  Serial.print(scanReadingsHeader);
+
+  for (int i = 0; i < 170; i++)
+  {
+    Serial.print(",");
+    Serial.print(distances[i], DEC); 
+  }
+
+  Serial.println(); // Message terminated by CR/LF.
+}
+
+double takeReading()
+{
+  double duration; // Duration used to calculate distance.
+  double distance; 
+
+  /* The following trigPin/echoPin cycle is used to determine the
+   distance of the nearest object by bouncing soundwaves off of it. */
+  digitalWrite(TRIG_PIN, LOW); 
+  delayMicroseconds(2); 
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10); 
+
+  digitalWrite(TRIG_PIN, LOW);
+  duration = pulseIn(ECHO_PIN, HIGH);
+
+  // Calculate the distance (in m) based on the speed of sound.
+  distance = (duration / 58.2) / 100;
+
+  return distance;
+}
+
+/************************************************************
+ * Interrupt Handlers
+ ************************************************************/
 
 void leftEncoderInterrupt()
 {
@@ -62,3 +382,59 @@ void rightEncoderInterrupt()
 {
   rightTicks++;
 }
+
+void dmpDataReady() 
+{
+  mpuInterrupt = true;
+}
+
+/************************************************************
+ * Motor Functions
+ ************************************************************/
+
+void goForward()
+{
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
+  digitalWrite(M1, LOW);    
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  digitalWrite(M2, LOW);
+}
+
+void goBackward()
+{
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
+  digitalWrite(M1, HIGH);    
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  digitalWrite(M2, HIGH);
+}
+
+void turnLeft()
+{
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
+  digitalWrite(M1, LOW);    
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  digitalWrite(M2, HIGH);
+}
+
+void turnRight()
+{
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
+  digitalWrite(M1, HIGH);    
+  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  digitalWrite(M2, LOW);
+}
+
+void halt()
+{
+  digitalWrite(M1_SPEED_CONTROL,0); 
+  digitalWrite(M1, LOW);    
+  digitalWrite(M2_SPEED_CONTROL,0);   
+  digitalWrite(M2, LOW);
+}
+
+
+
+
+
+
+
