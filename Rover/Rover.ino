@@ -4,10 +4,10 @@
  * 
  *  
  * @author Joshua Michael Daly
- * @version 14/04/2014
+ * @version 27/06/2014
  */
 
-#include <Servo.h>
+#include <Servo.h> 
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 
@@ -25,9 +25,9 @@ void setup()
 {
   Serial.setTimeout(500);
   Serial.begin(115200);
- 
+
   Serial.println("------------------------------ Booting ------------------------------\n");
-  
+
   // Join I2C bus (I2Cdev library doesn't do this automatically).
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
@@ -119,7 +119,7 @@ void setup()
     Serial.print(devStatus);
     Serial.println(F(")"));
   }
-  
+
   Serial.println("\n------------------------------ Ready ------------------------------\n");
 }
 
@@ -128,41 +128,6 @@ void loop()
   // If programming failed, don't try to do anything.
   if (!dmpReady) 
     return;
-
-  // Wait for MPU interrupt or extra packet(s) available.
-  while (!mpuInterrupt && fifoCount < packetSize) 
-  {
-    // Check to see if at least one character is available.
-    if (Serial.available()) 
-    {
-      // Redeclare this every time to clear the buffer.
-      char buffer[MAX_CHARACTERS]; 
-
-      bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
-
-      if (bytes > 0)
-      {
-        processCommand(buffer);
-      }
-    }
-
-    if (millis() - timer > messageRate)
-    {
-      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
-
-      // Send odometry data to host.
-      Serial.print(odometryHeader);
-      Serial.print(separator);
-      Serial.print(x, DEC);
-      Serial.print(separator);
-      Serial.print(y, DEC);
-      Serial.print(separator);
-      Serial.print(theta, DEC);
-      Serial.println(); // Message terminated by \n.
-
-      timer = millis();
-    }
-  }
 
   // Wait for MPU interrupt or extra packet(s) available.
   while (!mpuInterrupt && fifoCount < packetSize) 
@@ -410,7 +375,7 @@ void goForward()
 {
   analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
   digitalWrite(M1, LOW);    
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, LOW);
 }
 
@@ -418,7 +383,7 @@ void goBackward()
 {
   analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
   digitalWrite(M1, HIGH);    
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, HIGH);
 }
 
@@ -426,7 +391,7 @@ void turnLeft()
 {
   analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
   digitalWrite(M1, LOW);    
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, HIGH);
 }
 
@@ -434,7 +399,7 @@ void turnRight()
 {
   analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
   digitalWrite(M1, HIGH);    
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);    
+  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, LOW);
 }
 
@@ -445,6 +410,12 @@ void halt()
   digitalWrite(M2_SPEED_CONTROL,0);   
   digitalWrite(M2, LOW);
 }
+
+
+
+
+
+
 
 
 
