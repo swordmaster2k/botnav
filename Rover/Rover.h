@@ -85,7 +85,7 @@ double distances[170]; // Stores range finder distances during scans.
  * Sensor Connections
  ************************************************************/
  
- // MPU6050
+ // MPU6050.
  MPU6050 mpu;
  volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
  bool dmpReady = false;  // set true if DMP init was successful
