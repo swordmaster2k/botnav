@@ -1,7 +1,15 @@
+import threading
+
 from threading import Thread
 from events import OdometryReport
 from events import ScanResult
 
+'''
+Handles all communication to and from a robot on a dedicated thread.
+
+Compatible with any from of connection as long as they implement write()
+and readline().
+'''
 class Proxy(Thread):
     def __init__(self, port):
         self.mutex = threading.Lock()
@@ -33,7 +41,7 @@ class Proxy(Thread):
             elif data[0] == 's':
                 parameters = data.split(',')
 
-                if len(parameters < 2):
+                if len(parameters > 2):
                     continue
 
                 result = ScanResult(parameters)

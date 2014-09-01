@@ -1,0 +1,13 @@
+# Compiled Source #
+###################
+*.pyc
+
+# Package Files #
+#################
+*.jar
+*.war
+*.ear
+
+# Testing Folders #
+###################
+__pycache__/

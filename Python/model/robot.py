@@ -29,7 +29,7 @@ class Robot:
     
     '''
     def go_forward(self):
-        connection.send("w\n")
+        self.connection.send("w\n")
 
         self.state = "Moving Forward"
 
@@ -37,7 +37,7 @@ class Robot:
 
     '''
     def go_backward(self):
-        connection.send("s\n")
+        self.connection.send("s\n")
 
         self.state = "Moving Backward"
 
@@ -45,7 +45,7 @@ class Robot:
     
     ''' 
     def rotate_left(self):
-        connection.send("a\n")
+        self.connection.send("a\n")
 
         self.state = "Rotating Left"
 
@@ -53,7 +53,7 @@ class Robot:
 
     '''
     def rotate_right(self):
-        connection.send("d\n")
+        self.connection.send("d\n")
 
         self.state = "Rotating Right"
 
@@ -61,7 +61,7 @@ class Robot:
 
     '''
     def halt(self):
-        connection.send("q\n")
+        self.connection.send("q\n")
 
         self.state = "Halted"
 
@@ -69,7 +69,7 @@ class Robot:
 
     '''
     def scan(self):
-        connection.send("e\n")
+        self.connection.send("e\n")
 
         self.state = "Scanning"
 
@@ -77,7 +77,7 @@ class Robot:
 
     '''
     def reset(self):
-        connection.send("z\n")
+        self.connection.send("z\n")
 
         self.state = "Resetting"
 
