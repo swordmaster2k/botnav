@@ -1,3 +1,5 @@
+import math
+
 '''
 
 '''
@@ -80,6 +82,45 @@ class Robot:
         self.connection.send("z\n")
 
         self.state = "Resetting"
+
+    '''
+
+    '''
+    def rotate_to(self, heading):
+        self.connection.send("r\n");
+
+        self.state = "Rotating"
+        
+        '''
+        angle = heading - self.heading
+
+        if angle < -math.pi:
+            angle += math.pi * 2
+        elif angle > math.pi:
+            angle -= math.pi * 2
+
+        left_buffer = heading + 0.09
+        right_buffer = heading - 0.09
+
+        if left_buffer > math.pi * 2:
+            left_buffer -= math.pi * 2
+
+        if right_buffer < -math.pi * 2:
+            right_buffer += math.pi * 2
+
+        if angle < 0:
+            self.rotate_left()
+        elif angle > 0:
+            self.rotate_right()
+
+        print(right_buffer)
+        print(left_buffer)
+
+        while not (self.heading >= right_buffer and self.heading <= left_buffer):
+            True # Busy wait.
+
+        self.halt()
+        '''
 
     '''
     Ideally this should be event or listener based, currently it just returns a boolean value

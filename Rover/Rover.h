@@ -63,7 +63,7 @@ const char scanReadingsHeader = 's';
 
 // Message timing.
 static unsigned long timer = 0;
-const unsigned long messageRate = 500.0; // Milliseconds.
+const unsigned long messageRate = 100.0; // Milliseconds.
 
 /************************************************************
  * Odometry and Scan Data

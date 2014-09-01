@@ -7,12 +7,16 @@ from events import ScanResult
 '''
 Handles all communication to and from a robot on a dedicated thread.
 
+It also pools all of the information coming from the robot into an event
+queue.
+
 Compatible with any from of connection as long as they implement write()
 and readline().
 '''
 class Proxy(Thread):
-    def __init__(self, port):
+    def __init__(self, listener, port):
         self.mutex = threading.Lock()
+        self.listener = listener
         self.connection = port
         self.events = []
         
@@ -38,15 +42,19 @@ class Proxy(Thread):
 
                 with self.mutex:
                     self.events.append(report)
+
+                self.listener.pop_event()
             elif data[0] == 's':
                 parameters = data.split(',')
 
-                if len(parameters > 2):
+                if len(parameters) > 2:
                     continue
 
                 result = ScanResult(parameters)
 
                 with self.mutex:
                     self.events.append(result)
+
+                self.listener.pop_event()
             else:
                 print(data)

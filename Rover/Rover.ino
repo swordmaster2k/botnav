@@ -2,7 +2,7 @@
  * File: Robot.ino
  * 
  * 
- *  
+ * 
  * @author Joshua Michael Daly
  * @version 27/06/2014
  */
@@ -164,50 +164,7 @@ void loop()
     }
   }
 
-  // Reset interrupt flag and get INT_STATUS byte.
-  mpuInterrupt = false;
-  mpuIntStatus = mpu.getIntStatus();
-
-  // Get current FIFO count.
-  fifoCount = mpu.getFIFOCount();
-
-  // Check for overflow (this should never happen unless our code is too inefficient).
-  if ((mpuIntStatus & 0x10) || fifoCount == 1024) 
-  {
-    // Reset so we can continue cleanly.
-    mpu.resetFIFO();
-    Serial.println(F("FIFO overflow!"));
-  } 
-  else if (mpuIntStatus & 0x02) // Otherwise, check for DMP data ready interrupt (this should happen frequently).
-  {
-    // Wait for correct available data length, should be a VERY short wait.
-    while (fifoCount < packetSize) 
-      fifoCount = mpu.getFIFOCount();
-
-    // Read a packet from FIFO.
-    mpu.getFIFOBytes(fifoBuffer, packetSize);
-
-    // Track FIFO count here in case there is > 1 packet available
-    // (this lets us immediately read more without waiting for an interrupt).
-    fifoCount -= packetSize;
-
-    // Display Euler angles in degrees.
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-
-    theta = ypr[0];
-
-    // Limit heading to 0 < heading < 6.28.
-    if (theta < 0)
-    {
-      theta += PI * 2;
-    }
-    else if (theta >= PI * 2)
-    {
-      theta -= PI * 2;
-    }
-  }
+  processGyro();
 }
 
 /************************************************************
@@ -262,6 +219,7 @@ void processCommand(char command[])
     //      Serial.print("Rotation outside of bounds: ");
     //      Serial.println((short)command[1]); 
     //    }
+    rotateTo(3.14);
     break;
   case 'e':
 #if DEBUG
@@ -275,6 +233,54 @@ void processCommand(char command[])
     Serial.print(command[0]);
     Serial.println("\"");
   }  
+}
+
+void processGyro()
+{
+  // Reset interrupt flag and get INT_STATUS byte.
+  mpuInterrupt = false;
+  mpuIntStatus = mpu.getIntStatus();
+
+  // Get current FIFO count.
+  fifoCount = mpu.getFIFOCount();
+
+  // Check for overflow (this should never happen unless our code is too inefficient).
+  if ((mpuIntStatus & 0x10) || fifoCount == 1024) 
+  {
+    // Reset so we can continue cleanly.
+    mpu.resetFIFO();
+    Serial.println(F("FIFO overflow!"));
+  } 
+  else if (mpuIntStatus & 0x02) // Otherwise, check for DMP data ready interrupt (this should happen frequently).
+  {
+    // Wait for correct available data length, should be a VERY short wait.
+    while (fifoCount < packetSize) 
+      fifoCount = mpu.getFIFOCount();
+
+    // Read a packet from FIFO.
+    mpu.getFIFOBytes(fifoBuffer, packetSize);
+
+    // Track FIFO count here in case there is > 1 packet available
+    // (this lets us immediately read more without waiting for an interrupt).
+    fifoCount -= packetSize;
+
+    // Display Euler angles in degrees.
+    mpu.dmpGetQuaternion(&q, fifoBuffer);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+
+    theta = ypr[0];
+
+    // Limit heading to 0 < heading < 6.28.
+    if (theta < 0)
+    {
+      theta += PI * 2;
+    }
+    else if (theta >= PI * 2)
+    {
+      theta -= PI * 2;
+    }
+  }
 }
 
 void updateOdometry(signed long deltaLeft, signed long deltaRight)
@@ -346,6 +352,102 @@ double takeReading()
   distance = (duration / 58.2) / 100;
 
   return distance;
+}
+
+void rotateTo(double heading)
+{
+  processGyro();
+  double angle = heading - theta;
+  
+  #if DEBUG
+    Serial.print("Current Heading = ");
+    Serial.println(theta);
+  #endif
+  
+  /*
+  * Check to see if our angle has extended beyond the 0/360 degree 
+  * line. Our maximum turning arcs from right or left is 180 degrees,
+  * so if our angle has crossed the line we must "wrap" it around.
+  */
+  if (angle < -M_PI)
+  {
+     angle += M_PI * 2; 
+  }
+  else if (angle > M_PI)
+  {
+    angle -= M_PI * 2;
+  }
+  
+  #if DEBUG
+    Serial.print("Angle = ");
+    Serial.println(angle);
+  #endif
+  
+  // Set up a buffer on either side of our requested angle of 1 degree.
+  double leftBuffer = heading + 0.02;
+  double rightBuffer = heading - 0.02;
+  
+  // Wrap around the buffer values if needed.
+  if (leftBuffer > M_PI * 2)
+  {
+    leftBuffer -= M_PI * 2;
+  }
+  
+  if (rightBuffer < -(M_PI * 2))
+  {
+    rightBuffer += M_PI * 2;
+  }
+  
+  #if DEBUG
+    Serial.print("LeftBuffer = ");
+    Serial.println(leftBuffer);
+    Serial.print("RightBuffer = ");
+    Serial.println(rightBuffer);
+  #endif
+  
+  // Our circle is based on a left hand axis where all negative values
+  // indicated movement around the left of the circle.
+  if (angle < 0)
+  {
+    Serial.println("Turning Left");
+    turnLeft();  
+  }
+  else if (angle > 0)
+  {
+    Serial.println("Turning Right");
+    turnRight();
+  }
+  
+  while (!(theta >= rightBuffer && theta <= leftBuffer))
+  {
+    while (!mpuInterrupt && fifoCount < packetSize)
+      ;
+    
+    processGyro();
+    updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+    
+    if (millis() - timer > 1000)
+    {
+      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+
+      // Send odometry data to host.
+      Serial.print(odometryHeader);
+      Serial.print(separator);
+      Serial.print(x, DEC);
+      Serial.print(separator);
+      Serial.print(y, DEC);
+      Serial.print(separator);
+      Serial.print(theta, DEC);
+      Serial.println(); // Message terminated by \n.
+
+      timer = millis();
+    }
+  }
+
+  halt();
+
+  Serial.print("Current Heading = ");
+  Serial.println(theta); // Output in degrees.
 }
 
 /************************************************************
