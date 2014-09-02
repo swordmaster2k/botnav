@@ -50,7 +50,7 @@ const double TRACK_WIDTH = 0.119;
  ************************************************************/
 
 // Max characters on allowed message line.
-#define MAX_CHARACTERS 5
+#define MAX_CHARACTERS 6
 
 // Number of bytes read from the serial line.
 short bytes;

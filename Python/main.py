@@ -31,29 +31,33 @@ class Main(threading.Thread):
 			
             command = input()
             
-            if command == "w":
+            if command[0] == "w":
                     self.robot.go_forward()
-            elif command == "s":
+            elif command[0] == "s":
                     self.robot.go_backward()
-            elif command == "a":
+            elif command[0] == "a":
                     self.robot.rotate_left()
-            elif command == "d":
+            elif command[0] == "d":
                     self.robot.rotate_right()
-            elif command == "q":
+            elif command[0] == "q":
                     self.robot.halt()
-            elif command == "e":
+            elif command[0] == "e":
+                    if command == "end":
+                        break;
+                
                     self.robot.scan()
-            elif command == "z":
+            elif command[0] == "z":
                     self.robot.reset()
-            elif command == "r":
-            		self.robot.rotate_to(3.14)
-            elif command == "end":
-                    break
+            elif command[0] == "r":
+                    if len(command) < 5:
+                        print("Invalid heading format rX.XX: " + command)
+                        continue
+
+                    self.robot.rotate_to(float(command[1:5]))
             else:
                     print("Unknown command: " + command)
 	
     def pop_event(self):
-        print(isinstance(self, Main))
         # Attempt to get the lock and then process 
         # any events.
         with self.proxy.mutex:

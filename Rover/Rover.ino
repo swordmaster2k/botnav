@@ -132,33 +132,15 @@ void loop()
   // Wait for MPU interrupt or extra packet(s) available.
   while (!mpuInterrupt && fifoCount < packetSize) 
   {
-    // Check to see if at least one character is available.
-    if (Serial.available()) 
+    if (Serial.available())
     {
-      // Redeclare this every time to clear the buffer.
-      char buffer[MAX_CHARACTERS]; 
-
-      bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
-
-      if (bytes > 0)
-      {
-        processCommand(buffer);
-      }
+      processSerial(); 
     }
 
     if (millis() - timer > messageRate)
     {
       updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
-
-      // Send odometry data to host.
-      Serial.print(odometryHeader);
-      Serial.print(separator);
-      Serial.print(x, DEC);
-      Serial.print(separator);
-      Serial.print(y, DEC);
-      Serial.print(separator);
-      Serial.print(theta, DEC);
-      Serial.println(); // Message terminated by \n.
+      sendOdometry();     
 
       timer = millis();
     }
@@ -170,6 +152,36 @@ void loop()
 /************************************************************
  * Rover Functions
  ************************************************************/
+
+void processSerial()
+{
+  // Check to see if at least one character is available.
+  if (Serial.available()) 
+  {
+    // Redeclare this every time to clear the buffer.
+    char buffer[MAX_CHARACTERS]; 
+
+    bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
+
+    if (bytes > 0)
+    {
+      processCommand(buffer);
+    }
+  }
+}
+
+void sendOdometry()
+{
+  // Send odometry data to host.
+  Serial.print(odometryHeader);
+  Serial.print(separator);
+  Serial.print(x, DEC);
+  Serial.print(separator);
+  Serial.print(y, DEC);
+  Serial.print(separator);
+  Serial.print(theta, DEC);
+  Serial.println(); // Message terminated by \n.
+}
 
 void processCommand(char command[])
 {
@@ -206,20 +218,7 @@ void processCommand(char command[])
     halt();
     break;
   case 'r':
-    //    // Second byte is the angle to rotate too,
-    //    // divide by 100 to get radians.
-    //    double angle = command[1] / 100;
-    //    
-    //    if (command[1] >= 0 && command[1] <= 6.28)
-    //    {
-    //      // Rotate the robot to this degreeition.
-    //    }
-    //    else
-    //    {
-    //      Serial.print("Rotation outside of bounds: ");
-    //      Serial.println((short)command[1]); 
-    //    }
-    rotateTo(3.14);
+    parseRotation(command);
     break;
   case 'e':
 #if DEBUG
@@ -232,7 +231,7 @@ void processCommand(char command[])
     Serial.print("Unknown command \"");
     Serial.print(command[0]);
     Serial.println("\"");
-  }  
+  }
 }
 
 void processGyro()
@@ -354,57 +353,73 @@ double takeReading()
   return distance;
 }
 
+void parseRotation(char command[])
+{  
+  char data[4];
+  data[0] = command[1];
+  data[1] = command[2];
+  data[2] = command[3];
+  data[3] = command[4];
+
+  double heading = atof(data);
+
+  if (heading >= 0.0 && heading <= 6.27)
+  {
+    rotateTo(heading); 
+  }
+}
+
 void rotateTo(double heading)
 {
   processGyro();
   double angle = heading - theta;
-  
-  #if DEBUG
-    Serial.print("Current Heading = ");
-    Serial.println(theta);
-  #endif
-  
+
+#if DEBUG
+  Serial.print("Current Heading = ");
+  Serial.println(theta);
+#endif
+
   /*
   * Check to see if our angle has extended beyond the 0/360 degree 
-  * line. Our maximum turning arcs from right or left is 180 degrees,
-  * so if our angle has crossed the line we must "wrap" it around.
-  */
+   * line. Our maximum turning arcs from right or left is 180 degrees,
+   * so if our angle has crossed the line we must "wrap" it around.
+   */
   if (angle < -M_PI)
   {
-     angle += M_PI * 2; 
+    angle += M_PI * 2; 
   }
   else if (angle > M_PI)
   {
     angle -= M_PI * 2;
   }
-  
-  #if DEBUG
-    Serial.print("Angle = ");
-    Serial.println(angle);
-  #endif
-  
+
+#if DEBUG
+  Serial.print("Angle = ");
+  Serial.println(angle);
+#endif
+
   // Set up a buffer on either side of our requested angle of 1 degree.
-  double leftBuffer = heading + 0.02;
-  double rightBuffer = heading - 0.02;
-  
+  double leftBuffer = heading + 0.01;
+  double rightBuffer = heading - 0.01;
+
   // Wrap around the buffer values if needed.
   if (leftBuffer > M_PI * 2)
   {
     leftBuffer -= M_PI * 2;
   }
-  
+
   if (rightBuffer < -(M_PI * 2))
   {
     rightBuffer += M_PI * 2;
   }
-  
-  #if DEBUG
-    Serial.print("LeftBuffer = ");
-    Serial.println(leftBuffer);
-    Serial.print("RightBuffer = ");
-    Serial.println(rightBuffer);
-  #endif
-  
+
+#if DEBUG
+  Serial.print("LeftBuffer = ");
+  Serial.println(leftBuffer);
+  Serial.print("RightBuffer = ");
+  Serial.println(rightBuffer);
+#endif
+
   // Our circle is based on a left hand axis where all negative values
   // indicated movement around the left of the circle.
   if (angle < 0)
@@ -417,29 +432,43 @@ void rotateTo(double heading)
     Serial.println("Turning Right");
     turnRight();
   }
-  
+
+  boolean interrupted = false;
+  char command[MAX_CHARACTERS];
+
   while (!(theta >= rightBuffer && theta <= leftBuffer))
   {
     while (!mpuInterrupt && fifoCount < packetSize)
-      ;
-    
+    {
+      // Check to see if at least one character is available.
+      if (Serial.available()) 
+      {
+        // Redeclare this every time to clear the buffer.
+        char buffer[MAX_CHARACTERS]; 
+
+        bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
+
+        if (bytes > 0)
+        {
+          strcpy(command, buffer);
+          interrupted = true;
+        }
+      }
+    }
+
+    if (interrupted)
+    {
+      break; 
+    }
+
     processGyro();
     updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
-    
+
     if (millis() - timer > 1000)
     {
       updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
-
-      // Send odometry data to host.
-      Serial.print(odometryHeader);
-      Serial.print(separator);
-      Serial.print(x, DEC);
-      Serial.print(separator);
-      Serial.print(y, DEC);
-      Serial.print(separator);
-      Serial.print(theta, DEC);
-      Serial.println(); // Message terminated by \n.
-
+      sendOdometry();
+      
       timer = millis();
     }
   }
@@ -448,6 +477,11 @@ void rotateTo(double heading)
 
   Serial.print("Current Heading = ");
   Serial.println(theta); // Output in degrees.
+
+  if (interrupted)
+  {
+    processCommand(command); 
+  }
 }
 
 /************************************************************
@@ -512,6 +546,10 @@ void halt()
   digitalWrite(M2_SPEED_CONTROL,0);   
   digitalWrite(M2, LOW);
 }
+
+
+
+
 
 
 
