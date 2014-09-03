@@ -33,15 +33,11 @@ class Robot:
     def go_forward(self):
         self.connection.send("w\n")
 
-        self.state = "Moving Forward"
-
     '''
 
     '''
     def go_backward(self):
         self.connection.send("s\n")
-
-        self.state = "Moving Backward"
 
     '''
     
@@ -49,15 +45,11 @@ class Robot:
     def rotate_left(self):
         self.connection.send("a\n")
 
-        self.state = "Rotating Left"
-
     '''
 
     '''
     def rotate_right(self):
         self.connection.send("d\n")
-
-        self.state = "Rotating Right"
 
     '''
 
@@ -65,15 +57,11 @@ class Robot:
     def halt(self):
         self.connection.send("q\n")
 
-        self.state = "Halted"
-
     '''
 
     '''
     def scan(self):
         self.connection.send("e\n")
-
-        self.state = "Scanning"
 
     '''
 
@@ -81,18 +69,78 @@ class Robot:
     def reset(self):
         self.connection.send("z\n")
 
-        self.state = "Resetting"
-
     '''
 
     '''
     def rotate_to(self, heading):
-        if (not (heading >= 0.0 and heading <= 6.27)):
-            return
+        if (not (heading >= 0.0 and heading <= 6.28)):
+            print("heading not within bounds: " + str(heading))
+            return -1
+        elif (self.heading == heading):
+            print("already at heading: " + str(heading))
+            return heading
 
-        self.connection.send("r" + str(heading) + "\n");
+        print("rotate_to: " + str(heading))
 
-        self.state = "Rotating"
+        self.connection.send("r" + str(round(heading, 2)) + "\n")
+
+        return heading
+
+    def travel_distance(self, distance):
+        print("travel_distance: " + str(distance))
+
+        self.connection.send("t" + str(distance) + "\n")
+
+    '''
+    
+    '''
+    def face(self, x, y):
+        dx = x - self.x
+        dy = y - self.y
+
+        alpha = math.atan2(dy, dx)
+        beta = alpha - self.heading
+
+        if beta < 0:
+            beta += 6.28
+        elif beta >= 6.28:
+            beta -= 6.28
+
+        heading = self.heading + beta
+
+        if heading < 0:
+            heading += 6.28
+        elif heading >= 6.28:
+            heading -= 6.28
+
+        heading = self.rotate_to(round(heading, 2))
+
+        return heading
+
+    def go_to(self, x, y):
+        heading = self.face(x, y)
+
+        if heading == -1:
+            return heading # Error.
+
+        left_buffer = heading + 0.01
+        right_buffer = heading - 0.01
+
+        if left_buffer > 6.28:
+            left_buffer -= 6.28
+
+        if right_buffer < -6.28:
+            right_buffer += 6.28
+
+        print("left_buffer: " + str(left_buffer))
+        print("right_buffer: " + str(right_buffer))
+
+        while not (self.heading >= right_buffer and self.heading <= left_buffer):
+            True # Busy waiting
+
+        distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
+
+        self.travel_distance(round(distance, 2)) 
 
     '''
     Ideally this should be event or listener based, currently it just returns a boolean value
@@ -112,6 +160,11 @@ class Robot:
         if self.heading != update.heading:
             self.heading = update.heading
             changed = True
+
+            if self.heading < 0:
+                self.heading += 6.28
+            elif self.heading >= 6.28:
+                self.heading -= 6.28
 
         if changed:
             self.path.append([self.x, self.y])

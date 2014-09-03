@@ -86,7 +86,7 @@ void setup()
 
   // Supply your own gyro offsets here, scaled for min sensitivity.
   mpu.setXGyroOffset(220);
-  mpu.setYGyroOffset(1200);
+  mpu.setYGyroOffset(1185);
   mpu.setZGyroOffset(-85);
   mpu.setZAccelOffset(1788); // 1788 factory default for my test chip.
 
@@ -139,14 +139,21 @@ void loop()
 
     if (millis() - timer > messageRate)
     {
-      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
       sendOdometry();     
 
       timer = millis();
+
+#if DEBUG
+      //Serial.print("left ticks: ");
+      //Serial.println(leftTicks);
+      //Serial.print("right ticks: ");
+      //Serial.println(rightTicks);
+#endif
     }
   }
 
   processGyro();
+  updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
 }
 
 /************************************************************
@@ -172,14 +179,15 @@ void processSerial()
 
 void sendOdometry()
 {
-  // Send odometry data to host.
+  // Send odometry data to host with,
+  // a resolution of 2 decimal places.
   Serial.print(odometryHeader);
   Serial.print(separator);
-  Serial.print(x, DEC);
+  Serial.print(x);
   Serial.print(separator);
-  Serial.print(y, DEC);
+  Serial.print(y);
   Serial.print(separator);
-  Serial.print(theta, DEC);
+  Serial.print(theta);
   Serial.println(); // Message terminated by \n.
 }
 
@@ -188,44 +196,29 @@ void processCommand(char command[])
   switch (tolower(command[0]))
   {
   case 'w':
-#if DEBUG
-    Serial.println("Forward");
-#endif
     goForward();
     break;
   case 's':
-#if DEBUG
-    Serial.println("Backward");
-#endif
     goBackward();
     break;
   case 'a':
-#if DEBUG
-    Serial.println("Left");
-#endif
     turnLeft();
     break;
   case 'd':
-#if DEBUG
-    Serial.println("Right");
-#endif
     turnRight();
     break;  
   case 'q':
-#if DEBUG
-    Serial.println("Halt");
-#endif
     halt();
     break;
   case 'r':
     parseRotation(command);
     break;
   case 'e':
-#if DEBUG
-    Serial.println("Scan");
-#endif
     halt();
     scan();
+    break;
+  case 't':
+    parseDistance(command);
     break;
   default: 
     Serial.print("Unknown command \"");
@@ -268,38 +261,49 @@ void processGyro()
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
 
-    theta = ypr[0];
+    // Negatate here because on my Cherokey rig the x-axis is on the wrong side.
+    theta = -ypr[0];
+    theta -= 3.14; // Due to the negatation.
 
     // Limit heading to 0 < heading < 6.28.
     if (theta < 0)
     {
-      theta += PI * 2;
+      theta += 6.28;
     }
-    else if (theta >= PI * 2)
+    else if (theta >= 6.28)
     {
-      theta -= PI * 2;
+      theta -= 6.28;
     }
   }
 }
 
 void updateOdometry(signed long deltaLeft, signed long deltaRight)
 {
+  // Assume a pure rotation around our point until we fix the encoders...
+  if (state == TURNING_LEFT || state == TURNING_RIGHT)
+  {
+    lastLeftTicks = leftTicks;
+    lastRightTicks = rightTicks;
+    return; 
+  }
+
   double deltaDistance = (double) ((deltaLeft + deltaRight) * DISTANCE_PER_TICK) / 2;
-  double deltaX = deltaDistance * cos(theta);
-  double deltaY = deltaDistance * sin(theta);
+  double deltaX;
+  double deltaY;
+
+  if (state == GOING_BACKWARD)
+  {
+    deltaX = deltaDistance * cos(-theta);
+    deltaY = deltaDistance * sin(-theta);
+  }
+  else
+  {
+    deltaX = deltaDistance * cos(theta);
+    deltaY = deltaDistance * sin(theta);
+  }
 
   x += deltaX;
   y += deltaY;
-
-  // Limit heading to 0 < heading < 6.28.
-  if (theta < 0)
-  {
-    theta += PI * 2;
-  }
-  else if (theta >= PI * 2)
-  {
-    theta -= PI * 2;
-  }
 
   lastLeftTicks = leftTicks;
   lastRightTicks = rightTicks;  
@@ -307,6 +311,10 @@ void updateOdometry(signed long deltaLeft, signed long deltaRight)
 
 void scan()
 {
+  Serial.println("Scanning");
+
+  state = SCANNING;
+
   unsigned char degree;
 
   for (degree = 0; degree < 170; degree++)        // Goes from 11 degrees to 180 degrees 
@@ -329,6 +337,8 @@ void scan()
   }
 
   Serial.println(); // Message terminated by CR/LF.
+
+  halt();
 }
 
 double takeReading()
@@ -353,7 +363,7 @@ double takeReading()
   return distance;
 }
 
-void parseRotation(char command[])
+void parseRotation(char command[MAX_CHARACTERS])
 {  
   char data[4];
   data[0] = command[1];
@@ -384,13 +394,13 @@ void rotateTo(double heading)
    * line. Our maximum turning arcs from right or left is 180 degrees,
    * so if our angle has crossed the line we must "wrap" it around.
    */
-  if (angle < -M_PI)
+  if (angle < -3.14)
   {
-    angle += M_PI * 2; 
+    angle += 6.28; 
   }
-  else if (angle > M_PI)
+  else if (angle > 3.14)
   {
-    angle -= M_PI * 2;
+    angle -= 6.28;
   }
 
 #if DEBUG
@@ -403,15 +413,18 @@ void rotateTo(double heading)
   double rightBuffer = heading - 0.01;
 
   // Wrap around the buffer values if needed.
-  if (leftBuffer > M_PI * 2)
+  if (leftBuffer > 6.28)
   {
-    leftBuffer -= M_PI * 2;
+    leftBuffer -= 6.28;
   }
 
-  if (rightBuffer < -(M_PI * 2))
+  if (rightBuffer < -6.28)
   {
-    rightBuffer += M_PI * 2;
+    rightBuffer += 6.28;
   }
+  
+  leftBuffer = roundDigit(leftBuffer, 2);
+  rightBuffer = roundDigit(rightBuffer, 2);
 
 #if DEBUG
   Serial.print("LeftBuffer = ");
@@ -420,17 +433,15 @@ void rotateTo(double heading)
   Serial.println(rightBuffer);
 #endif
 
-  // Our circle is based on a left hand axis where all negative values
-  // indicated movement around the left of the circle.
+  // Our circle is based on a right hand axis where all negative values
+  // indicated movement around the right of the circle.
   if (angle < 0)
   {
-    Serial.println("Turning Left");
-    turnLeft();  
+    turnRight();  
   }
   else if (angle > 0)
   {
-    Serial.println("Turning Right");
-    turnRight();
+    turnLeft();
   }
 
   boolean interrupted = false;
@@ -458,6 +469,7 @@ void rotateTo(double heading)
 
     if (interrupted)
     {
+      Serial.println("Interrupted during rotatation!");
       break; 
     }
 
@@ -468,7 +480,7 @@ void rotateTo(double heading)
     {
       updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
       sendOdometry();
-      
+
       timer = millis();
     }
   }
@@ -477,6 +489,94 @@ void rotateTo(double heading)
 
   Serial.print("Current Heading = ");
   Serial.println(theta); // Output in degrees.
+
+  if (interrupted)
+  {
+    processCommand(command); 
+  }
+}
+
+void parseDistance(char command[MAX_CHARACTERS])
+{  
+  char data[4];
+  data[0] = command[1];
+  data[1] = command[2];
+  data[2] = command[3];
+  data[3] = command[4];
+
+  double distance = atof(data);
+
+  if (distance > 0)
+  {
+    travel(distance); 
+  }
+}
+
+void travel(double distance)
+{
+  double startX = x;
+  double startY = y;
+  double travelled = 0;
+
+  boolean interrupted = false;
+  char command[MAX_CHARACTERS];
+
+#if DEBUG
+  Serial.print("travel: ");
+  Serial.println(distance);  
+#endif
+
+  goForward();
+
+  while (true)
+  {
+    while (!mpuInterrupt && fifoCount < packetSize)
+    {
+      // Check to see if at least one character is available.
+      if (Serial.available()) 
+      {
+        // Redeclare this every time to clear the buffer.
+        char buffer[MAX_CHARACTERS]; 
+
+        bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
+
+        if (bytes > 0)
+        {
+          strcpy(command, buffer);
+          interrupted = true;
+        }
+      }
+    }
+
+    if (interrupted)
+    {
+      Serial.println("Interrupted during travel!");
+      break; 
+    }
+
+    processGyro();
+    updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+
+    travelled = sqrt(pow((startX - x), 2) + pow((startY - y), 2));
+
+    if (travelled >= distance)
+      break;
+
+    if (millis() - timer > 1000)
+    {
+      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+      sendOdometry();
+
+      timer = millis();
+    }
+  }
+
+#if DEBUG
+  Serial.print("travelled: ");
+  Serial.println(travelled);
+#endif
+
+  halt();
 
   if (interrupted)
   {
@@ -513,6 +613,10 @@ void goForward()
   digitalWrite(M1, LOW);    
   analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, LOW);
+
+  state = GOING_FORWARD;
+
+  Serial.println("Going Forward");
 }
 
 void goBackward()
@@ -521,6 +625,10 @@ void goBackward()
   digitalWrite(M1, HIGH);    
   analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, HIGH);
+
+  state = GOING_BACKWARD;
+
+  Serial.println("Going Backward");
 }
 
 void turnLeft()
@@ -529,6 +637,10 @@ void turnLeft()
   digitalWrite(M1, LOW);    
   analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, HIGH);
+
+  state = TURNING_LEFT;
+
+  Serial.println("Turning Left");
 }
 
 void turnRight()
@@ -537,6 +649,10 @@ void turnRight()
   digitalWrite(M1, HIGH);    
   analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
   digitalWrite(M2, LOW);
+
+  state = TURNING_RIGHT;
+
+  Serial.println("Turning Right");
 }
 
 void halt()
@@ -545,7 +661,29 @@ void halt()
   digitalWrite(M1, LOW);    
   digitalWrite(M2_SPEED_CONTROL,0);   
   digitalWrite(M2, LOW);
+
+  state = HALTED;
+
+  Serial.println("Halted");
 }
+
+/************************************************************
+ * Extra Functions
+ ************************************************************/
+
+double roundDigit(double number, int digits)
+{
+  // Round correctly so that print(1.999, 2) prints as "2.00"
+  double rounding = 0.5;
+
+  for (uint8_t i=0; i < digits; ++i)
+    rounding /= 10.0;
+
+  number += rounding;
+  
+  return number;
+}
+
 
 
 

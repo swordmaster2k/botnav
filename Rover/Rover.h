@@ -45,6 +45,12 @@ const double DISTANCE_PER_TICK = 0.010205;
 const double RADIANS_PER_TICK = 0.085756303;
 const double TRACK_WIDTH = 0.119;
 
+enum states { 
+              GOING_FORWARD = 0, GOING_BACKWARD = 1, 
+              TURNING_LEFT = 2, TURNING_RIGHT = 3, 
+              HALTED = 4, SCANNING = 5 
+            };
+
 /************************************************************
  * Serial Communication
  ************************************************************/
@@ -63,7 +69,7 @@ const char scanReadingsHeader = 's';
 
 // Message timing.
 static unsigned long timer = 0;
-const unsigned long messageRate = 100.0; // Milliseconds.
+const unsigned long messageRate = 500.0; // Milliseconds.
 
 /************************************************************
  * Odometry and Scan Data
@@ -71,7 +77,7 @@ const unsigned long messageRate = 100.0; // Milliseconds.
 
 double x;
 double y;
-double theta = 1.57;
+double theta;
 
 signed long leftTicks;
 signed long rightTicks;
@@ -80,6 +86,8 @@ signed long lastLeftTicks;
 signed long lastRightTicks;
 
 double distances[170]; // Stores range finder distances during scans.
+
+enum states state;
 
 /************************************************************
  * Sensor Connections

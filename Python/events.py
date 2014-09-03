@@ -12,9 +12,16 @@ class ScanResult:
         self.readings = readings
 
     def to_string(self):
-        string = ""
+        string = "scan: "
         
         for reading in self.readings:
             string += str(reading) + ", "
 
         return string
+
+class StateEvent:
+    def __init__(self, state):
+        self.state = state
+
+    def to_string(self):
+        return "state: " + str(self.state)
