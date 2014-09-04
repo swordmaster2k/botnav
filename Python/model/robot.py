@@ -1,4 +1,5 @@
 import math
+import time
 
 '''
 
@@ -135,8 +136,20 @@ class Robot:
         print("left_buffer: " + str(left_buffer))
         print("right_buffer: " + str(right_buffer))
 
+        did_break = False
+        start = time.time()
+        last_heading = self.heading
+
         while not (self.heading >= right_buffer and self.heading <= left_buffer):
-            True # Busy waiting
+            if 3.0 >= time.time() - start: # Have 3 seconds elapsed?
+                if lastheading == self.heading: # Have we rotated in that time?
+                    did_break = True # If not then we are stuck get out of infinite loop!
+                    break
+                else:
+                    lastheading = heading
+
+        if did_break:
+            return -1 # Something went wrong
 
         distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
 

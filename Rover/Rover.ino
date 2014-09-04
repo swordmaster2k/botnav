@@ -422,9 +422,9 @@ void rotateTo(double heading)
   {
     rightBuffer += 6.28;
   }
-  
-  leftBuffer = roundDigit(leftBuffer, 2);
-  rightBuffer = roundDigit(rightBuffer, 2);
+
+  leftBuffer = roundDigit(leftBuffer, 16);
+  rightBuffer = roundDigit(rightBuffer, 16);
 
 #if DEBUG
   Serial.print("LeftBuffer = ");
@@ -517,6 +517,7 @@ void travel(double distance)
   double startX = x;
   double startY = y;
   double travelled = 0;
+  distance = distance - 0.10; // Stop 0.10m short so we halt in time.
 
   boolean interrupted = false;
   char command[MAX_CHARACTERS];
@@ -564,19 +565,17 @@ void travel(double distance)
 
     if (millis() - timer > 1000)
     {
-      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
-      sendOdometry();
-
+      sendOdometry();    
       timer = millis();
     }
   }
+
+  halt();
 
 #if DEBUG
   Serial.print("travelled: ");
   Serial.println(travelled);
 #endif
-
-  halt();
 
   if (interrupted)
   {
@@ -680,9 +679,12 @@ double roundDigit(double number, int digits)
     rounding /= 10.0;
 
   number += rounding;
-  
+
   return number;
 }
+
+
+
 
 
 
