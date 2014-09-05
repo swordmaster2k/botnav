@@ -75,6 +75,10 @@ const unsigned long messageRate = 500.0; // Milliseconds.
  * Odometry and Scan Data
  ************************************************************/
 
+// Average drift in x and y on a carpet surface.
+const double X_DRIFT_CARPET = 0.000045;
+const double Y_DRIFT_CARPET = 0.000261;
+
 double x;
 double y;
 double theta;

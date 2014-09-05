@@ -133,6 +133,9 @@ class Robot:
         if right_buffer < -6.28:
             right_buffer += 6.28
 
+        left_buffer = round(left_buffer, 2)
+        right_buffer = round(right_buffer, 2)
+
         print("left_buffer: " + str(left_buffer))
         print("right_buffer: " + str(right_buffer))
 
@@ -141,12 +144,13 @@ class Robot:
         last_heading = self.heading
 
         while not (self.heading >= right_buffer and self.heading <= left_buffer):
-            if 3.0 >= time.time() - start: # Have 3 seconds elapsed?
-                if lastheading == self.heading: # Have we rotated in that time?
+            '''if 5.0 >= time.time() - start: # Have 3 seconds elapsed?
+                if last_heading == self.heading: # Have we rotated in that time?
+                    print("appear to be stuck!")
                     did_break = True # If not then we are stuck get out of infinite loop!
                     break
                 else:
-                    lastheading = heading
+                    lastheading = self.heading'''
 
         if did_break:
             return -1 # Something went wrong

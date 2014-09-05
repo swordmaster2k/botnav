@@ -36,7 +36,7 @@ class Map:
             self.grid.append(column)
             i += 1
 
-my_map = Map(10, 10, 10, 0.2)
+my_map = Map(robot, 10, 10, 0.2)
 print(my_map.grid[0][9])
 
 

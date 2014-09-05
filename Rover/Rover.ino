@@ -118,6 +118,11 @@ void setup()
     Serial.print(F("DMP Initialization failed (code "));
     Serial.print(devStatus);
     Serial.println(F(")"));
+    
+    while (true) // Go it an infinite loop because we failed.
+    {
+      
+    }
   }
 
   Serial.println("\n------------------------------ Ready ------------------------------\n");
@@ -125,10 +130,6 @@ void setup()
 
 void loop()
 {
-  // If programming failed, don't try to do anything.
-  if (!dmpReady) 
-    return;
-
   // Wait for MPU interrupt or extra packet(s) available.
   while (!mpuInterrupt && fifoCount < packetSize) 
   {
@@ -140,14 +141,13 @@ void loop()
     if (millis() - timer > messageRate)
     {
       sendOdometry();     
-
       timer = millis();
 
 #if DEBUG
-      //Serial.print("left ticks: ");
-      //Serial.println(leftTicks);
-      //Serial.print("right ticks: ");
-      //Serial.println(rightTicks);
+//      Serial.print("left ticks: ");
+//      Serial.println(leftTicks);
+//      Serial.print("right ticks: ");
+//      Serial.println(rightTicks);
 #endif
     }
   }
@@ -220,6 +220,10 @@ void processCommand(char command[])
   case 't':
     parseDistance(command);
     break;
+  case 'p': // Take a single "ping" from the sonar.
+    halt();
+    ping();
+    break;
   default: 
     Serial.print("Unknown command \"");
     Serial.print(command[0]);
@@ -290,29 +294,50 @@ void updateOdometry(signed long deltaLeft, signed long deltaRight)
   double deltaDistance = (double) ((deltaLeft + deltaRight) * DISTANCE_PER_TICK) / 2;
   double deltaX;
   double deltaY;
-
-  if (state == GOING_BACKWARD)
+  
+  if (deltaDistance != 0.0)
   {
-    deltaX = deltaDistance * cos(-theta);
-    deltaY = deltaDistance * sin(-theta);
+    if (state == GOING_BACKWARD)
+    {
+      deltaX = (deltaDistance) * cos(-theta);
+      deltaY = (deltaDistance) * sin(-theta);
+    }
+    else
+    {
+      deltaX = (deltaDistance) * cos(theta);
+      deltaY = (deltaDistance) * sin(theta);
+    }
+    
+    deltaX += X_DRIFT_CARPET * (deltaX / 0.01); // Calculate x drift over every centimeter and add it to our change in x.
+    deltaY += Y_DRIFT_CARPET * (deltaY / 0.01); // Calculate y drift over every centimeter and add it to our change in y.
+  
+    x += deltaX;
+    y += deltaY;
   }
-  else
-  {
-    deltaX = deltaDistance * cos(theta);
-    deltaY = deltaDistance * sin(theta);
-  }
-
-  x += deltaX;
-  y += deltaY;
 
   lastLeftTicks = leftTicks;
   lastRightTicks = rightTicks;  
 }
 
+void ping()
+{
+  Serial.println("Scanning");
+  
+  mpu.setDMPEnabled(false); // Disabled DMP to avoid any over flows!
+  
+  Serial.print(scanReadingsHeader);
+  Serial.print(',');
+  Serial.println(takeReading());
+  
+  mpu.setDMPEnabled(true);
+}
+
 void scan()
 {
   Serial.println("Scanning");
-
+  
+  mpu.setDMPEnabled(false);
+  
   state = SCANNING;
 
   unsigned char degree;
@@ -320,11 +345,11 @@ void scan()
   for (degree = 0; degree < 170; degree++)        // Goes from 11 degrees to 180 degrees 
   {                                               // in steps of 1 degree.  
     sonarServo.write(degree + 11);                // Account for the fact that we start at 0 instead of 11.
-    delay(25);                                    // Waits 25ms for the servo to reach the degreeition.
-    distances[degree] = takeReading();            // Store sonar reading at current degreeition.
+    delay(25);                                    // Waits 25ms for the servo to reach the degree.
+    distances[degree] = takeReading();            // Store sonar reading at current degree.
   } 
 
-  // Return to center degreeition.
+  // Return to center.
   sonarServo.write(90);
 
   // Send readings back to the host.
@@ -333,12 +358,12 @@ void scan()
   for (int i = 0; i < 170; i++)
   {
     Serial.print(",");
-    Serial.print(distances[i], DEC); 
+    Serial.print(distances[i]); 
   }
 
   Serial.println(); // Message terminated by CR/LF.
-
-  halt();
+  
+  mpu.setDMPEnabled(true);
 }
 
 double takeReading()
@@ -390,7 +415,7 @@ void rotateTo(double heading)
 #endif
 
   /*
-  * Check to see if our angle has extended beyond the 0/360 degree 
+   * Check to see if our angle has extended beyond the 0/360 degree 
    * line. Our maximum turning arcs from right or left is 180 degrees,
    * so if our angle has crossed the line we must "wrap" it around.
    */
@@ -423,6 +448,7 @@ void rotateTo(double heading)
     rightBuffer += 6.28;
   }
 
+  // Round them off to 2 decimal places.
   leftBuffer = roundDigit(leftBuffer, 16);
   rightBuffer = roundDigit(rightBuffer, 16);
 
@@ -478,9 +504,7 @@ void rotateTo(double heading)
 
     if (millis() - timer > 1000)
     {
-      updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
       sendOdometry();
-
       timer = millis();
     }
   }
@@ -517,7 +541,7 @@ void travel(double distance)
   double startX = x;
   double startY = y;
   double travelled = 0;
-  distance = distance - 0.10; // Stop 0.10m short so we halt in time.
+  distance -= 0.09; // Stop 0.09m short so we halt in time.
 
   boolean interrupted = false;
   char command[MAX_CHARACTERS];
