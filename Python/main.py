@@ -8,6 +8,7 @@ from threading import Thread
 from threading import Timer
 
 from proxy import Proxy
+from model.map import Map
 from model.robot import Robot
 from events import OdometryReport, ScanResult, StateEvent
 from bluetooth_connection import BluetoothConnection
@@ -22,6 +23,10 @@ class Main(threading.Thread):
 
         self.proxy = Proxy(self, connection)
         self.robot = Robot(self.proxy)
+        self.robot.x = 1.15
+        self.robot.y = 1.15
+
+        self.map = Map(self.robot, 2.3, 2.3, 0.23)
 
         Thread.__init__(self)
 
@@ -49,6 +54,8 @@ class Main(threading.Thread):
                     break;
                 
                 self.robot.scan()
+            elif command[0] == "p":
+                self.robot.ping()
             elif command[0] == "z":
                 self.robot.reset()
             elif command[0] == "r":
@@ -72,6 +79,8 @@ class Main(threading.Thread):
 
                 if len(result) == 3:
                     self.robot.go_to(float(result[1]), float(result[2]))
+            elif command[0] == "g":
+                self.map.print_map()
             else:
                 print("Unknown command: " + command)
 	
@@ -91,7 +100,8 @@ class Main(threading.Thread):
             if isinstance(event, OdometryReport):
                 didChange = self.robot.update_odometry(event)
             elif isinstance(event, ScanResult):
-                True # Do something...
+                cells = self.map.ping_to_cells(float(event.readings[0])) # Just take 1 reading for now.
+                self.map.update_map(cells)
             elif isinstance(event, StateEvent):
                 self.robot.state = event.state
 

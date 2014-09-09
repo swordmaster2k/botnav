@@ -49,6 +49,8 @@ class Proxy(Thread):
                 if len(parameters) < 2:
                     continue
 
+                parameters.remove('s')
+
                 result = ScanResult(parameters)
 
                 with self.mutex:

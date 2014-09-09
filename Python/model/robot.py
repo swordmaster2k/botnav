@@ -67,6 +67,12 @@ class Robot:
     '''
 
     '''
+    def ping(self):
+        self.connection.send("p\n")
+
+    '''
+
+    '''
     def reset(self):
         self.connection.send("z\n")
 
