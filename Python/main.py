@@ -10,6 +10,7 @@ from threading import Timer
 from proxy import Proxy
 from model.map import Map
 from model.robot import Robot
+from algorithm.gridnav import GridNav
 from events import OdometryReport, ScanResult, StateEvent
 from bluetooth_connection import BluetoothConnection
 
@@ -26,7 +27,9 @@ class Main(threading.Thread):
         self.robot.x = 1.15
         self.robot.y = 1.15
 
-        self.map = Map(self.robot, 2.3, 2.3, 0.23)
+        self.map = Map(self.robot, 2.3, 0.23)
+
+        self.path_planner = GridNav(self.map)
 
         Thread.__init__(self)
 
@@ -101,7 +104,11 @@ class Main(threading.Thread):
                 didChange = self.robot.update_odometry(event)
             elif isinstance(event, ScanResult):
                 cells = self.map.ping_to_cells(float(event.readings[0])) # Just take 1 reading for now.
-                self.map.update_map(cells)
+                updated_cells = self.map.update_map(cells)
+                
+                if len(updated_cells) > 0:
+                    self.path_planner.update_occupancy(updated_cells)
+                    self.path_planner.print_occupancy_grid()                    
             elif isinstance(event, StateEvent):
                 self.robot.state = event.state
 
