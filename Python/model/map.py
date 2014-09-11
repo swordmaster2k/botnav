@@ -17,13 +17,14 @@ class Map:
         self.grid_size = grid_size # Size in meters down both sides.
         self.cell_size = cell_size
 
-        '''
-        Contains a list of columns, which act like a 2D array
-        '''
+        # Contains a list of columns, which act like a 2D array
         self.grid = [] 
 
         # Number of cells down either side of the grid.
         self.cells_square = int(round(self.grid_size / self.cell_size, 0))
+
+        self.goal_x = 0
+        self.goal_y = 0
 
         self.populate_grid()
 

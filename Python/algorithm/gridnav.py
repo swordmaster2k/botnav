@@ -1,5 +1,7 @@
 import math
 
+from model.map import Map
+
 '''
 
 '''
@@ -10,13 +12,22 @@ class GridNav:
     def __init__(self, map):
         self.map = map
 
+        self.BIG_COST = 500 # Highest cost for a cell.
+        self.EMPTY = -1
+        self.FULL = 1
+        self.SCHEDULED = 0
+        self.NOT_SCHEDULED = 1
+
+        # Expressed in cells.
+        self.MAX_VELOCITY = 0.5 
+
         # Keep track of computations.
         self.cell_count = 0
 
         # Linked list stuff.
         self.open_list = []
         self.free_head = 0
-        self.open_head = 0 # EMPTY
+        self.open_head = self.EMPTY
 
         self.setup_open_list()
         self.setup_grid()
@@ -27,12 +38,12 @@ class GridNav:
     def setup_open_list(self):
         i = 0
         while i < (self.map.cells_square * self.map.cells_square):
-            self.open_list.append(Node(0, 0, 500, i + 1))
+            self.open_list.append(Node(0, 0, self.BIG_COST, i + 1))
             i += 1
 
-        self.open_list[self.map.cells_square * self.map.cells_square - 1].next_node = 0 # EMPTY
+        self.open_list[(self.map.cells_square * self.map.cells_square) - 1].next_node = self.EMPTY
         self.free_head = 0
-        self.open_head = 0 # EMPTY
+        self.open_head = self.EMPTY 
 
     '''
     
@@ -42,7 +53,7 @@ class GridNav:
         while x < self.map.cells_square:
             y = 0
             while y < self.map.cells_square:
-                data = GridNavData()
+                data = GridNavData(self)
 
                 '''
                 If it's a cell on the boundary, set it up to be an obstacle,
@@ -50,8 +61,10 @@ class GridNav:
                 '''
                 if ((x == 0) or (x == (self.map.cells_square - 1)) or
                     (y == 0) or (y == (self.map.cells_square - 1))):
-                    data.occupancy = 1 # FULL
-                    data.scheduled = 0 # SCHEDULED
+                    data.occupancy = self.FULL
+                    data.scheduled = self.SCHEDULED
+                elif x == self.map.goal_x and y == self.map.goal_y:
+                    data.cost = 0
 
                 self.map.grid[x][y].data = data
                 y += 1
@@ -61,12 +74,12 @@ class GridNav:
     Get a free node of the free list.
     '''
     def get_node(self):
-        if self.free_head == 0: # EMPTY
+        if self.free_head == self.EMPTY: 
             print("get_node: out of free nodes.\n")
             return
         
-        i = free_head
-        free_head = self.open_list[free_head].next_node
+        i = self.free_head
+        self.free_head = self.open_list[self.free_head].next_node
         
         return i
 
@@ -74,7 +87,7 @@ class GridNav:
     Pop the lowest-cost node off the open list.
     '''
     def pop_node(self):
-        if self.open_head == 0: # EMPTY
+        if self.open_head == self.EMPTY: 
             i = 0
             x = 0
             y = 0
@@ -86,7 +99,7 @@ class GridNav:
             y = self.open_list[i].y
 
             # Reset the pointers.
-            self.open_head = self.open_list[i].next
+            self.open_head = self.open_list[i].next_node
             self.open_list[i].next_node = self.free_head
             self.free_head = i
 
@@ -96,20 +109,20 @@ class GridNav:
     Put a node on the open list. In sorted order by cost.
     '''
     def insert_node(self, x, y, key):
-        if self.map.grid[x][y].data.scheduled == 1: # NOT_SCHEDULED
+        if self.map.grid[x][y].data.scheduled == self.NOT_SCHEDULED:
             i = self.get_node()
             self.open_list[i].x = x
             self.open_list[i].y = y
             self.open_list[i].key = key
 
-            if self.open_head == 0: # EMPTY
-                self.open_list[i].next_node = 0 # EMPTY
+            if self.open_head == self.EMPTY:
+                self.open_list[i].next_node = self.EMPTY
                 self.open_head = i
             else:
-                last = 0 # EMPTY
+                last = self.EMPTY
                 current = self.open_head
 
-                while (self.open_list[current].key < key) and (current != 0):
+                while (self.open_list[current].key < key) and (current != self.EMPTY):
                     last = current
                     current = self.open_list[current].next_node
 
@@ -120,7 +133,7 @@ class GridNav:
                     self.open_list[last].next_node = i
                     self.open_list[i].next_node = current
                     
-            self.map.grid[x][y].data.scheduled = 0 # SCHEDULED
+            self.map.grid[x][y].data.scheduled = self.SCHEDULED
 
     '''
     Calculate the cost of travelling from a cell to the goal.
@@ -131,12 +144,12 @@ class GridNav:
         self.cell_count += 1
 
         # Check if the current cell is an obstacle.
-        if self.map.grid[x][y].data.occupancy == 1: # FULL
-            self.map.grid[x][y].data.cost = 500 # BIG_COST
+        if self.map.grid[x][y].data.occupancy == self.FULL: 
+            self.map.grid[x][y].data.cost = self.BIG_COST
             return False
 
         # Check if it's the goal.
-        if (x == self.map.goal.x) and (y == self.map.goal.y):
+        if (x == self.map.goal_x) and (y == self.map.goal_y):
             self.map.grid[x][y].data.cost = 0
             return False
 
@@ -147,9 +160,9 @@ class GridNav:
 
         # Look at neighbors to find lowest potential cost - low_cost.
         i = x - 1
-        while x <= x + 1:
+        while i <= x + 1:
             j = y - 1
-            while y <= y + 1:
+            while j <= y + 1:
                 if (i == x) or (j == y):
                     # If horizontal or vertical neighbor, cost is 1.0.
                     temp_cost = self.map.grid[i][j].data.cost + 1
@@ -161,6 +174,8 @@ class GridNav:
                     low_cost = temp_cost
                     low_x = i
                     low_y = j
+                j += 1
+            i += 1
 
         # Reset cost if appropriate, and return True if changed, False otherwise.
         if self.map.grid[x][y].data.cost != low_cost:
@@ -185,9 +200,9 @@ class GridNav:
 
                     # If the neighbor is not an obstacle and it has not
                     # yet been expaned.
-                    if ((self.map.grid[i][j].data.cost == 500) and
+                    if ((self.map.grid[i][j].data.cost == self.BIG_COST) and
                         (self.map.grid[i][j].data.occupancy != 1)):
-                        change = True
+                        change = self.cell_cost(i, j)
 
                     # If the new cost is lower, push the neighbor on the open list too.
                     if change:
@@ -199,13 +214,13 @@ class GridNav:
     Compute the cost grid based on the map represented in the occupancy grid.
     '''
     def replan(self):
-        result = 0 # EMPTY
-        self.insert_node(self.map.goal.x, self.map.goal.y, 0.0)
+        result = self.EMPTY
+        self.insert_node(self.map.goal_x, self.map.goal_y, 0.0)
 
-        while self.open_head != 0: # EMPTY
-            result = self.pop_node(x, y)
+        while self.open_head != self.EMPTY: 
+            result = self.pop_node()
 
-            if result[2] != 0: # EMPTY
+            if result[2] != self.EMPTY:
                 self.expand(result[0], result[1])
             else:
                 break
@@ -213,11 +228,13 @@ class GridNav:
     '''
     Look at the cost grid to decide which way to go.
 
-    Returns a heading in radians between 0 and 2 * PI.
+    Returns the next x, y coordinate to travel too.
 
     East (+X) is 0, north (+Y) is PI / 2.
     '''
-    def check_plan(self, x, y):
+    def check_plan(self):
+        x = int((self.map.robot.x / self.map.cell_size) + 0.5)
+        y = int((self.map.robot.y / self.map.cell_size) + 0.5)
         i = x - 1
         x_part = 0
         y_part = 0
@@ -242,7 +259,7 @@ class GridNav:
                 # If the cost at one of the cells is BIG_COST then there is
                 # an obstacle there and we should use a different approach
                 # for computing the heading.
-                if self.map.grid[x][y].data.cost == 500: # BIG_COST
+                if self.map.grid[x][y].data.cost == self.BIG_COST:
                     obstacle_warning = True
                     break
                 j += 1
@@ -287,7 +304,11 @@ class GridNav:
 
         heading = math.atan2(y_part, x_part)
 
-        return heading
+        new_x = (self.map.robot.x / self.map.cell_size) + (self.MAX_VELOCITY * math.cos(heading))
+        new_y = (self.map.robot.y / self.map.cell_size) + (self.MAX_VELOCITY * math.sin(heading))
+        new_point = [new_x, new_y]
+
+        return new_point
 
     '''
 
@@ -296,12 +317,12 @@ class GridNav:
         for cell in cells:
             occpancy = self.map.grid[cell.x][cell.y].data.occupancy
             
-            if cell.state == 0 and occpancy != 0:
-                self.map.grid[cell.x][cell.y].data.occupancy = 0 # EMPTY
-            elif cell.state == 1 and occpancy != 0:
-                self.map.grid[cell.x][cell.y].data.occupancy = 0 # EMPTY
-            elif cell.state == 2 and occpancy != 1:
-                self.map.grid[cell.x][cell.y].data.occupancy = 1 # FULL
+            if cell.state == 0 and occpancy != self.EMPTY:
+                self.map.grid[cell.x][cell.y].data.occupancy = self.EMPTY
+            elif cell.state == 1 and occpancy != self.EMPTY:
+                self.map.grid[cell.x][cell.y].data.occupancy = self.EMPTY
+            elif cell.state == 2 and occpancy != self.FULL:
+                self.map.grid[cell.x][cell.y].data.occupancy = self.FULL
 
     def print_occupancy_grid(self):
         y = 0
@@ -310,17 +331,15 @@ class GridNav:
         symbol = ""
         grid = self.map.grid
 
-        print(grid[0][0].data)
-
         while y < self.map.cells_square:
             x = 0
             header += "    " + str(y)
             rows += str(y) + " "
             
             while x < self.map.cells_square:
-                if grid[x][y].data.occupancy == 0:
+                if grid[x][y].data.occupancy == self.EMPTY:
                     symbol = "EMPTY"
-                elif grid[x][y].data.occupancy == 1:
+                elif grid[x][y].data.occupancy == self.FULL:
                     symbol = "FULL "
                 rows += "[ " + symbol + " ]"
 
@@ -334,6 +353,36 @@ class GridNav:
         print(header)
         print(rows)
 
+    def print_cost_grid(self):
+        y = 0
+        header = ""
+        rows = ""
+        cost = ""
+        grid = self.map.grid
+
+        while y < self.map.cells_square:
+            x = 0
+            header += "    " + str(y)
+            rows += str(y) + " "
+            
+            while x < self.map.cells_square:
+                cost = grid[x][y].data.cost
+                rows += "[ %f" % cost + " ]"
+
+                x += 1
+
+            y += 1
+
+            if y < self.map.cells_square:
+                rows += "\n\n"
+
+        print(header)
+        print(rows)
+
+#----------------------------------------------------------------------#
+#   Inner Classes                                            		   #
+#----------------------------------------------------------------------#
+        
 '''
 
 '''
@@ -342,13 +391,13 @@ class Node:
         self.x = x
         self.y = y
         self.key = key
-        self.next = next_node
+        self.next_node = next_node
 
 '''
 
 '''
 class GridNavData:
-    def __init__(self):
-        self.occupancy = 0 # 0 = EMPTY, 1 = FULL
-        self.scheduled = 0 # 0 = SCHEDULED, 1 = NOT_SCHEDULED
-        self.cost = 500 # BIG_COST
+    def __init__(self, gridnav):
+        self.occupancy = gridnav.EMPTY 
+        self.scheduled = gridnav.NOT_SCHEDULED 
+        self.cost = gridnav.BIG_COST
