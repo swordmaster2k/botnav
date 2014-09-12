@@ -163,7 +163,10 @@ class Robot:
 
         distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
 
-        self.travel_distance(round(distance, 2)) 
+        self.travel_distance(round(distance, 2))
+
+    def set_coordinates(self, x, y):
+        self.connection.send("c" + str(x) + "," + str(y) + "\n")
 
     '''
     Ideally this should be event or listener based, currently it just returns a boolean value

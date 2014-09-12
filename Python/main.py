@@ -84,6 +84,11 @@ class Main(threading.Thread):
                     self.robot.go_to(float(result[1]), float(result[2]))
             elif command[0] == "g":
                 self.map.print_map()
+            elif command[0] == "c":
+                result = command.split(",", 3)
+
+                if len(result) == 3:
+                    self.robot.set_coordinates(float(result[1]), float(result[2]))
             else:
                 print("Unknown command: " + command)
 	

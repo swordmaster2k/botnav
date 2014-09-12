@@ -224,6 +224,9 @@ void processCommand(char command[])
     halt();
     ping();
     break;
+  case 'c': // Set our x and y.
+    parseCoordinates(command);
+    break;
   default: 
     Serial.print("Unknown command \"");
     Serial.print(command[0]);
@@ -604,6 +607,45 @@ void travel(double distance)
   if (interrupted)
   {
     processCommand(command); 
+  }
+}
+
+void parseCoordinates(char command[MAX_CHARACTERS])
+{
+  String message = String(command);
+  
+  if (message.length() < 4) // Needs to be at least cX,Y.
+  {
+    return; 
+  }
+  
+  char index = message.indexOf(',');
+  
+  // Make sure we are properly delimited and that the ',' is not the last character.
+  if (index != -1 && index != message.length() - 1) 
+  {
+    // Extract the new x and y coordinates.
+    String xComponent = message.substring(1, index);
+    String yComponent = message.substring(index + 1);
+
+    char xAxis[xComponent.length() + 1];
+    char yAxis[yComponent.length() + 1];
+    
+    xComponent.toCharArray(xAxis, xComponent.length() + 1);
+    yComponent.toCharArray(yAxis, yComponent.length() + 1);
+    
+    double newX = atof(xAxis);
+    double newY = atof(yAxis);
+  
+    if (x != newX)
+    {
+      x = newX; 
+    }
+    
+    if (y != newY)
+    {
+      y = newY; 
+    }
   }
 }
 

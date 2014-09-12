@@ -56,7 +56,7 @@ enum states {
  ************************************************************/
 
 // Max characters on allowed message line.
-#define MAX_CHARACTERS 6
+#define MAX_CHARACTERS 12
 
 // Number of bytes read from the serial line.
 short bytes;

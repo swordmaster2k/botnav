@@ -19,7 +19,7 @@ class GridNav:
         self.NOT_SCHEDULED = 1
 
         # Expressed in cells.
-        self.MAX_VELOCITY = 0.5 
+        self.MAX_VELOCITY = 0.4
 
         # Keep track of computations.
         self.cell_count = 0
@@ -65,6 +65,8 @@ class GridNav:
                     data.scheduled = self.SCHEDULED
                 elif x == self.map.goal_x and y == self.map.goal_y:
                     data.cost = 0
+                elif self.map.grid[x][y].state == 2: # Occupied
+                    data.occupancy = self.FULL
 
                 self.map.grid[x][y].data = data
                 y += 1
@@ -233,15 +235,15 @@ class GridNav:
     East (+X) is 0, north (+Y) is PI / 2.
     '''
     def check_plan(self):
-        x = int((self.map.robot.x / self.map.cell_size) + 0.5)
-        y = int((self.map.robot.y / self.map.cell_size) + 0.5)
+        x = int(math.floor(self.map.robot.x + 0.5))
+        y = int(math.floor(self.map.robot.y + 0.5))
         i = x - 1
         x_part = 0
         y_part = 0
         low_x = 0
         low_y = 1
         obstacle_warning = False
-
+        
         # Find the x and y parts of the gradient.
         while i <= x + 1:
             j = y - 1
@@ -250,7 +252,6 @@ class GridNav:
                     x_part += self.map.grid[i][j].data.cost
                 elif i > x:
                     x_part -= self.map.grid[i][j].data.cost
-                    
                 if j < y:
                     y_part += self.map.grid[i][j].data.cost
                 elif j > y:
@@ -259,7 +260,7 @@ class GridNav:
                 # If the cost at one of the cells is BIG_COST then there is
                 # an obstacle there and we should use a different approach
                 # for computing the heading.
-                if self.map.grid[x][y].data.cost == self.BIG_COST:
+                if self.map.grid[i][j].data.cost == self.BIG_COST:
                     obstacle_warning = True
                     break
                 j += 1
@@ -304,17 +305,27 @@ class GridNav:
 
         heading = math.atan2(y_part, x_part)
 
-        new_x = (self.map.robot.x / self.map.cell_size) + (self.MAX_VELOCITY * math.cos(heading))
-        new_y = (self.map.robot.y / self.map.cell_size) + (self.MAX_VELOCITY * math.sin(heading))
-        new_point = [new_x, new_y]
+        next_x = (self.MAX_VELOCITY * math.cos(heading))
+        next_y = (self.MAX_VELOCITY * math.sin(heading))
+        next_cell = [next_x, next_y]
 
-        return new_point
-
-    '''
+        return next_cell
 
     '''
-    def update_occupancy(self, cells):
+
+    '''
+    def update_occupancy_grid(self, cells):
         for cell in cells:
+            '''
+            If it's a cell on the boundary or the goal ignore it
+            and continue.
+            '''
+            if ((cell.x == 0) or (cell.x == (self.map.cells_square - 1)) or
+                (cell.y == 0) or (cell.y == (self.map.cells_square - 1))):
+                continue
+            elif cell.x == self.map.goal_x and cell.y == self.map.goal_y:
+                continue
+            
             occpancy = self.map.grid[cell.x][cell.y].data.occupancy
             
             if cell.state == 0 and occpancy != self.EMPTY:
@@ -325,59 +336,72 @@ class GridNav:
                 self.map.grid[cell.x][cell.y].data.occupancy = self.FULL
 
     def print_occupancy_grid(self):
-        y = 0
-        header = ""
+        y = self.map.cells_square - 1
+        footer = ""
         rows = ""
         symbol = ""
         grid = self.map.grid
 
-        while y < self.map.cells_square:
+        while y >= 0:
             x = 0
-            header += "    " + str(y)
-            rows += str(y) + " "
+            footer += "        " + str((self.map.cells_square - 1) - y)
+            rows += str(y) + "  "
             
             while x < self.map.cells_square:
-                if grid[x][y].data.occupancy == self.EMPTY:
-                    symbol = "EMPTY"
+                if (x == int(math.floor(self.map.robot.x))
+                    and y == int(math.floor(self.map.robot.y))):
+                    symbol = "ROBOT"
+                elif x == self.map.goal_x and y == self.map.goal_y:
+                    symbol = "GOAL "
+                elif grid[x][y].data.occupancy == self.EMPTY:
+                    symbol = "     "
                 elif grid[x][y].data.occupancy == self.FULL:
-                    symbol = "FULL "
+                    symbol = "#####"
                 rows += "[ " + symbol + " ]"
 
                 x += 1
 
-            y += 1
+            y -= 1
 
-            if y < self.map.cells_square:
+            if y >= 0:
                 rows += "\n\n"
 
-        print(header)
         print(rows)
+        print(footer)
 
     def print_cost_grid(self):
-        y = 0
-        header = ""
+        y = self.map.cells_square - 1
+        footer = ""
+        footer_padding = "        "        
         rows = ""
         cost = ""
         grid = self.map.grid
 
-        while y < self.map.cells_square:
+        while y >= 0:
             x = 0
-            header += "    " + str(y)
+            footer += footer_padding + str((self.map.cells_square - 1) - y)
             rows += str(y) + " "
             
             while x < self.map.cells_square:
                 cost = grid[x][y].data.cost
-                rows += "[ %f" % cost + " ]"
+                padding = ""
+
+                if cost < 10:
+                    padding = "  "
+                elif cost < 100:
+                    padding = " "
+                
+                rows += "[ %.2f" % cost + padding + " ]"
 
                 x += 1
 
-            y += 1
+            y -= 1
 
-            if y < self.map.cells_square:
+            if y >= 0:
                 rows += "\n\n"
 
-        print(header)
         print(rows)
+        print(footer)
 
 #----------------------------------------------------------------------#
 #   Inner Classes                                            		   #
