@@ -56,7 +56,7 @@ enum states {
  ************************************************************/
 
 // Max characters on allowed message line.
-#define MAX_CHARACTERS 12
+#define MAX_CHARACTERS 19
 
 // Number of bytes read from the serial line.
 short bytes;
@@ -82,6 +82,7 @@ const double Y_DRIFT_CARPET = 0.000261;
 double x;
 double y;
 double theta;
+double offset = 0;
 
 signed long leftTicks;
 signed long rightTicks;

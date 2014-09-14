@@ -118,10 +118,10 @@ void setup()
     Serial.print(F("DMP Initialization failed (code "));
     Serial.print(devStatus);
     Serial.println(F(")"));
-    
+
     while (true) // Go it an infinite loop because we failed.
     {
-      
+
     }
   }
 
@@ -144,10 +144,10 @@ void loop()
       timer = millis();
 
 #if DEBUG
-//      Serial.print("left ticks: ");
-//      Serial.println(leftTicks);
-//      Serial.print("right ticks: ");
-//      Serial.println(rightTicks);
+      //      Serial.print("left ticks: ");
+      //      Serial.println(leftTicks);
+      //      Serial.print("right ticks: ");
+      //      Serial.println(rightTicks);
 #endif
     }
   }
@@ -224,8 +224,8 @@ void processCommand(char command[])
     halt();
     ping();
     break;
-  case 'c': // Set our x and y.
-    parseCoordinates(command);
+  case 'c': // Set our x, y, and theta.
+    changeOdometry(command);
     break;
   default: 
     Serial.print("Unknown command \"");
@@ -271,6 +271,7 @@ void processGyro()
     // Negatate here because on my Cherokey rig the x-axis is on the wrong side.
     theta = -ypr[0];
     theta -= 3.14; // Due to the negatation.
+    theta += offset; // If any was specified using the 'c' command.
 
     // Limit heading to 0 < heading < 6.28.
     if (theta < 0)
@@ -297,7 +298,7 @@ void updateOdometry(signed long deltaLeft, signed long deltaRight)
   double deltaDistance = (double) ((deltaLeft + deltaRight) * DISTANCE_PER_TICK) / 2;
   double deltaX;
   double deltaY;
-  
+
   if (deltaDistance != 0.0)
   {
     if (state == GOING_BACKWARD)
@@ -310,10 +311,10 @@ void updateOdometry(signed long deltaLeft, signed long deltaRight)
       deltaX = (deltaDistance) * cos(theta);
       deltaY = (deltaDistance) * sin(theta);
     }
-    
+
     deltaX += X_DRIFT_CARPET * (deltaX / 0.01); // Calculate x drift over every centimeter and add it to our change in x.
     deltaY += Y_DRIFT_CARPET * (deltaY / 0.01); // Calculate y drift over every centimeter and add it to our change in y.
-  
+
     x += deltaX;
     y += deltaY;
   }
@@ -325,22 +326,22 @@ void updateOdometry(signed long deltaLeft, signed long deltaRight)
 void ping()
 {
   Serial.println("Scanning");
-  
+
   mpu.setDMPEnabled(false); // Disabled DMP to avoid any over flows!
-  
+
   Serial.print(scanReadingsHeader);
   Serial.print(',');
   Serial.println(takeReading());
-  
+
   mpu.setDMPEnabled(true);
 }
 
 void scan()
 {
   Serial.println("Scanning");
-  
+
   mpu.setDMPEnabled(false);
-  
+
   state = SCANNING;
 
   unsigned char degree;
@@ -365,7 +366,7 @@ void scan()
   }
 
   Serial.println(); // Message terminated by CR/LF.
-  
+
   mpu.setDMPEnabled(true);
 }
 
@@ -476,7 +477,7 @@ void rotateTo(double heading)
   boolean interrupted = false;
   char command[MAX_CHARACTERS];
 
-  while (!(theta >= rightBuffer && theta <= leftBuffer))
+  while (theta < rightBuffer || theta > leftBuffer)
   {
     while (!mpuInterrupt && fifoCount < packetSize)
     {
@@ -604,47 +605,90 @@ void travel(double distance)
   Serial.println(travelled);
 #endif
 
+  Serial.println("Travelled");
+
   if (interrupted)
   {
     processCommand(command); 
   }
 }
 
-void parseCoordinates(char command[MAX_CHARACTERS])
+void changeOdometry(char command[MAX_CHARACTERS])
 {
   String message = String(command);
-  
-  if (message.length() < 4) // Needs to be at least cX,Y.
+
+  if (message.length() < 6) // Needs to be at least c,X,Y,0.
   {
     return; 
   }
-  
-  char index = message.indexOf(',');
-  
-  // Make sure we are properly delimited and that the ',' is not the last character.
-  if (index != -1 && index != message.length() - 1) 
-  {
-    // Extract the new x and y coordinates.
-    String xComponent = message.substring(1, index);
-    String yComponent = message.substring(index + 1);
 
+  String xComponent = "";
+  String yComponent = "";
+  String thetaComponent = "";
+
+  for (char i = 0; i < 3; i++)
+  {
+    char commaIndex = message.indexOf(',');
+
+    if (commaIndex != -1)
+    {
+      message = message.substring(commaIndex + 1, message.length());
+
+      if (i == 0)
+      {
+        xComponent = message;
+      }
+      else if (i == 1)
+      {
+        yComponent = message;
+      }
+      else
+      {
+        thetaComponent = message;
+      }
+    }
+    else
+    {
+      break;
+    } 
+  }
+
+  if (xComponent != "")
+  {
     char xAxis[xComponent.length() + 1];
-    char yAxis[yComponent.length() + 1];
-    
     xComponent.toCharArray(xAxis, xComponent.length() + 1);
-    yComponent.toCharArray(yAxis, yComponent.length() + 1);
-    
+
     double newX = atof(xAxis);
-    double newY = atof(yAxis);
-  
+
     if (x != newX)
     {
       x = newX; 
     }
-    
+  }
+
+  if (yComponent != "")
+  {
+    char yAxis[yComponent.length() + 1];
+    yComponent.toCharArray(yAxis, yComponent.length() + 1);
+
+    double newY = atof(yAxis);
+
     if (y != newY)
     {
       y = newY; 
+    }
+  }
+
+  if (thetaComponent != "")
+  {
+    char thetaBuffer[thetaComponent.length() + 1];
+    thetaComponent.toCharArray(thetaBuffer, thetaComponent.length() + 1);
+
+    double newTheta = atof(thetaBuffer);
+
+    if (theta != newTheta)
+    {
+       offset = newTheta - theta;
     }
   }
 }
@@ -748,6 +792,7 @@ double roundDigit(double number, int digits)
 
   return number;
 }
+
 
 
 

@@ -12,7 +12,7 @@ class Robot:
         # Data connection to robot.
         self.connection = connection
         
-        # Odometry.
+        # Odometry, x and y are cell based.
         self.x = 0
         self.y = 0
         self.heading = 1.57
@@ -26,7 +26,10 @@ class Robot:
         self.lenght = 0.23
 
         # State string.
-        self.state = "Halted"
+        self.state = ""
+        
+        # Size of the cells we are operating in.
+        self.cell_size = 0.3
 
     '''
     
@@ -94,9 +97,10 @@ class Robot:
         return heading
 
     def travel_distance(self, distance):
-        print("travel_distance: " + str(distance))
-
-        self.connection.send("t" + str(distance) + "\n")
+        print("travel_distance: " + str(round(distance * self.cell_size, 2)))
+        
+        # Distance is cell based so send as meters.
+        self.connection.send("t" + str(round(distance * self.cell_size, 2)) + "\n")
 
     '''
     
@@ -127,60 +131,36 @@ class Robot:
     def go_to(self, x, y):
         heading = self.face(x, y)
 
-        if heading == -1:
-            return heading # Error.
+        while self.state != "Halted":
+            continue
 
-        left_buffer = heading + 0.01
-        right_buffer = heading - 0.01
-
-        if left_buffer > 6.28:
-            left_buffer -= 6.28
-
-        if right_buffer < -6.28:
-            right_buffer += 6.28
-
-        left_buffer = round(left_buffer, 2)
-        right_buffer = round(right_buffer, 2)
-
-        print("left_buffer: " + str(left_buffer))
-        print("right_buffer: " + str(right_buffer))
-
-        did_break = False
-        start = time.time()
-        last_heading = self.heading
-
-        while not (self.heading >= right_buffer and self.heading <= left_buffer):
-            '''if 5.0 >= time.time() - start: # Have 3 seconds elapsed?
-                if last_heading == self.heading: # Have we rotated in that time?
-                    print("appear to be stuck!")
-                    did_break = True # If not then we are stuck get out of infinite loop!
-                    break
-                else:
-                    lastheading = self.heading'''
-
-        if did_break:
-            return -1 # Something went wrong
+        #if did_break:
+        #    return -1 # Something went wrong
 
         distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
 
         self.travel_distance(round(distance, 2))
 
-    def set_coordinates(self, x, y):
-        self.connection.send("c" + str(x) + "," + str(y) + "\n")
+    def change_odometry(self, x, y, heading):
+        x = round(x * self.cell_size, 2)
+        y = round(y * self.cell_size, 2)
+        self.connection.send("c," + str(x) + "," + str(y) + "," + str(heading) + "\n")
 
     '''
     Ideally this should be event or listener based, currently it just returns a boolean value
     to the caller indicating if there has been a change.
+    
+    The update stores the x and y coordinates in meters so they must be converted.
     '''
     def update_odometry(self, update):
         changed = False
 
-        if self.x != update.x:
-            self.x = update.x
+        if self.x != (update.x / self.cell_size):
+            self.x = (update.x / self.cell_size)
             changed = True
 
-        if self.y != update.y:
-            self.y = update.y
+        if self.y != (update.y / self.cell_size):
+            self.y = (update.y / self.cell_size)
             changed = True
 
         if self.heading != update.heading:

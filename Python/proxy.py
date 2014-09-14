@@ -62,8 +62,9 @@ class Proxy(Thread):
                   data == "Turning Right\n" or
                   data == "Turning Left\n" or
                   data == "Halted\n" or
-                  data == "Scanning\n"):
-                state = StateEvent(data)
+                  data == "Scanning\n" or
+                  data == "Travelled\n"):
+                state = StateEvent(data.strip('\n'))
 
                 with self.mutex:
                     self.events.append(state)
