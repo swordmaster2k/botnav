@@ -12,3 +12,7 @@
 ###################
 __pycache__/
 Python/output
+
+# Project Files #
+#################
+robonav.geany

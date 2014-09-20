@@ -8,7 +8,7 @@ from model.map import Map
 from planner import Planner
 from model.robot import Robot
 from algorithm.gridnav import GridNav
-from bluetooth_connection import BluetoothConnection
+from connection.bluetooth_connection import BluetoothConnection
 from events import OdometryReport, ScanResult, StateEvent
 
 grid_size = 11
@@ -16,15 +16,17 @@ cell_size = 0.3 # meters
 
 class Tester(threading.Thread):
 	def __init__(self):
-		self.proxy = Proxy(self, BluetoothConnection("00:00:12:06:56:83", 0x1001))
+		self.proxy = Proxy(BluetoothConnection("00:00:12:06:56:83", 0x1001))
+		self.proxy.listeners.append(self)
+		
 		self.robot = Robot(self.proxy)
 		
-		self.map = Map(self.robot, grid_size * cell_size, cell_size) # 10x10 grid.
-		self.open_map("maps/test.map")
+		self.map = Map(self.robot, grid_size * cell_size, cell_size)
+		self.open_map("maps/bedroom.map")
 		
 		self.algorithm = GridNav(self.map)
 		
-		self.planner = Planner(self.map, self.algorithm)
+		self.planner = Planner(self.map, self.algorithm, self.proxy)
 		
 		Thread.__init__(self)
 
@@ -36,43 +38,24 @@ class Tester(threading.Thread):
 		while y >= 0:
 			line = infile.readline()
 		
-			x = 0
-			while x < grid_size:
+			for x in range(grid_size):
 				if line[x] == "#":
 					self.map.grid[x][y].state = 2
 				elif line[x] == "R":
 					# Put the robot in the center of the cell.
-					self.robot.change_odometry(round(x + 0.5, 2), round(y + 0.5, 2), 1.57)
+					self.robot.change_odometry(round(x + 0.5, 2), 
+						round(y + 0.5, 2), 1.57)
 				elif line[x] == "G":
 					self.map.goal_x = x
 					self.map.goal_y = y
-				
-				x += 1
 		
 			y -= 1
 		
 		infile.close()
-	
-	def pop_event(self):
-		# Attempt to get the lock and then process 
-		# any events.
-		with self.proxy.mutex:
-			if len(self.proxy.events) < 1:
-				return
-
-		event = self.proxy.events.pop()
-		
-		print(event.to_string())
-
+				
+	def handle_event(self, event):
 		if isinstance(event, OdometryReport):
-			didChange = self.robot.update_odometry(event)
-		elif isinstance(event, ScanResult):
-			cells = self.map.ping_to_cells(float(event.readings[0])) # Just take 1 reading for now.
-			updated_cells = self.map.update_map(cells)
-				        
-			if len(updated_cells) > 0:
-				self.path_planner.update_occupancy(updated_cells)
-				self.path_planner.print_occupancy_grid()                    
+			didChange = self.robot.update_odometry(event)                 
 		elif isinstance(event, StateEvent):
 			self.robot.state = event.state
 			
@@ -85,7 +68,7 @@ class Tester(threading.Thread):
 
 			command = input()
 	
-			if command == "start":
+			if command == "begin":
 				if not self.planner.finished:
 					self.planner.start()
 			elif command == "quit":

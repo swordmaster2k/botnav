@@ -13,62 +13,65 @@ Compatible with any from of connection as long as they implement write()
 and readline().
 '''
 class Proxy(Thread):
-    def __init__(self, listener, port):
-        self.mutex = threading.Lock()
-        self.listener = listener
-        self.connection = port
-        self.events = []
-        
-        Thread.__init__(self)
-        self.daemon = True
+	'''
 
-    def send(self, message):
-        self.connection.write(message)
+	'''
+	def __init__(self, port):
+		self.listeners = []
+		self.connection = port
 
-    def run(self):
-        while not self.connection.closed:
-            data = self.connection.readline()
+		Thread.__init__(self)
+		self.daemon = True
 
-            if data[0] == 'o':
-                parameters = data.split(',')
+	'''
+	Sends a message to the robot by writing it to the output file of 
+	the connection.
+	'''
+	def send(self, message):
+		self.connection.write(message)
 
-                if len(parameters) != 4:
-                    continue
-                
-                report = OdometryReport(float(parameters[1]),
-                                        float(parameters[2]),
-                                        float(parameters[3]))
+	'''
+	Reads lines from the connection parsing any useful information.
+	'''
+	def run(self):
+		while not self.connection.closed:
+			data = self.connection.readline()
 
-                with self.mutex:
-                    self.events.append(report)
+			if data[0] == 'o':
+				parameters = data.split(',')
 
-                self.listener.pop_event()
-            elif data[0] == 's':
-                parameters = data.split(',')
+				if len(parameters) != 4:
+					continue
 
-                if len(parameters) < 2:
-                    continue
+				event = OdometryReport(
+				float(parameters[1]),
+				float(parameters[2]),
+				float(parameters[3]))
 
-                parameters.remove('s')
+				for listener in self.listeners:
+					listener.handle_event(event)
+			elif data[0] == 's':
+				parameters = data.split(',')
 
-                result = ScanResult(parameters)
+				if len(parameters) < 2:
+					continue
 
-                with self.mutex:
-                    self.events.append(result)
+				parameters.remove('s')
 
-                self.listener.pop_event()
-            elif (data == "Going Forward\n" or
-                  data == "Going Backward\n" or
-                  data == "Turning Right\n" or
-                  data == "Turning Left\n" or
-                  data == "Halted\n" or
-                  data == "Scanning\n" or
-                  data == "Travelled\n"):
-                state = StateEvent(data.strip('\n'))
+				event = ScanResult(parameters)
 
-                with self.mutex:
-                    self.events.append(state)
-
-                self.listener.pop_event()
-            else:
-                print(data)
+				for listener in self.listeners:
+					listener.handle_event(event)
+			elif (data == "Going Forward\n" or
+			data == "Going Backward\n" or
+			data == "Turning Right\n" or
+			data == "Turning Left\n" or
+			data == "Halted\n" or
+			data == "Scanning\n" or
+			data == "Travelled\n"):
+				event = StateEvent(data.strip('\n'))
+					
+				for listener in self.listeners:
+					listener.handle_event(event)
+			else:
+				print(data)

@@ -2,19 +2,21 @@ import sys
 import socket
 
 '''
-Wrapper class for the Python3.3 bluetooth socket implementation, it communicates with the 
-bluetooth device using input and output files.
+Wrapper class for the Python3.3 bluetooth socket implementation, it 
+communicates with the bluetooth device using input and output files.
 '''
 class BluetoothConnection():
 
 	'''
-	Creates a new BluetoothConnection to the bluetooth address addr on the specified port.
+	Creates a new BluetoothConnection to the bluetooth address on the 
+	specified port.
 	'''
 	def __init__(self, addr, port):
 		self.addr = addr
 		self.port = port
 		
-		self.sock = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+		self.sock = socket.socket(socket.AF_BLUETOOTH, 
+					socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
 		self.sock.connect((self.addr, self.port))
 		
 		self.infile = self.sock.makefile('r')
