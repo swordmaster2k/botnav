@@ -44,7 +44,7 @@ class Robot:
 		self.state = ""
 
 		# Size of the cells we are operating in.
-		self.cell_size = 0.3
+		self.cell_size = 0.15
 
 	'''
 	Instructs the robot to go forward.

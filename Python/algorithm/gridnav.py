@@ -44,7 +44,7 @@ class GridNav(Algorithm):
 		self.NOT_SCHEDULED = 1
 
 		# Expressed in cells.
-		self.MAX_VELOCITY = 0.5
+		self.MAX_VELOCITY = 1.0
 
 		# Keep track of computations.
 		self.cell_count = 0

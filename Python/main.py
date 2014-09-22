@@ -103,8 +103,9 @@ class Main(threading.Thread):
 			self.robot.state = event.state
 		elif isinstance(event, StateEvent):
 			self.robot.state = event.state
-			
-		print(event)
+		
+		if verbose:	
+			print(event)
 
 verbose = False
 main = Main()

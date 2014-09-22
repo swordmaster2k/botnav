@@ -11,8 +11,8 @@ from algorithm.gridnav import GridNav
 from connection.bluetooth_connection import BluetoothConnection
 from events import OdometryReport, ScanResult, StateEvent
 
-grid_size = 11
-cell_size = 0.3 # meters
+grid_size = 22
+cell_size = 0.15 # meters
 
 class Tester(threading.Thread):
 	def __init__(self):
@@ -20,9 +20,10 @@ class Tester(threading.Thread):
 		self.proxy.listeners.append(self)
 		
 		self.robot = Robot(self.proxy)
+		self.robot.cell_size = cell_size
 		
 		self.map = Map(self.robot, grid_size * cell_size, cell_size)
-		self.open_map("maps/bedroom.map")
+		self.open_map("maps/bedroom15.map")
 		
 		self.algorithm = GridNav(self.map)
 		
