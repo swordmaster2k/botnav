@@ -43,8 +43,8 @@ class GridNav(Algorithm):
 		self.SCHEDULED = 0
 		self.NOT_SCHEDULED = 1
 
-		# Expressed in cells.
-		self.MAX_VELOCITY = 1.0
+		# Expressed in cells, move 0.15m in real world units.
+		self.MAX_VELOCITY = 0.15 / self.map.cell_size
 
 		# Keep track of computations.
 		self.cell_count = 0
@@ -372,7 +372,11 @@ class GridNav(Algorithm):
 
 		while y >= 0:
 			footer += "        " + str((self.map.cells_square - 1) - y)
-			rows += str(y) + "  "
+			
+			if y < 10:
+				rows += str(y) + "  "
+			else:
+				rows += str(y) + " "
 
 			for x in range(self.map.cells_square):
 				if (x == int(math.floor(self.map.robot.x))
@@ -393,7 +397,7 @@ class GridNav(Algorithm):
 				rows += "\n\n"
 
 		print(rows)
-		print(footer)
+		print(footer + '\n')
 
 	'''
 	Prints the contents of the cost grid to the standard output.
@@ -408,7 +412,11 @@ class GridNav(Algorithm):
 
 		while y >= 0:
 			footer += footer_padding + str((self.map.cells_square - 1) - y)
-			rows += str(y) + " "
+			
+			if y < 10:
+				rows += str(y) + "  "
+			else:
+				rows += str(y) + " "
 
 			for x in range(self.map.cells_square):
 				cost = grid[x][y].data.cost
@@ -427,7 +435,7 @@ class GridNav(Algorithm):
 				rows += "\n\n"
 
 		print(rows)
-		print(footer)
+		print(footer + '\n')
 
 #----------------------------------------------------------------------#
 #   Inner Classes                                            		   #

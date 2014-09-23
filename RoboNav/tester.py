@@ -11,19 +11,18 @@ from algorithm.gridnav import GridNav
 from connection.bluetooth_connection import BluetoothConnection
 from events import OdometryReport, ScanResult, StateEvent
 
-grid_size = 22
-cell_size = 0.15 # meters
-
 class Tester(threading.Thread):
-	def __init__(self):
+	def __init__(self, grid_size, cell_size, map_file):
 		self.proxy = Proxy(BluetoothConnection("00:00:12:06:56:83", 0x1001))
 		self.proxy.listeners.append(self)
+		
+		self.grid_size = grid_size
 		
 		self.robot = Robot(self.proxy)
 		self.robot.cell_size = cell_size
 		
 		self.map = Map(self.robot, grid_size * cell_size, cell_size)
-		self.open_map("maps/bedroom15.map")
+		self.open_map("maps/" + map_file)
 		
 		self.algorithm = GridNav(self.map)
 		
@@ -34,12 +33,12 @@ class Tester(threading.Thread):
 	def open_map(self, path):
 		infile = open(path, 'r')
 	
-		y = grid_size - 1
+		y = self.grid_size - 1
 	
 		while y >= 0:
 			line = infile.readline()
 		
-			for x in range(grid_size):
+			for x in range(self.grid_size):
 				if line[x] == "#":
 					self.map.grid[x][y].state = 2
 				elif line[x] == "R":
@@ -74,7 +73,20 @@ class Tester(threading.Thread):
 					self.planner.start()
 			elif command == "quit":
 				self.planner.finished = True
-					
-tester = Tester()
-tester.start()
-tester.proxy.start()
+				
+if __name__ == '__main__':
+	import sys
+	
+	if len(sys.argv) == 4:
+		# Just assume the information is correct for now.
+		grid_size = float(sys.argv[1])
+		cell_size = float(sys.argv[2])
+		map_file = sys.argv[3]
+		
+		grid_size += cell_size
+		
+		grid_size = int(grid_size / cell_size)
+	
+		tester = Tester(grid_size, cell_size, map_file)
+		tester.start()
+		tester.proxy.start()

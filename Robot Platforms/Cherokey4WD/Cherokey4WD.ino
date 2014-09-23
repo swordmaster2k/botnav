@@ -1,5 +1,5 @@
 /**
- * File: Robot.ino
+ * File: Cherokey4WD.ino
  * 
  * 
  * 
@@ -15,7 +15,7 @@
 #include "Wire.h"
 #endif
 
-#include "Rover.h"
+#include "Cherokey4WD.h"
 
 /************************************************************
  * Arduino Functions
@@ -138,7 +138,7 @@ void loop()
       processSerial(); 
     }
 
-    if (millis() - timer > messageRate)
+    if (millis() - timer >= messageRate)
     {
       sendOdometry();     
       timer = millis();
@@ -162,18 +162,14 @@ void loop()
 
 void processSerial()
 {
-  // Check to see if at least one character is available.
-  if (Serial.available()) 
+  // Redeclare this every time to clear the buffer.
+  char buffer[MAX_CHARACTERS]; 
+
+  bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
+
+  if (bytes > 0)
   {
-    // Redeclare this every time to clear the buffer.
-    char buffer[MAX_CHARACTERS]; 
-
-    bytes = Serial.readBytesUntil(terminator, buffer, MAX_CHARACTERS);
-
-    if (bytes > 0)
-    {
-      processCommand(buffer);
-    }
+    processCommand(buffer);
   }
 }
 
@@ -792,25 +788,3 @@ double roundDigit(double number, int digits)
 
   return number;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

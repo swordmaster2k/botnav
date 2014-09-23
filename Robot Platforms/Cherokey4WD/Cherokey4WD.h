@@ -1,5 +1,5 @@
 /**
- * File: Robot.h
+ * File: Cherokey4WD.h
  * 
  * 
  *  
@@ -95,7 +95,7 @@ double distances[170]; // Stores range finder distances during scans.
 enum states state;
 
 /************************************************************
- * Sensor Connections
+ * Hardware Connections
  ************************************************************/
  
  // MPU6050.
