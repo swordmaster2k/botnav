@@ -45,4 +45,3 @@ class BluetoothConnection():
 		self.outfile.close()
 		self.sock.close()
 		self.closed = True
-

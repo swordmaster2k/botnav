@@ -48,16 +48,7 @@ void loop()
   // To save bombarding the serial line.
   if (millis() - timer >= messageRate)
   {
-    // Send odometry data to host.
-    Serial.print(odometryHeader);
-    Serial.print(separator);
-    Serial.print(x, DEC);
-    Serial.print(separator);
-    Serial.print(y, DEC);
-    Serial.print(separator);
-    Serial.print(theta, DEC);
-    Serial.println(); // Message terminated by \n.
-
+    sendOdometry();
     timer = millis();
   }
 }
@@ -161,11 +152,10 @@ void updateOdometry()
   mouse.write(0xeb);  // Give me data!
   mouse.read();       // Ignore ack.
   mouse.read();       // Ignore stat.
-
-  // Convert x and y from cpi to m.
-  x += ((((char)mouse.read()) / MOUSE_CPI) * INCH_TO_METER);
-  y += ((((char)mouse.read()) / MOUSE_CPI) * INCH_TO_METER);
-
+  
+  x += ((int8_t)mouse.read() / MOUSE_CPI) * INCH_TO_METER;
+  y += ((int8_t)mouse.read() / MOUSE_CPI) * INCH_TO_METER;
+ 
   getHeading();
 }
 
@@ -178,6 +168,7 @@ void getHeading()
 
   // Calculate heading when the magnetometer is level, then correct for signs of axis.
   theta = atan2(scaled.YAxis, scaled.XAxis);
+  theta += offset;
 
   // Correct for when signs are reversed.
   if(theta < 0)

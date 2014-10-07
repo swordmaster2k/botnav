@@ -33,7 +33,7 @@
 #define SERVO_PIN 10
 
 // CPI of optical mouse.
-#define MOUSE_CPI 800
+#define MOUSE_CPI 800.0
 
 // Value of 1 inch in meters.
 #define INCH_TO_METER 0.0254
