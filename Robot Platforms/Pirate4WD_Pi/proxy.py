@@ -1,3 +1,4 @@
+import socket
 import threading
 
 from threading import Thread
@@ -5,7 +6,7 @@ from threading import Thread
 '''
 Handles all communication to and from a robot on a dedicated thread.
 
-Simply passes on the data recieved to any listener objects.
+Polls the data collected into a command queue.
 
 Compatible with any from of connection as long as they implement write()
 and readline().
@@ -15,8 +16,10 @@ class Proxy(Thread):
 
 	'''
 	def __init__(self, socket):
-		self.listeners = []
 		self.socket = socket
+		
+		self.command_queue = []
+		self.command_mutex = threading.Lock()
 
 		Thread.__init__(self)
 
@@ -25,6 +28,9 @@ class Proxy(Thread):
 	the connection.
 	'''
 	def send(self, message):
+		if not message.endswith('\n'): # Messages are terminated by '\n'.
+			message += '\n'
+			
 		self.socket.write(message)
 
 	'''
@@ -33,9 +39,14 @@ class Proxy(Thread):
 	def run(self):
 		while not self.socket.closed:
 			try:
-				event = self.socket.readline()
-						
-				for listener in self.listeners:
-					listener.handle_event(event)
-			except:
+				command = self.socket.readline()
+				
+				if len(command) > 0:		
+					with self.command_mutex:
+						self.command_queue.append(command)
+			except IOError as err:
+				print(str(err))
+				continue
+			except ValueError as err:
+				print(str(err))
 				continue

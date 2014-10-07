@@ -1,10 +1,14 @@
 import sys
 import socket
 
+'''
+
+'''
 class IPConnection:
+	'''
+	
+	'''
 	def __init__(self, ip, port):
-		socket.setdefaulttimeout(5)
-		
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.connect((ip, port))
 		

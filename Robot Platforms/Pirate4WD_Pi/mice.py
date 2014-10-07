@@ -4,6 +4,9 @@ import select
 
 from threading import Thread
 
+'''
+
+'''
 class MouseEvent:
 	def __init__(self, left, middle, right, x, y):
 		self.left_button = left
@@ -12,7 +15,13 @@ class MouseEvent:
 		self.x = x
 		self.y = y
 
+'''
+
+'''
 class Mice(Thread):
+	'''
+	
+	'''
 	def __init__(self, pirate, exit_mutex):
 		self.stream = self.open_mice()
 		self.pirate = pirate
@@ -62,9 +71,9 @@ class Mice(Thread):
 					right_button, x, y)
 			else:
 				return -1
-		except Exception:
-				print ("Issue with reading data from mice.")
-				return -1
+		except:
+			print ("Issue with reading data from mice.")
+			return -1
 	
 	'''
 	Run this on its own thread because the call to get_mice_event() will
@@ -78,11 +87,3 @@ class Mice(Thread):
 					self.pirate.update_odometry(mouse_event)
 				
 		self.exit_mutex.acquire()
-
-'''
-mice = Mice(800)
-
-if mice.mice != False:
-	while True:
-		mice.get_mice_event()
-'''
