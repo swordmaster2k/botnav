@@ -107,13 +107,13 @@ class MotorController():
 	'''	
 	def rotate_right(self):	
 		io.output(self.M1_EN, True)
-		self.motor_1.start(self.MOTOR_SPEED)
+		self.motor_1.start(self.MOTOR_SPEED) # Drive M1 forward.
 		
 		io.output(self.M2_EN, False)
 		self.motor_2.start(self.MOTOR_SPEED)
 		
 		io.output(self.M3_EN, True)
-		self.motor_3.start(self.MOTOR_SPEED)
+		self.motor_3.start(self.MOTOR_SPEED) # Drive M3 forward.
 		
 		io.output(self.M4_EN, False)
 		self.motor_4.start(self.MOTOR_SPEED)
@@ -126,13 +126,13 @@ class MotorController():
 		self.motor_1.start(self.MOTOR_SPEED)
 		
 		io.output(self.M2_EN, True)
-		self.motor_2.start(self.MOTOR_SPEED)
+		self.motor_2.start(self.MOTOR_SPEED) # Drive M2 forward.
 		
 		io.output(self.M3_EN, False)
 		self.motor_3.start(self.MOTOR_SPEED)
 		
 		io.output(self.M4_EN, True)
-		self.motor_4.start(self.MOTOR_SPEED)
+		self.motor_4.start(self.MOTOR_SPEED) # Drive M4 forward.
 
 	'''
 	Halts all motors.

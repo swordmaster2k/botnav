@@ -33,16 +33,19 @@ class Pirate(Thread):
 		# Create the communications thread.
 		self.proxy = Proxy(IPConnection("10.42.0.1", 50001))
 		
+		# When the Mice thread is finished it will signal this
+		# thread by acquiring the mutex.
 		self.mice_exit_mutex = thread.allocate_lock()
 		
 		self.motor_controller = MotorController()
 		
-		# Create the Mice thread for reading x, y data.
+		# Create the Mice thread for reading x and y data.
 		self.mice = Mice(self, self.mice_exit_mutex)
 		
 		self.x = 0.0
 		self.y = 0.0
 		self.heading = 1.57
+		self.offset = 0.0 # Offset to record when the odometry has been forced.
 		
 		Thread.__init__(self)
 	
@@ -86,7 +89,8 @@ class Pirate(Thread):
 			self.proxy.send(state) # Inform host of state change.
 	
 	'''
-	Updates the robot's odometry (x, y, heading).
+	Updates the robot's odometry (x, y, heading). Currently called from
+	the Mice thread when there is movement.
 	'''	
 	def update_odometry(self, mouse_event):
 		self.x += (mouse_event.x / CPI) * INCH_TO_METER
@@ -104,7 +108,10 @@ class Pirate(Thread):
 	Changes the robot's odometry by force.
 	'''	
 	def change_odometry(self, x, y, heading):
-		return
+		self.x = x
+		self.y = x
+		self.offset = self.heading - heading
+		self.heading = heading
 		
 	'''
 	Rotates the robot to face a particular heading.
@@ -117,11 +124,13 @@ class Pirate(Thread):
 			if heading >= 0.0 and heading <= 6.27:
 				angle = heading - self.heading
 				
+				# Some wrap around.
 				if angle < -3.14:
 					angle += 6.28
 				elif angle > 3.14:
 					angle -= 6.28
 				
+				# Get with 0.5 degree of target heading.
 				left_buffer = angle + 0.01
 				right_buffer = angle - 0.01
 				
@@ -132,7 +141,9 @@ class Pirate(Thread):
 					right_buffer += 6.28
 				
 				message_time = time.time()
-					
+				
+				# Our context is based on a standard circle with the
+				# angle increasing from right to left.	
 				if angle < 0:
 					self.motor_controller.rotate_right()
 				if angle > 0:
@@ -141,6 +152,7 @@ class Pirate(Thread):
 				interrupted = False
 					
 				while self.heading < right_buffer or self.heading > left_buffer:
+					# Check for any commands that could cancel this.
 					with self.proxy.command_mutex:
 						if len(self.proxy.command_queue) > 0:
 							interrupted = True
@@ -192,6 +204,7 @@ class Pirate(Thread):
 				interrupted = False
 				
 				while True:
+					# Check for any commands that could cancel this.
 					with self.proxy.command_mutex:
 						if len(self.proxy.command_queue) > 0:
 							interrupted = True
@@ -227,10 +240,13 @@ class Pirate(Thread):
 		while True:
 			try:
 				command = ""
+				
+				# Check the command poll.
 				with self.proxy.command_mutex:
 					if len(self.proxy.command_queue) > 0:
 						command = self.proxy.command_queue.pop()
 				
+				# If there is something then process it.
 				if command != "":
 					self.process_command(command)		
 				

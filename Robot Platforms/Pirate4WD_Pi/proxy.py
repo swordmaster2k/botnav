@@ -41,6 +41,7 @@ class Proxy(Thread):
 			try:
 				command = self.socket.readline()
 				
+				# If we read something stick into the command queue.
 				if len(command) > 0:		
 					with self.command_mutex:
 						self.command_queue.append(command)
@@ -49,4 +50,7 @@ class Proxy(Thread):
 				continue
 			except ValueError as err:
 				print(str(err))
+				continue
+			except Exception as ex:
+				print(str(ex))
 				continue

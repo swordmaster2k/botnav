@@ -57,9 +57,12 @@ class Mice(Thread):
 	'''
 	def get_mice_event(self):
 		try:
+			# Use a select to check if there is something to read.
+			# Prevents the code from blocking.
 			read, write, expectional = select.select([self.stream], [], [], 0)
 		
 			if self.stream in read:
+				# Grab the data from the file as bytes.
 				buf = self.stream.read(3);
 				button = buf[0];
 				left_button = button & 0x1;
@@ -76,8 +79,7 @@ class Mice(Thread):
 			return -1
 	
 	'''
-	Run this on its own thread because the call to get_mice_event() will
-	block if there is no data to read.
+	Run this on its own thread so we can update our odometry independently.
 	'''		
 	def run(self):
 		if not self.stream == False:
@@ -85,5 +87,7 @@ class Mice(Thread):
 				mouse_event = self.get_mice_event()
 				if mouse_event != -1:
 					self.pirate.update_odometry(mouse_event)
-				
+		
+		# When we are done acquire the mutex to let the parent
+		# thread know.		
 		self.exit_mutex.acquire()

@@ -12,6 +12,7 @@ class IPConnection:
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sock.connect((ip, port))
 		
+		# To facilitate reading and writing whole lines.
 		self.infile = self.sock.makefile('r')
 		self.outfile = self.sock.makefile('w')
 		
