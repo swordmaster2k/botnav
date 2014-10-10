@@ -248,17 +248,20 @@ class GridNav(Algorithm):
 				self.expand(result[0], result[1])
 			else:
 				break
+		
+		x = int(math.floor(self.robot.x + 0.5))
+		y = int(math.floor(self.robot.y + 0.5))
+		
+		# When there has been a change to the plan rebuild the path.
+		self.path = []		
+		self.build_path(x, y)
 
+	
 	'''
-	Look at the cost grid to decide which way to go.
-
-	Returns the next x, y coordinate to travel too.
-
-	East (+X) is 0, north (+Y) is PI / 2.
-	'''
-	def check_plan(self):
-		x = int(math.floor(self.map.robot.x + 0.5))
-		y = int(math.floor(self.map.robot.y + 0.5))
+	Recursively build the path based on the robot's position x and y,
+	until the final point is less than 0.5 away in both x and y.
+	'''	
+	def build_path(self, x, y):		
 		i = x - 1
 		x_part = 0
 		y_part = 0
@@ -329,11 +332,19 @@ class GridNav(Algorithm):
 
 		heading = math.atan2(y_part, x_part)
 
-		next_x = (self.MAX_VELOCITY * math.cos(heading))
-		next_y = (self.MAX_VELOCITY * math.sin(heading))
-		next_cell = [next_x, next_y]
-
-		return next_cell
+		next_x = round(x + (self.MAX_VELOCITY * math.cos(heading)), 2)
+		next_y = round(y + (self.MAX_VELOCITY * math.sin(heading)), 2)
+		
+		self.path.append([next_x, next_y])
+		
+		x_difference = self.map.goal_x - next_x
+		y_difference = self.map.goal_y - next_y
+		
+		if x_difference < 0.5 or y_difference < 0.5:
+			return
+		else:
+			self.build_path(int(math.floor(next_x)), int(math.floor(next_y)))
+			
 
 	'''
 	Updates the occupancy grid based on the cells that were updated on
@@ -369,6 +380,7 @@ class GridNav(Algorithm):
 		rows = ""
 		symbol = ""
 		grid = self.map.grid
+		last_point = 0
 
 		while y >= 0:
 			footer += "        " + str((self.map.cells_square - 1) - y)
@@ -379,8 +391,8 @@ class GridNav(Algorithm):
 				rows += str(y) + " "
 
 			for x in range(self.map.cells_square):
-				if (x == int(math.floor(self.map.robot.x))
-				and y == int(math.floor(self.map.robot.y))):
+				if (x == int(math.floor(self.robot.x))
+				and y == int(math.floor(self.robot.y))):
 					symbol = "ROBOT"
 				elif x == self.map.goal_x and y == self.map.goal_y:
 					symbol = "GOAL "
@@ -388,6 +400,14 @@ class GridNav(Algorithm):
 					symbol = "     "
 				elif grid[x][y].data.occupancy == self.FULL:
 					symbol = "#####"
+				else:
+					for i in range(len(self.path) - last_point):
+						point = self.path[i]
+						if (x == int(math.floor(point[0])) and 
+							y == int(math.floor(point[1]))):
+								symbol = "  .  "
+								last_point = i
+								break
 					
 				rows += "[ " + symbol + " ]"
 

@@ -75,10 +75,7 @@ class Planner(threading.Thread):
 		print("\n" + ('-' * 73) + "\n")
 	
 		# While we are not with 0.5 cells of the goal in both x and y.
-		while (x_difference > 0.5 or y_difference > 0.5):
-			if self.finished:
-				break
-		
+		while (x_difference > 0.5 or y_difference > 0.5):			
 			'''
 			Step 2: Scan the immediate area for obstacles and free space.
 			'''
@@ -89,7 +86,6 @@ class Planner(threading.Thread):
 			
 			# Just take 1 reading for now.	
 			affected_cells = self.map.ping_to_cells(round(float(self.last_scan.readings[0]) / self.map.cell_size, 2))
-			
 			self.last_scan = 0 
 			
 			'''
@@ -106,12 +102,9 @@ class Planner(threading.Thread):
 					self.algorithm.replan()
 
 			'''
-			Step 5: Check the plan for a new direction.
+			Step 5: Pop the next point from the current path.
 			'''
-			new_point = self.algorithm.check_plan()
-			new_point[0] = round(self.robot.x + new_point[0], 2)
-			new_point[1] = round(self.robot.y + new_point[1], 2)
-			
+			new_point = self.algorithm.pop_next_point()
 			self.robot.go_to(new_point[0], new_point[1])
 			
 			# Wait for the robot to finish travelling.

@@ -18,10 +18,10 @@ from connection.ip_connection import IPConnection
 class Main(threading.Thread):
 	def __init__(self):
 		# Bluetooth.
-		#connection = BluetoothConnection("00:00:12:06:56:83", 0x1001)
+		connection = BluetoothConnection("00:00:12:06:56:83", 0x1001)
 
 		# IP
-		connection = IPConnection("10.42.0.1", 50001)
+		#connection = IPConnection("10.42.0.1", 50001)
 		
 		# USB Serial.
 		#connection = SerialConnection("/dev/ttyACM1", 115200)
