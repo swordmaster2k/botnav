@@ -57,3 +57,9 @@ class Algorithm:
 	'''	
 	def print_occupancy_grid(self):
 		raise NotImplementedError
+	
+	'''
+	Should print the contents of the robots path.
+	'''	
+	def print_path(self):
+		raise NotImplementedError

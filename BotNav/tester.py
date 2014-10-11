@@ -10,18 +10,24 @@ from model.robot import Robot
 from algorithm.gridnav import GridNav
 from connection.bluetooth_connection import BluetoothConnection
 from events import OdometryReport, ScanResult, StateEvent
+from model.simulated_robot import SimulatedRobot
 
 class Tester(threading.Thread):
-	def __init__(self, grid_size, cell_size, map_file):
+	def __init__(self, map_file):
+		'''
 		self.proxy = Proxy(BluetoothConnection("00:00:12:06:56:83", 0x1001))
 		self.proxy.listeners.append(self)
 		
-		self.grid_size = grid_size
-		
 		self.robot = Robot(self.proxy)
-		self.robot.cell_size = cell_size
+		'''
 		
-		self.map = Map(self.robot, grid_size * cell_size, cell_size)
+		self.proxy = Proxy("DUMMY") # Dummy connection.
+		self.proxy.listeners.append(self)
+		
+		self.robot = SimulatedRobot(self.proxy)
+		self.robot.x = 9.5
+		self.robot.y = 15.5
+		
 		self.open_map("maps/" + map_file)
 		
 		self.algorithm = GridNav(self.map)
@@ -32,6 +38,17 @@ class Tester(threading.Thread):
 
 	def open_map(self, path):
 		infile = open(path, 'r')
+		
+		# Do not bother with any validation for now.
+		self.grid_size = float(infile.readline())
+		self.cell_size = float(infile.readline())
+		
+		# Addition of the boundary.
+		self.grid_size += self.cell_size
+		self.grid_size = int(self.grid_size / self.cell_size)
+		
+		self.robot.cell_size = self.cell_size
+		self.map = Map(self.robot, self.grid_size * self.cell_size, self.cell_size)
 	
 		y = self.grid_size - 1
 	
@@ -45,6 +62,13 @@ class Tester(threading.Thread):
 					# Put the robot in the center of the cell.
 					self.robot.change_odometry(round(x + 0.5, 2), 
 						round(y + 0.5, 2), 1.57)
+					
+					print("Waiting for odometry change...")
+					
+					# Wait for odometry change to take affect.	
+					while self.robot.x != round(x + 0.5, 2) and round(y + 0.5, 2):
+						continue
+						
 				elif line[x] == "G":
 					self.map.goal_x = x
 					self.map.goal_y = y
@@ -60,6 +84,8 @@ class Tester(threading.Thread):
 			self.robot.state = event.state
 			
 	def run(self):
+		self.proxy.start()
+		
 		command = ""
 	
 		while command != "quit":
@@ -77,16 +103,9 @@ class Tester(threading.Thread):
 if __name__ == '__main__':
 	import sys
 	
-	if len(sys.argv) == 4:
+	if len(sys.argv) == 2:
 		# Just assume the information is correct for now.
-		grid_size = float(sys.argv[1])
-		cell_size = float(sys.argv[2])
-		map_file = sys.argv[3]
-		
-		grid_size += cell_size
-		
-		grid_size = int(grid_size / cell_size)
+		map_file = sys.argv[1]
 	
-		tester = Tester(grid_size, cell_size, map_file)
+		tester = Tester(map_file)
 		tester.start()
-		tester.proxy.start()

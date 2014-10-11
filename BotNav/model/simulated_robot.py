@@ -1,6 +1,9 @@
 import math
 import time
 
+from .robot import Robot
+from events import ScanResult
+
 '''
 A generic Robot class which (may) represent(s) a hardware robot that 
 implements the communications interface defined by the robonav tool.
@@ -19,7 +22,7 @@ It does not matter if the robot is a wheeled, tracked, bipod, etc. as
 long as the hardware conforms to the generic interface required by
 the robonav tool. 
 '''
-class Robot:
+class SimulatedRobot(Robot):
 	'''
 	Initialises the robot using the connection specified.
 	'''
@@ -50,49 +53,56 @@ class Robot:
 	Instructs the robot to go forward.
 	'''
 	def go_forward(self):
-		self.connection.send("w\n")
+		return
 
 	'''
 	Instructs the robot to go backward.
 	'''
 	def go_backward(self):
-		self.connection.send("s\n")
+		return
 
 	'''
 	Instructs the robot to rotate left.
 	''' 
 	def rotate_left(self):
-		self.connection.send("a\n")
+		return
 
 	'''
 	Instructs the robot to rotate right.
 	'''
 	def rotate_right(self):
-		self.connection.send("d\n")
+		return
 
 	'''
 	Instructs the robot to halt.
 	'''
 	def halt(self):
-		self.connection.send("q\n")
+		return
 
 	'''
 	Instructs the robot to begin a scan.
 	'''
 	def scan(self):
-		self.connection.send("e\n")
+		return
 
 	'''
 	Instructs the robot to ping.
 	'''
 	def ping(self):
-		self.connection.send("p\n")
+		# Send a dummy scan result with a distance of 0.
+		# Will have no effect.
+		for listener in self.connection.listeners:
+			listener.handle_event(ScanResult([0]))
 
 	'''
 	Instructs the robot to reset itself.
 	'''
 	def reset(self):
-		self.connection.send("z\n")
+		self.x = 0
+		self.y = 0
+		self.heading = 1.57
+		self.path = []
+		self.state = ""
 
 	'''
 	Instructs the robot to update its odometry with the new parameters.
@@ -100,8 +110,6 @@ class Robot:
 	def change_odometry(self, x, y, heading):
 		x = round(x * self.cell_size, 2)
 		y = round(y * self.cell_size, 2)
-		self.connection.send("c," + str(x) + "," + str(y) + "," + 
-			str(heading) + "\n")
 
 	'''
 	Instructs the robot to rotate to face the specified heading.
@@ -116,7 +124,7 @@ class Robot:
 
 		print("rotate_to: " + str(heading))
 
-		self.connection.send("r" + str(round(heading, 2)) + "\n")
+		self.heading = heading
 
 		return heading
 
@@ -126,8 +134,8 @@ class Robot:
 	def travel_distance(self, distance):
 		print("travel_distance: " + str(round(distance * self.cell_size, 2)))
 
-		# Distance is cell based so send as meters.
-		self.connection.send("t" + str(round(distance * self.cell_size, 2)) + "\n")
+		self.x = math.floor(self.x + (distance * math.cos(self.heading)))
+		self.y = math.floor(self.y + (distance * math.sin(self.heading)))
 
 	'''
 	Instructs the robot to face a point.
@@ -151,7 +159,7 @@ class Robot:
 		elif heading >= 6.28:
 			heading -= 6.28
 
-		heading = self.rotate_to(round(heading, 2))
+		self.heading = heading
 
 		return heading
 
@@ -159,16 +167,11 @@ class Robot:
 	Instructs the robot to go a point.
 	'''
 	def go_to(self, x, y):
-		heading = self.face(x, y)
-
-		if heading != self.heading:
-			while self.state != "Halted":
-				continue
-
-		distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
-
-		self.travel_distance(round(distance, 2))
-
+		self.x = x
+		self.y = y
+		
+		self.state = "Travelled"
+		
 	'''
 	Returns a boolean value to the caller indicating if there has 
 	been a change.
@@ -200,3 +203,4 @@ class Robot:
 			self.path.append([self.x, self.y])
 
 		return changed
+

@@ -340,7 +340,7 @@ class GridNav(Algorithm):
 		x_difference = self.map.goal_x - next_x
 		y_difference = self.map.goal_y - next_y
 		
-		if x_difference < 0.5 or y_difference < 0.5:
+		if x_difference <= 0.5 and y_difference <= 0.5:
 			return
 		else:
 			self.build_path(int(math.floor(next_x)), int(math.floor(next_y)))
@@ -378,36 +378,52 @@ class GridNav(Algorithm):
 		y = self.map.cells_square - 1
 		footer = ""
 		rows = ""
-		symbol = ""
+		symbol = "     "
+		start_spacing = ""
+		end_spacing = ""
+		cell = 0
 		grid = self.map.grid
-		last_point = 0
 
 		while y >= 0:
-			footer += "        " + str((self.map.cells_square - 1) - y)
-			
 			if y < 10:
 				rows += str(y) + "  "
-			else:
+			elif y >= 10 and y < 100:
 				rows += str(y) + " "
+			else:
+				rows += str(y)
+			
+			cell = (self.map.cells_square - 1) - y
+			
+			if cell < 1:
+				start_spacing = "       "
+				end_spacing = "    "
+			elif cell < 10:
+				start_spacing = "    "
+				end_spacing = start_spacing
+			elif cell > 10 and cell < 100:
+				start_spacing = "   "
+				end_spacing = "    "
+			elif cell > 100 and cell < 1000:
+				start_spacing = "  "
+				end_spacing = "     "
+				
+			footer += start_spacing + str((self.map.cells_square - 1) - y) + end_spacing
 
 			for x in range(self.map.cells_square):
+				symbol = "     "
+
 				if (x == int(math.floor(self.robot.x))
 				and y == int(math.floor(self.robot.y))):
 					symbol = "ROBOT"
 				elif x == self.map.goal_x and y == self.map.goal_y:
 					symbol = "GOAL "
-				elif grid[x][y].data.occupancy == self.EMPTY:
-					symbol = "     "
 				elif grid[x][y].data.occupancy == self.FULL:
 					symbol = "#####"
 				else:
-					for i in range(len(self.path) - last_point):
-						point = self.path[i]
-						if (x == int(math.floor(point[0])) and 
-							y == int(math.floor(point[1]))):
-								symbol = "  .  "
-								last_point = i
-								break
+					for point in self.path:
+						if (math.floor(point[0]) == x and 
+							math.floor(point[1]) == y):
+							symbol = "  *  "
 					
 				rows += "[ " + symbol + " ]"
 
@@ -428,15 +444,35 @@ class GridNav(Algorithm):
 		footer_padding = "         "        
 		rows = ""
 		cost = ""
+		start_spacing = ""
+		end_spacing = ""
+		cell = 0
 		grid = self.map.grid
 
 		while y >= 0:
-			footer += footer_padding + str((self.map.cells_square - 1) - y)
-			
 			if y < 10:
 				rows += str(y) + "  "
-			else:
+			elif y >= 10 and y < 100:
 				rows += str(y) + " "
+			else:
+				rows += str(y)
+			
+			cell = (self.map.cells_square - 1) - y
+			
+			if cell < 1:
+				start_spacing = "        "
+				end_spacing = "     "
+			elif cell < 10:
+				start_spacing = "    "
+				end_spacing = "     "
+			elif cell > 10 and cell < 100:
+				start_spacing = "   "
+				end_spacing = "     "
+			elif cell > 100 and cell < 1000:
+				start_spacing = "  "
+				end_spacing = "      "
+				
+			footer += start_spacing + str((self.map.cells_square - 1) - y) + end_spacing
 
 			for x in range(self.map.cells_square):
 				cost = grid[x][y].data.cost
@@ -456,6 +492,20 @@ class GridNav(Algorithm):
 
 		print(rows)
 		print(footer + '\n')
+		
+	'''
+	Prints the points in the robots path.
+	'''	
+	def print_path(self):
+		path = ""
+		
+		for i in range(len(self.path)):
+			path += str(self.path[i])
+			
+			if i != len(self.path) - 1:
+				path += "->"
+				
+		print(path + "\n")
 
 #----------------------------------------------------------------------#
 #   Inner Classes                                            		   #

@@ -54,6 +54,7 @@ class Planner(threading.Thread):
 		self.algorithm.replan()
 		
 		# Print initial state.
+		self.algorithm.print_path()
 		self.algorithm.print_cost_grid()
 		self.algorithm.print_occupancy_grid()
 		
@@ -75,7 +76,7 @@ class Planner(threading.Thread):
 		print("\n" + ('-' * 73) + "\n")
 	
 		# While we are not with 0.5 cells of the goal in both x and y.
-		while (x_difference > 0.5 or y_difference > 0.5):			
+		while x_difference > 0.5 or y_difference > 0.5:			
 			'''
 			Step 2: Scan the immediate area for obstacles and free space.
 			'''
@@ -114,8 +115,9 @@ class Planner(threading.Thread):
 			self.robot.state = "" # Reset the state.
 	
 			# Print some information.
-			self.algorithm.print_occupancy_grid()
+			self.algorithm.print_path()
 			self.algorithm.print_cost_grid()
+			self.algorithm.print_occupancy_grid()
 			print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
 			print(
 				"x: %.2f" % (self.robot.x * self.map.cell_size) + 

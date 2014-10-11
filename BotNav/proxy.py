@@ -37,6 +37,9 @@ class Proxy(Thread):
 	Reads lines from the connection parsing any useful information.
 	'''
 	def run(self):
+		if self.connection == "DUMMY":
+			return
+		
 		while not self.connection.closed:
 			try:
 				data = self.connection.readline()
