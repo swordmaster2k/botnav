@@ -1,11 +1,12 @@
 '''
 	gridnav.py
 	
-	Version 2.0 - more efficient.  A grid-based navigation algorithm for 
+	Version 3.0 - more efficient.  A grid-based navigation algorithm for 
 	mobile robots.
 	
 	Python port of the original C implementation by Tucker Balch, ported
-	by Joshua Michael Daly.
+	by Joshua Michael Daly. Modified to build the entire path and catch
+	exceptions where there is no path to the goal.
 	
 	Copyright (C) 1995 Tucker Balch
 	Copyright (C) 2014 Joshua Michael Daly
@@ -24,6 +25,7 @@
 import math
 
 from .algorithm import Algorithm
+from exceptions import NoPathException
 
 '''
 A grid based navigation algorithm for mobile robots. Closest to the 
@@ -253,13 +255,21 @@ class GridNav(Algorithm):
 		y = int(math.floor(self.robot.y + 0.5))
 		
 		# When there has been a change to the plan rebuild the path.
-		self.path = []		
-		self.build_path(x, y)
+		self.path = []
+		
+		try:
+			self.build_path(x, y)
+		except RuntimeError as err:
+			if str(err) == "maximum recursion depth exceeded in comparison":
+				raise NoPathException("No path to Goal!")
 
 	
 	'''
 	Recursively build the path based on the robot's position x and y,
 	until the final point is less than 0.5 away in both x and y.
+	
+	If the robot ends up surround by obstacles this could throw a 
+	recursive error.
 	'''	
 	def build_path(self, x, y):		
 		i = x - 1
@@ -497,7 +507,7 @@ class GridNav(Algorithm):
 	Prints the points in the robots path.
 	'''	
 	def print_path(self):
-		path = ""
+		path = "path: "
 		
 		for i in range(len(self.path)):
 			path += str(self.path[i])

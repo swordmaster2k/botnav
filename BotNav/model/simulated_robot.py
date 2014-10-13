@@ -108,8 +108,8 @@ class SimulatedRobot(Robot):
 	Instructs the robot to update its odometry with the new parameters.
 	'''
 	def change_odometry(self, x, y, heading):
-		x = round(x * self.cell_size, 2)
-		y = round(y * self.cell_size, 2)
+		self.x = x
+		self.y = y
 
 	'''
 	Instructs the robot to rotate to face the specified heading.

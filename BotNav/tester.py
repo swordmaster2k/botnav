@@ -25,13 +25,10 @@ class Tester(threading.Thread):
 		self.proxy.listeners.append(self)
 		
 		self.robot = SimulatedRobot(self.proxy)
-		self.robot.x = 9.5
-		self.robot.y = 15.5
 		
-		self.open_map("maps/" + map_file)
+		self.open_map(map_file)
 		
 		self.algorithm = GridNav(self.map)
-		
 		self.planner = Planner(self.map, self.algorithm, self.proxy)
 		
 		Thread.__init__(self)
@@ -66,7 +63,8 @@ class Tester(threading.Thread):
 					print("Waiting for odometry change...")
 					
 					# Wait for odometry change to take affect.	
-					while self.robot.x != round(x + 0.5, 2) and round(y + 0.5, 2):
+					while (self.robot.x != round(x + 0.5, 2) and 
+							self.robot.y != round(y + 0.5, 2)):
 						continue
 						
 				elif line[x] == "G":

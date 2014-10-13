@@ -5,6 +5,7 @@ import threading
 from threading import Thread
 
 from events import ScanResult
+from exceptions import NoPathException
 
 '''
 The Planner actually deals with moving the robot from A to B until it
@@ -48,96 +49,102 @@ class Planner(threading.Thread):
 	Until we reach the goal.
 	'''	
 	def run(self):
-		'''
-		Step 1: Plan.
-		'''
-		self.algorithm.replan()
-		
-		# Print initial state.
-		self.algorithm.print_path()
-		self.algorithm.print_cost_grid()
-		self.algorithm.print_occupancy_grid()
-		
-		# Calculate our initial distance from the goal.
-		x_difference = self.map.goal_x - self.robot.x
-		y_difference = self.map.goal_y - self.robot.y
-		
-		if x_difference < 0:
-			x_difference = -x_difference
+		try:
+			'''
+			Step 1: Plan.
+			'''
+			self.algorithm.replan()
 			
-		if y_difference < 0:
-			y_difference = -y_difference
-		
-		print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
-		print(
-			"x: %.2f" % (self.robot.x * self.map.cell_size) + 
-			", y: %.2f" % (self.robot.y * self.map.cell_size) +
-			", heading %.2f" % self.robot.heading)
-		print("\n" + ('-' * 73) + "\n")
-	
-		# While we are not with 0.5 cells of the goal in both x and y.
-		while x_difference > 0.5 or y_difference > 0.5:			
-			'''
-			Step 2: Scan the immediate area for obstacles and free space.
-			'''
-			self.robot.ping()
-			
-			while self.last_scan == 0:
-				continue
-			
-			# Just take 1 reading for now.	
-			affected_cells = self.map.ping_to_cells(round(float(self.last_scan.readings[0]) / self.map.cell_size, 2))
-			self.last_scan = 0 
-			
-			'''
-			Step 3: Update the map if necessary.
-			'''
-			if len(affected_cells) > 0:
-				updated_cells = self.map.update_map(affected_cells)
-				if len(updated_cells) > 0:
-					self.algorithm.update_occupancy_grid(updated_cells)
-					
-					'''
-					Step 4: Recompute the plan if necessary.
-					'''
-					self.algorithm.replan()
-
-			'''
-			Step 5: Pop the next point from the current path.
-			'''
-			new_point = self.algorithm.pop_next_point()
-			self.robot.go_to(new_point[0], new_point[1])
-			
-			# Wait for the robot to finish travelling.
-			while self.robot.state != "Travelled":
-				continue
-				
-			self.robot.state = "" # Reset the state.
-	
-			# Print some information.
+			# Print initial state.
 			self.algorithm.print_path()
 			self.algorithm.print_cost_grid()
 			self.algorithm.print_occupancy_grid()
+			
+			# Calculate our initial distance from the goal.
+			x_difference = self.map.goal_x - self.robot.x
+			y_difference = self.map.goal_y - self.robot.y
+			
+			if x_difference < 0:
+				x_difference = -x_difference
+				
+			if y_difference < 0:
+				y_difference = -y_difference
+			
 			print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
 			print(
 				"x: %.2f" % (self.robot.x * self.map.cell_size) + 
 				", y: %.2f" % (self.robot.y * self.map.cell_size) +
-				", heading %.2f" % self.robot.heading
-				)
+				", heading %.2f" % self.robot.heading)
 			print("\n" + ('-' * 73) + "\n")
-			
-			# Recalculate the x and y differences from our position
-			# to the goal.
-			x_difference = self.map.goal_x - self.robot.x
-			y_difference = self.map.goal_y - self.robot.y
 		
-			if x_difference < 0:
-				x_difference = +x_difference
-			
-			if y_difference < 0:
-				y_difference = +y_difference
+			# While we are not with 0.5 cells of the goal in both x and y.
+			while x_difference > 0.5 or y_difference > 0.5:			
+				'''
+				Step 2: Scan the immediate area for obstacles and free space.
+				'''
+				self.robot.ping()
 				
-		self.robot.halt()
+				while self.last_scan == 0:
+					continue
+				
+				# Just take 1 reading for now.	
+				affected_cells = self.map.ping_to_cells(round(float(self.last_scan.readings[0]) / self.map.cell_size, 2))
+				self.last_scan = 0 
+				
+				'''
+				Step 3: Update the map if necessary.
+				'''
+				if len(affected_cells) > 0:
+					updated_cells = self.map.update_map(affected_cells)
+					if len(updated_cells) > 0:
+						self.algorithm.update_occupancy_grid(updated_cells)
+						
+						'''
+						Step 4: Recompute the plan if necessary.
+						'''
+						self.algorithm.replan()
+
+				'''
+				Step 5: Pop the next point from the current path.
+				'''
+				new_point = self.algorithm.pop_next_point()
+				self.robot.go_to(new_point[0], new_point[1])
+				
+				# Wait for the robot to finish travelling.
+				while self.robot.state != "Travelled":
+					continue
+					
+				self.robot.state = "" # Reset the state.
 		
-		if not self.finished:
-			self.finished = True
+				# Print some information.
+				self.algorithm.print_path()
+				self.algorithm.print_cost_grid()
+				self.algorithm.print_occupancy_grid()
+				print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
+				print(
+					"x: %.2f" % (self.robot.x * self.map.cell_size) + 
+					", y: %.2f" % (self.robot.y * self.map.cell_size) +
+					", heading %.2f" % self.robot.heading
+					)
+				print("\n" + ('-' * 73) + "\n")
+				
+				# Recalculate the x and y differences from our position
+				# to the goal.
+				x_difference = self.map.goal_x - self.robot.x
+				y_difference = self.map.goal_y - self.robot.y
+			
+				if x_difference < 0:
+					x_difference = +x_difference
+				
+				if y_difference < 0:
+					y_difference = +y_difference
+					
+			self.robot.halt()
+			
+			if not self.finished:
+				self.finished = True
+		except NoPathException as ex:
+			print(ex)
+			
+			if not self.finished:
+				self.finished = True
