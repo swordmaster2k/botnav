@@ -1,2 +1,2 @@
-botnav
+BotNav
 ======

@@ -1,1 +1,6 @@
-* Remember to include any libraries used with the Arduino code. 
+TODO:
+-----
+
+	* Remember to include any libraries used with the Arduino code. 
+
+	* Current implementation of input() timeout in tester.py is tied to Unix OSes revise this.

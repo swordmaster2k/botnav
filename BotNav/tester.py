@@ -1,4 +1,6 @@
+import sys
 import time
+import select
 import threading
 
 from threading import Thread
@@ -90,13 +92,17 @@ class Tester(threading.Thread):
 			if self.planner.finished:
 				break
 
-			command = input()
+			# This method only work on Unix, try timers.
+			i, o, e = select.select([sys.stdin], [], [], 1)
 	
-			if command == "begin":
-				if not self.planner.finished:
-					self.planner.start()
-			elif command == "quit":
-				self.planner.finished = True
+			if(i):
+				command = sys.stdin.readline().strip()
+				
+				if command == "begin":
+					if not self.planner.finished:
+						self.planner.start()
+				elif command == "quit":
+					self.planner.finished = True
 				
 if __name__ == '__main__':
 	import sys
