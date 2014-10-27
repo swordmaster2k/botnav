@@ -28,6 +28,7 @@ class Tester(threading.Thread):
 		
 		self.robot = SimulatedRobot(self.proxy)
 		
+		
 		self.open_map(map_file)
 		
 		self.algorithm = GridNav(self.map)
@@ -65,9 +66,9 @@ class Tester(threading.Thread):
 					print("Waiting for odometry change...")
 					
 					# Wait for odometry change to take affect.	
-					while (self.robot.x != round(x + 0.5, 2) and 
-							self.robot.y != round(y + 0.5, 2)):
-						continue
+					#while (self.robot.x != round(x + 0.5, 2) and 
+					#		self.robot.y != round(y + 0.5, 2)):
+					#	continue
 						
 				elif line[x] == "G":
 					self.map.goal_x = x
@@ -95,7 +96,7 @@ class Tester(threading.Thread):
 			# This method only work on Unix, try timers.
 			i, o, e = select.select([sys.stdin], [], [], 1)
 	
-			if(i):
+			if i:
 				command = sys.stdin.readline().strip()
 				
 				if command == "begin":
