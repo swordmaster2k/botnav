@@ -1,17 +1,25 @@
-/* D* Lite (final version) - Maxim Likhachev (CMU) and Sven Koenig (USC) */
-/* Note: this version of D* Lite is optimized for grids                  */
-/* It assumes, for example, that no cell can be a successor of itself.   */
+/*
+ * D* Lite (modified version)
+ * 
+ * Heavily modified version of D* Lite example provided by the algorithms
+ * authors. The modifications include large amounts of removed example
+ * code, refactoring, and modularisation.
+ * 
+ * Modified By:
+ * 	Joshua Michael Daly (ITB)
+ * 
+ * Original Authors: 
+ * 	Maxim Likhachev (CMU) and Sven Koenig (USC)
+ * 
+ * Note: this version of D* Lite is optimized for grids 
+ * It assumes, for example, that no cell can be a successor of itself.
+ */ 
 
-#include "include.h"
-#include "heap.h"
-#include "maze.h"
-
-int keymodifier;
-cell goaltmpcell, oldtmpcell;
+#include "dstarlite.h"
 
 /*
  * *********************************************************************
- * D* Lite
+ * Exposed to Python
  * *********************************************************************
  */
 
@@ -24,6 +32,7 @@ void initialize()
     keymodifier = 0;
     mazestart->g = LARGE;
     mazestart->rhs = 0;
+    
 #ifdef TIEBREAKING
     emptyheap(3);
     mazestart->key[0] = H(mazestart);
@@ -34,6 +43,7 @@ void initialize()
     mazestart->key[0] = H(mazestart);
     mazestart->key[1] = 0;
 #endif
+
     mazestart->searchtree = NULL;
     mazestart->generated = mazeiteration;
     insertheap(mazestart);
@@ -43,73 +53,170 @@ void initialize()
     mazegoal->generated = mazeiteration;
 }
 
-#ifdef RANDOMIZESUCCS
-int permute[DIRECTIONS];
-int* permutation[DIRECTIONS];
-int permutations;
-
 /*
- *
+ * replan
  */
-void swappermutations(int n)
+int computeshortestpath()
 {
-    int i;
-    int swap;
+    cell *tmpcell1, *tmpcell2;
+    int x, d;
 
-    if (n)
+#ifdef TIEBREAKING
+    if (mazegoal->g < mazegoal->rhs)
     {
-		for (i = 0; i <= n; ++i)
-		{
-			swappermutations(n - 1);
-			
-			if (n % 2)
-			{
-				swap = permute[n];
-				permute[n] = permute[i];
-				permute[i] = swap;
-			}
-			else
-			{
-				swap = permute[n];
-				permute[n] = permute[0];
-				permute[0] = swap;
-			}
-		}
-	}
+		goaltmpcell.key[0] = mazegoal->g + keymodifier;
+		goaltmpcell.key[1] = mazegoal->g + keymodifier;
+		goaltmpcell.key[2] = mazegoal->g;
+    }
     else
     {
-		for (i = 0; i < DIRECTIONS; ++i)
-		{
-			permutation[i][permutations] = permute[i];
-		}
-			
-		permutations++;
+		goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
+		goaltmpcell.key[1] = mazegoal->rhs + keymodifier + 1;
+		goaltmpcell.key[2] = keymodifier;
     }
+#else
+    if (mazegoal->g < mazegoal->rhs)
+    {
+		goaltmpcell.key[0] = mazegoal->g + keymodifier;
+		goaltmpcell.key[1] = mazegoal->g;
+    }
+    else
+    {
+		goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
+		goaltmpcell.key[1] = mazegoal->rhs;
+    }
+#endif
+    while (topheap() && (mazegoal->rhs > mazegoal->g || keyless(topheap(), &goaltmpcell)))
+    {
+		tmpcell1 = topheap();
+		oldtmpcell.key[0] = tmpcell1->key[0];
+		oldtmpcell.key[1] = tmpcell1->key[1];
+		
+#ifdef TIEBREAKING
+		oldtmpcell.key[2] = tmpcell1->key[2];
+#endif
+
+		updatekey(tmpcell1);
+		 
+		if (keyless(&oldtmpcell, tmpcell1))
+		{
+			updatecell(tmpcell1);
+		}
+		else if (tmpcell1->g > tmpcell1->rhs)
+		{
+			tmpcell1->g = tmpcell1->rhs;
+			deleteheap(tmpcell1);
+			
+			for (d = 0; d < DIRECTIONS; ++d)
+			{
+				if (tmpcell1->move[d])
+				{
+					tmpcell2 = tmpcell1->move[d];
+					initializecell(tmpcell2);
+					
+					if (tmpcell2 != mazestart && tmpcell2->rhs > tmpcell1->g + 1)
+					{
+						tmpcell2->rhs = tmpcell1->g + 1;
+						tmpcell2->searchtree = tmpcell1;
+						updatecell(tmpcell2);
+					}
+				}
+			}
+		}
+		else
+		{
+			tmpcell1->g = LARGE;
+			updatecell(tmpcell1);
+		
+			for (d = 0; d < DIRECTIONS; ++d) 
+			{
+				if (tmpcell1->move[d])
+				{
+					tmpcell2 = tmpcell1->move[d];
+					initializecell(tmpcell2);
+					
+					if (tmpcell2 != mazestart && tmpcell2->searchtree == tmpcell1)
+					{
+						updaterhs(tmpcell2);
+					}
+				}
+			}
+		}
+	
+#ifdef TIEBREAKING
+		if (mazegoal->g < mazegoal->rhs)
+		{
+			goaltmpcell.key[0] = mazegoal->g + keymodifier;
+			goaltmpcell.key[1] = mazegoal->g + keymodifier;
+			goaltmpcell.key[2] = mazegoal->g;
+		}
+		else
+		{
+			goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
+			goaltmpcell.key[1] = mazegoal->rhs + keymodifier + 1;
+			goaltmpcell.key[2] = keymodifier;
+		}    
+#else
+		if (mazegoal->g < mazegoal->rhs)
+		{
+			goaltmpcell.key[0] = mazegoal->g + keymodifier;
+			goaltmpcell.key[1] = mazegoal->g;
+		}
+		else
+		{
+			goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
+			goaltmpcell.key[1] = mazegoal->rhs;
+		}
+#endif
+    }
+    
+	return (mazegoal->rhs == LARGE);
 }
 
 /*
- *
+ * update_occupany_grid
  */
-void createpermutations()
+void updatemaze(cell *robot)
 {
-    int i, j;
-    permutations = 2;
-    
-    for (i = 3; i <= DIRECTIONS; ++i)
+    int d1, d2;
+    cell *tmpcell;
+
+    for (d1 = 0; d1 < DIRECTIONS; ++d1)
     {
-		permutations *= i;
+		if (robot->move[d1] && robot->move[d1]->obstacle)
+		{
+			tmpcell = robot->move[d1];
+			initializecell(tmpcell);
+			
+			for (d2 = 0; d2 < DIRECTIONS; ++d2)
+			{
+				if (tmpcell->move[d2])
+				{
+					tmpcell->move[d2] = NULL;
+					tmpcell->succ[d2]->move[reverse[d2]] = NULL;
+					initializecell(tmpcell->succ[d2]);
+					
+					if (tmpcell->succ[d2] != mazestart && tmpcell->succ[d2]->searchtree == tmpcell)
+					{
+						updaterhs(tmpcell->succ[d2]);
+					}
+				}
+			}
+				
+			if (tmpcell != mazestart)
+			{
+				tmpcell->rhs = LARGE;
+				updatecell(tmpcell);
+			}
+		}
 	}
-	
-    for (i = 0; i < DIRECTIONS; ++i)
-    {
-		permute[i] = i;
-		permutation[i] = calloc(permutations, sizeof(int));
-    }
-    
-    permutations = 0;
-    swappermutations(DIRECTIONS-1);
 }
-#endif
+
+/*
+ * *********************************************************************
+ * Internal to C
+ * *********************************************************************
+ */
 
 /*
  *
@@ -161,7 +268,7 @@ void updatecell(cell *thiscell)
 }
 
 /*
- *
+ * 
  */
 void updatekey(cell *thiscell)
 {
@@ -195,23 +302,14 @@ void updatekey(cell *thiscell)
 void updaterhs(cell *thiscell)
 {
     int d;
-#ifdef RANDOMIZESUCCS
-    int dcase, dtemp;
-#endif
 
     thiscell->rhs = LARGE;
     thiscell->searchtree = NULL;
-#ifdef RANDOMIZESUCCS
-    dcase = random() % permutations;
     
-    for (dtemp = 0; dtemp < DIRECTIONS; ++dtemp)
-    {
-		d = permutation[dtemp][dcase];
-#else
     for (d = 0; d < DIRECTIONS; ++d)
     {
-#endif
-		if (thiscell->move[d] && thiscell->move[d]->generated == mazeiteration && thiscell->rhs > thiscell->move[d]->g + 1)
+		if (thiscell->move[d] && thiscell->move[d]->generated == 
+			mazeiteration && thiscell->rhs > thiscell->move[d]->g + 1)
 		{
 			thiscell->rhs = thiscell->move[d]->g + 1;
 			thiscell->searchtree = thiscell->move[d];
@@ -219,317 +317,6 @@ void updaterhs(cell *thiscell)
     }
     
     updatecell(thiscell);
-}
-
-/*
- *
- */
-int computeshortestpath()
-{
-    cell *tmpcell1, *tmpcell2;
-    int x, d;
-#ifdef RANDOMIZESUCCS
-    int dcase, dtemp;
-#endif
-
-#ifdef TIEBREAKING
-    if (mazegoal->g < mazegoal->rhs)
-    {
-		goaltmpcell.key[0] = mazegoal->g + keymodifier;
-		goaltmpcell.key[1] = mazegoal->g + keymodifier;
-		goaltmpcell.key[2] = mazegoal->g;
-    }
-    else
-    {
-		goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
-		goaltmpcell.key[1] = mazegoal->rhs + keymodifier + 1;
-		goaltmpcell.key[2] = keymodifier;
-    }
-#else
-    if (mazegoal->g < mazegoal->rhs)
-    {
-		goaltmpcell.key[0] = mazegoal->g + keymodifier;
-		goaltmpcell.key[1] = mazegoal->g;
-    }
-    else
-    {
-		goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
-		goaltmpcell.key[1] = mazegoal->rhs;
-    }
-#endif
-    while (topheap() && (mazegoal->rhs > mazegoal->g || keyless(topheap(), &goaltmpcell)))
-    {
-		tmpcell1 = topheap();
-		oldtmpcell.key[0] = tmpcell1->key[0];
-		oldtmpcell.key[1] = tmpcell1->key[1];
-#ifdef TIEBREAKING
-		oldtmpcell.key[2] = tmpcell1->key[2];
-#endif
-		updatekey(tmpcell1);
-		 
-	if (keyless(&oldtmpcell, tmpcell1))
-	{
-	    updatecell(tmpcell1);
-	}
-	else if (tmpcell1->g > tmpcell1->rhs)
-	{
-	    tmpcell1->g = tmpcell1->rhs;
-	    deleteheap(tmpcell1);
-#ifdef RANDOMIZESUCCS
-	    dcase = random() % permutations;
-	    
-	    for (dtemp = 0; dtemp < DIRECTIONS; ++dtemp)
-	    {
-			d = permutation[dtemp][dcase];
-#else
-	    for (d = 0; d < DIRECTIONS; ++d)
-	    {
-#endif
-			if (tmpcell1->move[d])
-			{
-				tmpcell2 = tmpcell1->move[d];
-				initializecell(tmpcell2);
-				
-				if (tmpcell2 != mazestart && tmpcell2->rhs > tmpcell1->g + 1)
-				{
-					tmpcell2->rhs = tmpcell1->g + 1;
-					tmpcell2->searchtree = tmpcell1;
-					updatecell(tmpcell2);
-				}
-			}
-	    }
-	}
-    else
-    {
-		tmpcell1->g = LARGE;
-		updatecell(tmpcell1);
-#ifdef RANDOMIZESUCCS
-		dcase = random() % permutations;
-		
-		for (dtemp = 0; dtemp < DIRECTIONS; ++dtemp)
-		{
-			d = permutation[dtemp][dcase];
-#else
-		for (d = 0; d < DIRECTIONS; ++d) 
-		{
-#endif
-			if (tmpcell1->move[d])
-			{
-				tmpcell2 = tmpcell1->move[d];
-				initializecell(tmpcell2);
-				
-				if (tmpcell2 != mazestart && tmpcell2->searchtree == tmpcell1)
-				{
-					updaterhs(tmpcell2);
-				}
-			}
-		}
-	}
-#ifdef TIEBREAKING
-	if (mazegoal->g < mazegoal->rhs)
-	{
-	    goaltmpcell.key[0] = mazegoal->g + keymodifier;
-	    goaltmpcell.key[1] = mazegoal->g + keymodifier;
-	    goaltmpcell.key[2] = mazegoal->g;
-	}
-	else
-	{
-	    goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
-	    goaltmpcell.key[1] = mazegoal->rhs + keymodifier + 1;
-	    goaltmpcell.key[2] = keymodifier;
-	}    
-#else
-	if (mazegoal->g < mazegoal->rhs)
-	{
-	    goaltmpcell.key[0] = mazegoal->g + keymodifier;
-	    goaltmpcell.key[1] = mazegoal->g;
-	}
-	else
-	{
-	    goaltmpcell.key[0] = mazegoal->rhs + keymodifier;
-	    goaltmpcell.key[1] = mazegoal->rhs;
-	}
-#endif
-    }
-    
-	return (mazegoal->rhs == LARGE);
-}
-
-/*
- *
- */
-void updatemaze(cell *robot)
-{
-    int d1, d2;
-    cell *tmpcell;
-#ifdef RANDOMIZESUCCS
-    int dcase, dtemp;
-#endif
-
-#ifdef RANDOMIZESUCCS
-	dcase = random() % permutations;
-	
-    for (dtemp = 0; dtemp < DIRECTIONS; ++dtemp)
-    {
-		d1 = permutation[dtemp][dcase];
-#else
-    for (d1 = 0; d1 < DIRECTIONS; ++d1)
-    {
-#endif
-		if (robot->move[d1] && robot->move[d1]->obstacle)
-		{
-			tmpcell = robot->move[d1];
-			initializecell(tmpcell);
-			
-			for (d2 = 0; d2 < DIRECTIONS; ++d2)
-			{
-				if (tmpcell->move[d2])
-				{
-					tmpcell->move[d2] = NULL;
-					tmpcell->succ[d2]->move[reverse[d2]] = NULL;
-					initializecell(tmpcell->succ[d2]);
-					
-					if (tmpcell->succ[d2] != mazestart && tmpcell->succ[d2]->searchtree == tmpcell)
-					{
-						updaterhs(tmpcell->succ[d2]);
-					}
-				}
-			}
-				
-			if (tmpcell != mazestart)
-			{
-				tmpcell->rhs = LARGE;
-				updatecell(tmpcell);
-			}
-		}
-	}
-}
-
-/*
- * *********************************************************************
- * Print Functions
- * *********************************************************************
- */
-
-/*
- * Prints the entire maze.
- * 
- * @param output file to output print data to
- */
-void printactualmaze(FILE *output)
-{
-    int x, y;
-
-    for (x = 0; x < MAZEWIDTH + 2; ++x)
-    
-	fprintf(output, "#");
-    fprintf(output, "\n");
-    
-    for (y = 0; y < MAZEHEIGHT; ++y)
-    {
-		fprintf(output, "#");
-		
-		for (x = 0; x < MAZEWIDTH; ++x)
-		{
-			if (mazegoal == &maze[y][x])
-			{
-				fprintf(output, "R");
-			}
-			else if (mazestart == &maze[y][x])
-			{
-				fprintf(output, "G");
-			}
-			else if (maze[y][x].obstacle)
-			{
-				fprintf(output, "#");
-			}
-			else
-			{
-				fprintf(output, " ");
-			}
-		}
-		
-		fprintf(output, "#\n");
-    }
-    
-    for (x = 0; x < MAZEWIDTH + 2; ++x)
-    {
-		fprintf(output, "#");
-	}
-	
-    fprintf(output, "\n\n\n");
-}
-
-/*
- * Prints only the known parts of the maze.
- * 
- * @param output file to output print data to
- */
-void printknownmaze(FILE *output)
-{
-    int x, y, d;
-    static char **display = NULL;
-    cell *tmpcell;
-
-    if (display == NULL)
-    {
-		display = (char **)calloc(MAZEHEIGHT, sizeof(char *));
-		
-		for (y = 0; y < MAZEHEIGHT; ++y)
-		{
-			display[y] = (char *)calloc(MAZEWIDTH, sizeof(char));
-		}
-    }
-    
-    for (y = 0; y < MAZEHEIGHT; ++y)
-    {
-		for (x = 0; x < MAZEWIDTH; ++x)
-		{
-			display[y][x] = '#';
-		
-			for (d = 0; d < DIRECTIONS; ++d)
-			{
-				if (maze[y][x].move[d])
-				{
-					display[y][x] = ' ';
-				}
-			}
-		}
-	}	
-	
-    for (tmpcell = mazegoal; tmpcell != mazestart; tmpcell = tmpcell->searchtree)
-    {
-		display[tmpcell->y][tmpcell->x] = '.';
-	}
-		
-    display[mazestart->y][mazestart->x] = 'G';
-    display[mazegoal->y][mazegoal->x] = 'R';
-    
-    for (x = 0; x < MAZEWIDTH+2; ++x)
-    {
-		fprintf(output, "#");
-	}
-		
-    fprintf(output, "\n");
-    
-    for (y = 0; y < MAZEHEIGHT; ++y)
-    {
-		fprintf(output, "#");
-		
-		for (x = 0; x < MAZEWIDTH; ++x)
-		{
-			fprintf(output, "%c", display[y][x]);
-		}
-			
-		fprintf(output, "#\n");
-    }
-    
-    for (x = 0; x < MAZEWIDTH + 2; ++x)
-    {
-		fprintf(output, "#");
-	}
-		
-    fprintf(output, "\n\n\n");
 }
 
 /*
@@ -546,53 +333,66 @@ int main(int argc, char *argv[])
     int k, l;
     cell *tmpcell;
     cell *lastcell;
-
-#ifdef RANDOMIZESUCCS
-    createpermutations();
-#endif
-    srandom(13);
+    
     for (k = 0; k < RUNS; ++k)
     {
 		printf("maze %d\n", k);
-#ifdef RANDOMMAZE	
-		newrandommaze();
-#else
-		newdfsmaze(WALLSTOREMOVE);
-#endif
+
+		establishmaze();
+
 #ifdef DISPLAY
 		printactualmaze(stdout);
 #endif
+
 		initialize();
 		fflush(stdout);
 		lastcell = mazegoal;
 		
 		while (mazestart != mazegoal)
 		{
+			/*
+			 * Step 1: Plan. 
+			 * compute shortest path based on current position 
+			 */
 			if (computeshortestpath())
 			{
-				break;
+				break; // robot has reached its goal
 			}
-#ifdef DISPLAY
-			printknownmaze(stdout);
-#endif
+
 			mazegoal->trace = NULL;
 			
+			/* traverse the current path until we reach the goal or
+			 * encounter an obstacle */
 			do
 			{
+				#ifdef DISPLAY
+				printrobotpath(stdout);
+				printknownmaze(stdout);
+				#endif
+				
+				/* store where we are moving from */
 				mazegoal->searchtree->trace = mazegoal;
-				mazegoal = mazegoal->searchtree;
+				
+				/* simulated movement of robot */
+				mazegoal = mazegoal->searchtree; 
 			} while (mazestart != mazegoal && !mazegoal->searchtree->obstacle);
 			
+			/*
+			 * Step 3: Update the map if necessary.
+			 */
 			if (mazestart != mazegoal)
 			{
+				/* encountered an obstacle update the cell */
 				keymodifier += H(lastcell);
 				lastcell = mazegoal;
 				
-				for (tmpcell=mazegoal; tmpcell; tmpcell=tmpcell->trace)
+				for (tmpcell = mazegoal; tmpcell; tmpcell = tmpcell->trace)
 				{
 					updatemaze(tmpcell);
 				}
 			}
 		}
+		
+		printknownmaze(stdout);
     }
 }

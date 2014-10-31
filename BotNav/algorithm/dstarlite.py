@@ -1,20 +1,17 @@
 '''
-Super class that all path planning algorithms should inherit from. 
-The sub classes should provide the logic behind the unimplemented
-methods here.
+Need to expose the path to C code.
+
+Ability to update cells that are either occupied or not.
 '''
-class Algorithm:
+class DStarLite(Algorithm):
 	'''
 	Default constructor simply assigns the map attribute.
 	'''
 	def __init__(self, map):
-		self.map = map
-		self.robot = self.map.robot
-		self.path = []
+		Algorithm.__init__(self, map)
 		
 	'''
-	Subclass should implement the logic behind calculating its cost
-	grid and gradients to the goal.
+	use underlying computeshortestpath in C version of D* Lite
 	'''
 	def replan(self):
 		raise NotImplementedError
@@ -32,26 +29,25 @@ class Algorithm:
 			return -1
 		
 	'''
-	Subclass should use this method to update the state of its
-	occupancy grid based on the updated cells provided.
+	probably need to work it out with updatemaze in C version
 	'''
 	def update_occupancy_grid(self, cells):
 		raise NotImplementedError
 	
 	'''
-	Should print the cost grid to standard output.
+	not implemented in D* Lite handle this Error
 	'''	
 	def print_cost_grid(self):
 		raise NotImplementedError
 	
 	'''
-	Should print the occupancy grid to standard output.
+	not implemented in D* Lite handle this Error
 	'''	
 	def print_occupancy_grid(self):
 		raise NotImplementedError
 	
 	'''
-	Should print the contents of the robots path.
+	redirect to C implementation
 	'''	
 	def print_path(self):
 		raise NotImplementedError

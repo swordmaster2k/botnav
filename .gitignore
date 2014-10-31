@@ -1,6 +1,7 @@
 # Compiled Source #
 ###################
 *.pyc
+*.o
 
 # Package Files #
 #################

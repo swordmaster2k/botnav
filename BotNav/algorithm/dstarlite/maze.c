@@ -4,13 +4,8 @@
 #include "maze.h"
 
 cell **maze = NULL;
-cell *mazestart, *mazegoal;
+cell *mazegoal, *mazestart;
 int mazeiteration = 0;
-
-int goaly = GOALY;
-int goalx = GOALX;
-int starty = STARTY;
-int startx = STARTX;
 
 /*
  *
@@ -22,16 +17,16 @@ void preprocessmaze()
 
     if (maze == NULL)
     {
-		maze = (cell **)calloc(MAZEHEIGHT, sizeof(cell *));
+		maze = (cell **)calloc(mazesize, sizeof(cell *));
 		
-		for (y = 0; y < MAZEHEIGHT; ++y)
+		for (y = 0; y < mazesize; ++y)
 		{
-			maze[y] = (cell *)calloc(MAZEWIDTH, sizeof(cell));
+			maze[y] = (cell *)calloc(mazesize, sizeof(cell));
 		}
 		
-		for (y = 0; y < MAZEHEIGHT; ++y)
+		for (y = 0; y < mazesize; ++y)
 		{
-			for (x = 0; x < MAZEWIDTH; ++x)
+			for (x = 0; x < mazesize; ++x)
 			{
 				maze[y][x].x = x;
 				maze[y][x].y = y;
@@ -40,38 +35,23 @@ void preprocessmaze()
 				{
 					newy = y + dy[d];
 					newx = x + dx[d];
-					maze[y][x].succ[d] = (newy >= 0 && newy < MAZEHEIGHT && newx >= 0 && newx < MAZEWIDTH) ? &maze[newy][newx] : NULL;
+					maze[y][x].succ[d] = (newy >= 0 && newy < mazesize && 
+						newx >= 0 && newx < mazesize) ? &maze[newy][newx] : NULL;
 				}
 			}
 		 }
     }
-#ifdef RANDOMSTARTGOAL
-    goaly = (random() % ((MAZEHEIGHT + 1) / 2)) * 2;
-    goalx = (random() % ((MAZEWIDTH + 1) / 2)) * 2;
-    
-    while (1)
-    {
-		starty = (random() % ((MAZEHEIGHT + 1) / 2)) * 2;
-		startx = (random() % ((MAZEWIDTH + 1) / 2)) * 2;
-		
-        if (startx != goalx || starty != goaly)
-        {
-            break;
-		}
-    }
-    
+
+#ifdef DEBUG
+    assert(starty % 2 == 0);
+    assert(startx % 2 == 0);
+    assert(goaly % 2 == 0);
+    assert(goalx % 2 == 0);
+#endif
+
     mazestart = &maze[starty][startx];
     mazegoal = &maze[goaly][goalx];
-#else
-#ifdef DEBUG
-    assert(STARTY % 2 == 0);
-    assert(STARTX % 2 == 0);
-    assert(GOALY % 2 == 0);
-    assert(GOALX % 2 == 0);
-#endif
-    mazestart = &maze[STARTY][STARTX];
-    mazegoal = &maze[GOALY][GOALX];
-#endif
+
     mazeiteration = 0;
 }
 
@@ -84,9 +64,9 @@ void postprocessmaze()
     int d1, d2;
     cell *tmpcell;
 
-    for (y = 0; y < MAZEHEIGHT; ++y)
+    for (y = 0; y < mazesize; ++y)
     {
-		for (x = 0; x < MAZEWIDTH; ++x)
+		for (x = 0; x < mazesize; ++x)
 		{
 			maze[y][x].generated = 0;
 			maze[y][x].heapindex = 0;
@@ -116,131 +96,118 @@ void postprocessmaze()
 	}
 }
 
-/*
- *
- */
-void newrandommaze()
+void xerror(char *msg)
 {
-    int d1, d2;
-    int x, y;
-    int newx, newy;
-    cell *tmpcell;
-
-    preprocessmaze();
-    for (y = 0; y < MAZEHEIGHT; ++y)
-    {
-		for (x = 0; x < MAZEWIDTH; ++x)
-		{
-			maze[y][x].obstacle = (random() % 10000 < 10000 * MAZEDENSITY);
-		}
-	}
-	
-    mazegoal->obstacle = 0;
-#ifndef STARTCANBEBLOCKED
-    mazestart->obstacle = 0;
-#endif
-    postprocessmaze();
+	fprintf(stderr, "%s", msg);
+	exit(1);
 }
 
-/*
- *
- */
-void newdfsmaze(int wallstoremove)
+void establishmaze()
 {
-    int d, dtmp;
-    int x, y;
-    int newx, newy;
-    int randomnumber;
-    cell *tmpcell;
-    int permute[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-    int permutetmp;
+	FILE *file;
 
-    preprocessmaze();
-  #ifdef DEBUG
-    assert(MAZEWIDTH % 2 == 1);
-    assert(MAZEHEIGHT % 2 == 1);
-  #endif
-    for (y = 0; y < MAZEHEIGHT; ++y)
-    {
-		for (x = 0; x < MAZEWIDTH; ++x)
+	file = fopen("map.txt", "r");
+	
+	if (file == NULL) 
+		xerror("readmap: can't open map.txt\n");
+	
+	int result;	
+	float mazedimension, cellsize;
+	 
+	result = fscanf(file, "%f", &mazedimension);
+	result = fscanf(file, "%f", &cellsize);
+	
+	mazesize = (int)(mazedimension / cellsize);
+	mazesize++; // for boundary cells
+	
+	fpos_t pos;
+	result = fgetpos(file, &pos);
+	
+	char	c;
+	int	x, y, k;
+	short foundrobot = 0, foundgoal = 0;
+
+	for (y = mazesize; y >= 0; --y)
+	{
+		for (x = 0; x < mazesize; ++x) 
 		{
-			maze[y][x].obstacle = 1;
-			maze[y][x].dfsx = 0;
-			maze[y][x].dfsy = 0;
+			/*--- Get a character ---*/
+			k = fscanf(file, "%c", &c);
+
+			/*--- If it's the robot ---*/
+			if (c == 'R')
+			{
+				goalx = x;
+				goaly = y;
+				foundrobot = 1;
+			}
+
+			/*--- If it's the goal ---*/
+			if (c == 'G')
+			{
+				startx = x;
+				starty = y;
+				foundgoal = 1;
+			}
+
+			/*--- If it's the end of a line ---*/
+			if (c == '\n')
+				break;
 		}
+		
+		if (foundrobot == 1 && foundgoal == 1)
+				break;
+
+		/*--- Scan til the end of line char ---*/
+		while ( c != '\n' )
+			k = fscanf(file,"%c",&c);
 	}
 	
-    x = 0;
-    y = 0;
-    maze[y][x].dfsx = -1;
-    maze[y][x].dfsy = -1;
-    
-    while (1)
-    {
-		if (maze[y][x].obstacle)
+	result = fsetpos(file, &pos);
+	
+	openmaze(file);
+	
+	fclose(file);
+}
+
+void openmaze(FILE *file)
+{
+	preprocessmaze();
+	
+	char	c;
+	int	x, y, k;
+
+	for (y = mazesize; y >= 0; --y)
+	{
+		for (x = 0; x < mazesize; ++x) 
 		{
-			maze[y][x].obstacle = 0;
-		}
-		
-		for (d = 0; d < DIRECTIONS - 1; ++d)
-		{
-			randomnumber = random() % (DIRECTIONS-d);
-			permutetmp = permute[randomnumber];
-			permute[randomnumber] = permute[DIRECTIONS-1-d];
-			permute[DIRECTIONS - 1 - d] = permutetmp;
-		}
-		
-		for (dtmp = 0; dtmp < DIRECTIONS; ++dtmp)
-		{
-			d = permute[dtmp];
-			newx = x + 2 * dx[d];
-			newy = y + 2 * dy[d];
-			
-			if (maze[y][x].succ[d] != NULL && maze[newy][newx].obstacle)
-			{
-				if (maze[y + dy[d]][x + dx[d]].obstacle)
-				{
-					maze[y + dy[d]][x + dx[d]].obstacle = 0;
-				}
-				
-				maze[newy][newx].dfsx = x;
-				maze[newy][newx].dfsy = y;
-				x = newx;
-				y = newy;
-				
-				break;
+			/*--- Get a character ---*/
+			k = fscanf(file, "%c", &c);
+
+			/*--- If an obstacle ---*/
+			if (c == '#')
+			{ 
+				maze[y][x].obstacle = 1;
 			}
-		}
-		
-		if (dtmp == DIRECTIONS)
-		{
-			if (maze[y][x].dfsx == -1)
+
+			/*--- If it's free space ---*/
+			if (c == ' ')
 			{
-				break;
+				maze[y][x].obstacle = 0;
 			}
-			
-			newx = maze[y][x].dfsx;
-			newy = maze[y][x].dfsy;
-			x = newx;
-			y = newy;
+
+			/*--- If it's the end of a line ---*/
+			if (c == '\n')
+				break;
 		}
-    }
-    
-    while (wallstoremove)
-    {
-		newx = random() % MAZEWIDTH;
-		newy = random() % MAZEHEIGHT;
-		
-		if (maze[newy][newx].obstacle)
-		{
-			maze[newy][newx].obstacle = 0;
-			--wallstoremove;
-		}
-    }
-    
-    mazegoal->obstacle = 0;
-#ifndef STARTCANBEBLOCKED
-    mazestart->obstacle = 0;
-#endif
-    postprocessmaze();
+
+		/*--- Scan til the end of line char ---*/
+		while ( c != '\n' )
+			k = fscanf(file,"%c",&c);
+	}
+	
+	mazestart->obstacle = 0;
+	mazegoal->obstacle = 0;
+	
+	postprocessmaze();
 }
