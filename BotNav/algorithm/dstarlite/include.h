@@ -7,16 +7,16 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define LARGE  1000000					/*  */
+#define LARGE  1000000			/* initial estimate for goal distance */
 
-#define DISPLAY                   		/* display what happens (in ASCII) */
+#define DISPLAY                 /* display what happens (in ASCII) */
 
-//#define DEBUG                  		/* whether debugging is on - debugging takes time but performs various checks */
+//#define DEBUG                 /* whether debugging is on - debugging takes time but performs various checks */
 
-#define INFORMEDSEARCH            		/* use Manhattan distance rather than zero heuristics */
+#define INFORMEDSEARCH          /* use Manhattan distance rather than zero heuristics */
 
-#define RUNS 1                  		/* number of different runs */
-//#define TIEBREAKING               	/* tie breaking towards larger g-values (otherwise: smaller g-values) */
+#define RUNS 1                  /* number of different runs */
+//#define TIEBREAKING           /* tie breaking towards larger g-values (otherwise: smaller g-values) */
 
 #define DIRECTIONS 4
 static int dx[DIRECTIONS] = {1, 0, -1,  0};

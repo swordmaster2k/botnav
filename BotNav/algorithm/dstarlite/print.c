@@ -19,21 +19,12 @@ void printrobotpath(FILE *output)
 	fprintf(output, "%s", "\n");
 	fprintf(output, "%s", "path: ");
 	
-	if (tmpcell == mazestart)
+	for (tmpcell = mazegoal->searchtree; tmpcell != NULL; tmpcell = tmpcell->searchtree)
 	{
-		fprintf(output, "[%i, %i] ", tmpcell->x, tmpcell->y);
-	}
-	else
-	{
-		for (tmpcell = mazegoal->searchtree; tmpcell != mazestart; tmpcell = tmpcell->searchtree)
-		{
 			fprintf(output, "[%i, %i] ", tmpcell->x, tmpcell->y);
 			
-			if (tmpcell->searchtree != mazestart)
-			{
+			if (tmpcell != mazestart)
 				fprintf(output, "%s", "-> ");
-			}
-		}
 	}
 	
 	fprintf(output, "\n");
@@ -103,7 +94,7 @@ void printknownmaze(FILE *output)
     
     for (y = mazesize - 1; y >= 0; --y)
     {
-		for (x = 0; x < mazesize; ++x)
+		for (x = 1; x < mazesize - 1; ++x)
 		{
 			display[y][x] = '#';
 		
@@ -125,15 +116,6 @@ void printknownmaze(FILE *output)
     display[mazestart->y][mazestart->x] = 'G';
     display[mazegoal->y][mazegoal->x] = 'R';
     
-    
-    for (x = 0; x < mazesize + 2; ++x)
-    {
-		fprintf(output, "#");
-	}
-		
-    fprintf(output, "\n");
-    
-    
     for (y = mazesize - 1; y >= 0; --y)
     {
 		fprintf(output, "#");
@@ -145,11 +127,6 @@ void printknownmaze(FILE *output)
 			
 		fprintf(output, "#\n");
     }
-    
-    for (x = 0; x < mazesize + 2; ++x)
-    {
-		fprintf(output, "#");
-	}
 		
     fprintf(output, "\n\n\n");
 }

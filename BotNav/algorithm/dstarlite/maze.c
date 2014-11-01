@@ -17,10 +17,12 @@ void preprocessmaze()
 
     if (maze == NULL)
     {
+		// allocate array space for y dimension, returns a pointer
 		maze = (cell **)calloc(mazesize, sizeof(cell *));
 		
 		for (y = 0; y < mazesize; ++y)
 		{
+			// allocate array space for x dimension, returns a pointer
 			maze[y] = (cell *)calloc(mazesize, sizeof(cell));
 		}
 		
@@ -31,6 +33,7 @@ void preprocessmaze()
 				maze[y][x].x = x;
 				maze[y][x].y = y;
 				
+				// setup this cells successors
 				for (d = 0; d < DIRECTIONS; ++d)
 				{
 					newy = y + dy[d];
@@ -64,13 +67,15 @@ void postprocessmaze()
     int d1, d2;
     cell *tmpcell;
 
+	/* do the initial cell setup O(n^2)*/
     for (y = 0; y < mazesize; ++y)
     {
 		for (x = 0; x < mazesize; ++x)
 		{
 			maze[y][x].generated = 0;
 			maze[y][x].heapindex = 0;
-			 
+			
+			/* assign all the cell's successors */
 			for (d1 = 0; d1 < DIRECTIONS; ++d1)
 			{
 				maze[y][x].move[d1] = maze[y][x].succ[d1];
@@ -78,18 +83,25 @@ void postprocessmaze()
 		}
 	}
 	
-    for (d1 = 0; d1 < DIRECTIONS; ++d1)
+	/* now check every cell's movements for obstacles O(n^2) */
+	for (y = 0; y < mazesize; ++y)
     {
-		if (mazegoal->move[d1] && mazegoal->move[d1]->obstacle)
+		for (x = 0; x < mazesize; ++x)
 		{
-			tmpcell = mazegoal->move[d1];
-			
-			for (d2 = 0; d2 < DIRECTIONS; ++d2)
+			for (d1 = 0; d1 < DIRECTIONS; ++d1)
 			{
-				if (tmpcell->move[d2])
+				if (maze[y][x].move[d1] && maze[y][x].move[d1]->obstacle)
 				{
-					tmpcell->move[d2] = NULL;
-					tmpcell->succ[d2]->move[reverse[d2]] = NULL;
+					tmpcell = maze[y][x].move[d1];
+					
+					for (d2 = 0; d2 < DIRECTIONS; ++d2)
+					{
+						if (tmpcell->move[d2])
+						{
+							tmpcell->move[d2] = NULL;
+							tmpcell->succ[d2]->move[reverse[d2]] = NULL;
+						}
+					}
 				}
 			}
 		}
@@ -102,15 +114,8 @@ void xerror(char *msg)
 	exit(1);
 }
 
-void establishmaze()
+void establishmaze(FILE *file)
 {
-	FILE *file;
-
-	file = fopen("map.txt", "r");
-	
-	if (file == NULL) 
-		xerror("readmap: can't open map.txt\n");
-	
 	int result;	
 	float mazedimension, cellsize;
 	 
@@ -127,6 +132,8 @@ void establishmaze()
 	int	x, y, k;
 	short foundrobot = 0, foundgoal = 0;
 
+	/* do an initial run over the file looking for the robot and goal
+	 * positions */
 	for (y = mazesize; y >= 0; --y)
 	{
 		for (x = 0; x < mazesize; ++x) 
@@ -163,20 +170,11 @@ void establishmaze()
 			k = fscanf(file,"%c",&c);
 	}
 	
-	result = fsetpos(file, &pos);
+	result = fsetpos(file, &pos); /* rewind */ 
 	
-	openmaze(file);
-	
-	fclose(file);
-}
-
-void openmaze(FILE *file)
-{
 	preprocessmaze();
-	
-	char	c;
-	int	x, y, k;
 
+	/* run back over the file looking for obstacles and free space */
 	for (y = mazesize; y >= 0; --y)
 	{
 		for (x = 0; x < mazesize; ++x) 
@@ -210,4 +208,6 @@ void openmaze(FILE *file)
 	mazegoal->obstacle = 0;
 	
 	postprocessmaze();
+	
+	fclose(file);
 }

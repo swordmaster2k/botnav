@@ -1,25 +1,173 @@
 /*
  * D* Lite (modified version)
  * 
- * Heavily modified version of D* Lite example provided by the algorithms
+ * Modified version of D* Lite example provided by the algorithms
  * authors. The modifications include large amounts of removed example
- * code, refactoring, and modularisation.
+ * code, refactoring, commenting, and modularisation.
+ * 
+ * Note: This version of D* Lite is optimized for grids 
+ * It assumes, for example, that no cell can be a successor of itself.
+ * 
+ * N.B: Remember that if this is used on a Pi for example it will need
+ * to be compiled for ARM architecture.
  * 
  * Modified By:
  * 	Joshua Michael Daly (ITB)
  * 
  * Original Authors: 
- * 	Maxim Likhachev (CMU) and Sven Koenig (USC)
- * 
- * Note: this version of D* Lite is optimized for grids 
- * It assumes, for example, that no cell can be a successor of itself.
+ * 	Maxim Likhachev (CMU) and Sven Koenig (USC) 
  */ 
 
 #include "dstarlite.h"
 
 /*
  * *********************************************************************
- * Exposed to Python
+ * Callable Functions
+ * *********************************************************************
+ */
+ 
+/*
+ * 
+ */
+static PyObject * 
+setup(PyObject *self, PyObject *args)
+{
+	int result;
+	const char *filepath;
+	
+	result = PyArg_ParseTuple(args, "s", &filepath);
+	
+	if (result)
+	{
+		FILE *file;
+
+		file = fopen(filepath, "r");
+	
+		if (file == NULL)
+		{ 
+			result = -1;
+		}
+		else
+		{
+			establishmaze(file);
+			initialize();
+		}
+	}
+	
+    return Py_BuildValue("i", result);
+}
+
+/*
+ * 
+ */ 
+static PyObject * 
+replan(PyObject *self, PyObject *args)
+{
+	computeshortestpath();
+	
+	return Py_BuildValue("i", 0); 
+}
+
+/*
+ * 
+ */
+static PyObject * 
+updaterobotposition(PyObject *self, PyObject *args)
+{
+	int result; /* 1 for success */
+	int x, y; /* x, y position of robot */
+	
+	/* 2 parameters passed as integers x, y */
+	result = PyArg_ParseTuple(args, "ii", &x, &y);
+	
+	/* simply assign cell data */
+	mazegoal = &maze[y][x];
+	
+	return Py_BuildValue("i", 0);
+}
+
+/*
+ * 
+ */ 
+static PyObject * 
+updatecelloccupancy(PyObject *self, PyObject *args)
+{
+	int result; /* 1 for success */
+	int x, y; /* x, y position of cell */
+	int occupancy; /* new occupancy state */
+	
+	/* 3 parameters passed as integers x, y, occupancy */
+	result = PyArg_ParseTuple(args, "iii", &x, &y, &occupancy);
+	
+	if (result)
+	{
+		/* validate the parameters */
+		if ((x > -1 && x < mazesize) && (y > -1 && y < mazesize) && 
+			(occupancy > -1 && occupancy < 2))
+		{
+			/* check for a change */
+			if (maze[y][x].obstacle != occupancy)
+			{
+				maze[y][x].obstacle = occupancy;
+				
+				int d1;
+				
+				/* cycle over all the connected cells looking for a
+				 * non-NULL move, if exists use it to update maze
+				 * it doesn't matter if all the surrounding cells
+				 * are obstacles */
+				for (d1 = 0; d1 < DIRECTIONS; ++d1)
+				{
+					if (maze[y][x].move[d1])
+					{
+						updatemaze(maze[y][x].move[d1]);
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			result = -1;
+		}
+	}
+	
+	return Py_BuildValue("i", result); 
+}
+
+/*
+ * 
+ */ 
+static PyObject * 
+printpath(PyObject *self, PyObject *args)
+{
+	printrobotpath(stdout);
+	
+	return Py_BuildValue("i", 0);
+}
+
+/*
+ * 
+ */ 
+static PyObject * 
+printoccupancygrid(PyObject *self, PyObject *args)
+{
+	printknownmaze(stdout);
+
+	return Py_BuildValue("i", 0); 
+}
+
+/*
+ * module initializer
+ */  
+PyMODINIT_FUNC PyInit_dstarlite()      /* called on first import */
+{                                      /* name matters if loaded dynamically */
+	return PyModule_Create(&dstarlitemodule); 
+}
+
+/*
+ * *********************************************************************
+ * D* Lite
  * *********************************************************************
  */
 
@@ -174,7 +322,7 @@ int computeshortestpath()
 }
 
 /*
- * update_occupany_grid
+ * 
  */
 void updatemaze(cell *robot)
 {
@@ -211,12 +359,6 @@ void updatemaze(cell *robot)
 		}
 	}
 }
-
-/*
- * *********************************************************************
- * Internal to C
- * *********************************************************************
- */
 
 /*
  *
@@ -321,13 +463,14 @@ void updaterhs(cell *thiscell)
 
 /*
  * *********************************************************************
- * Main
+ * Main - To use this comment out Python C API code
  * *********************************************************************
  */
 
 /*
  *
  */
+ /*
 int main(int argc, char *argv[])
 {
     int k, l;
@@ -350,10 +493,6 @@ int main(int argc, char *argv[])
 		
 		while (mazestart != mazegoal)
 		{
-			/*
-			 * Step 1: Plan. 
-			 * compute shortest path based on current position 
-			 */
 			if (computeshortestpath())
 			{
 				break; // robot has reached its goal
@@ -361,8 +500,8 @@ int main(int argc, char *argv[])
 
 			mazegoal->trace = NULL;
 			
-			/* traverse the current path until we reach the goal or
-			 * encounter an obstacle */
+			// traverse the current path until we reach the goal or
+			// encounter an obstacle 
 			do
 			{
 				#ifdef DISPLAY
@@ -370,19 +509,16 @@ int main(int argc, char *argv[])
 				printknownmaze(stdout);
 				#endif
 				
-				/* store where we are moving from */
+				// store where we are moving from 
 				mazegoal->searchtree->trace = mazegoal;
 				
-				/* simulated movement of robot */
+				// simulated movement of robot 
 				mazegoal = mazegoal->searchtree; 
 			} while (mazestart != mazegoal && !mazegoal->searchtree->obstacle);
 			
-			/*
-			 * Step 3: Update the map if necessary.
-			 */
 			if (mazestart != mazegoal)
 			{
-				/* encountered an obstacle update the cell */
+				// encountered an obstacle update the cell
 				keymodifier += H(lastcell);
 				lastcell = mazegoal;
 				
@@ -396,3 +532,4 @@ int main(int argc, char *argv[])
 		printknownmaze(stdout);
     }
 }
+*/

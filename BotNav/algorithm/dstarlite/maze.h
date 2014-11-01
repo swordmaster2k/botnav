@@ -10,17 +10,17 @@ typedef struct cell cell;
 
 struct cell
 {
-    cell *move[DIRECTIONS]; /* */
-    cell *succ[DIRECTIONS]; /* */
+    cell *move[DIRECTIONS]; /* list of cells can move to from this one */
+    cell *succ[DIRECTIONS]; /* list of successor cells */
     cell *searchtree;		/* use this to get the path */
     cell *trace;			/* where the robot has been */		
     short obstacle;			/* 0 = free, 1 = obstacle */
     int x, y;				/* x, y coordinates of cell in grid*/
-    int g;					/* */
-    int rhs;				/* */
-    int key[3];				/* */
-    int generated;			/* */
-    int heapindex;			/* */
+    int g;					/* estimate of distance to goal */
+    int rhs;				/* one step lookahead value based on g */
+    int key[3];				/*  */
+    int generated;			/*  */
+    int heapindex;			/* position of cell on the heap */
 };
 
 /* Note: mazegoal is the start cell of the robot. */
@@ -39,7 +39,6 @@ int goaly;
 int startx;
 int starty;
 
-void establishmaze();
-void openmaze();
+void establishmaze(FILE *file);
 
 #endif
