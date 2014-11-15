@@ -1,0 +1,90 @@
+\chapter{System Design}
+
+%-------------------------------------------------------------------------------------------------------
+
+\section{Requirements Specification}
+
+\subsection{User Requirements}
+
+\subsection{Functional Requirements}
+
+\subsection{Non-Functional Requirements}
+
+\newpage
+
+%-------------------------------------------------------------------------------------------------------
+
+\section{System Modelling}
+
+\subsection{Overview}
+
+\subsection{Interaction Models}
+
+\subsection{Core Class Diagrams}
+
+\noindent
+Class diagrams showing relationships between entities such as inheritance, each class diagram should be accompanied with an explanation. Core classes to model includes:
+
+\begin{itemize}
+\item Robot
+\item Proxy
+\item Planner
+\item Algorithm (abstract)
+\item DStarLite (inherits Algorithm)
+\item FieldDStar (inherits Algorithm)
+\end{itemize} 
+
+\subsection{Threaded Architecture}
+
+\noindent
+Since threaded programming is notoriously difficult to understand the threading model that the system uses will be covered here in detail, around 1-2 pages. Include a high level diagram and state how each thread interacts with the others. Likely to be around three threads:
+
+\begin{itemize}
+\item Main - User interaction
+\item Proxy - Robot Communications
+\item Planner - Path Planning
+\end{itemize} 
+
+\newpage
+
+\subsection{Communications Protocol}
+
+\newpage
+
+%-------------------------------------------------------------------------------------------------------
+
+\section{Interchangeable User Interfaces}
+
+\newpage
+
+%-------------------------------------------------------------------------------------------------------
+
+\section{Programming Platforms}
+
+\subsection{Unix Flavours}
+
+\subsection{Python3}
+
+\subsection{Cython Modules}
+
+\newpage
+
+%-------------------------------------------------------------------------------------------------------
+
+\section{Source Control}
+
+\subsection{Git}
+
+\subsection{Open Repository}
+
+\newpage
+
+%-------------------------------------------------------------------------------------------------------
+
+\section{Hardware Agent Specification}
+
+\subsection{Motion Model}
+
+\newpage
+
+%-------------------------------------------------------------------------------------------------------

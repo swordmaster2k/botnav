@@ -1,0 +1,93 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+%% ITB Author: Markus Hofmann - markus.hofmann@itb.ie
+%% Adapted from Dalhousie University
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+\documentclass[12pt,ITBthesis]{report}
+
+\usepackage{amsfonts}
+\usepackage{amssymb,amsmath}
+\usepackage{amsthm}
+\usepackage{newlfont}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{lscape}
+\usepackage{latexsym}
+\usepackage{natbib}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{xthesis}
+\usepackage{xtocinc} 
+\usepackage{subfigure}
+\usepackage{times}
+\usepackage[hidelinks]{hyperref}
+
+\bibpunct[, ]{(}{)}{;}{a}{,}{,}
+
+% Line spacing -----------------------------------------------------------
+\newlength{\defbaselineskip}
+\setlength{\defbaselineskip}{\baselineskip}
+\newcommand{\setlinespacing}[1]%
+           {\setlength{\baselineskip}{#1 \defbaselineskip}}
+\newcommand{\doublespacing}{\setlength{\baselineskip}%
+                           {2.0 \defbaselineskip}}
+\newcommand{\singlespacing}{\setlength{\baselineskip}{\defbaselineskip}}
+% ------------------------------------------------------------------------
+
+\begin{document}
+
+\setlinespacing{1.5}
+
+\title{An Analysis of the Field D* Algorithm for Path Planning in the Return and Delivery Journey of Ground Based Courier Robots}
+
+\author{Joshua Daly}
+
+\university{Institute of Technology Blanchardstown}
+
+\dept{School of Informatics and Engineering}
+
+\address{Dublin, Ireland}
+
+\supervisor{Mr. Arnold Hensman}
+
+\submitdate{\today}
+
+\degree{B.Sc. (Honours) in Computing}
+
+%\dedicate{To my wife\\
+% \begin{Huge}{\textbf{Glenda}}\end{Huge}}
+
+%\beforepreface
+
+%{ 
+%\typeout{Abbreviations}
+%\include{abbreviations} %write your list of abbreviations in a file called abbreviations.tex
+%}
+
+%{ 
+%\typeout{Glossary}
+%\include{glossary}
+%}
+
+% ------------------------------------------------------------------------
+%\afterpreface
+%\def\baselinestretch{1}
+% ------------------------------------------------------------------------
+
+\setcounter{page}{1}
+
+%\include{chapters/1_introduction}
+%\include{chapters/2_literature_review}
+\include{chapters/3_system_design}
+%\include{chapters/4_core_implementation}
+%\include{chapters/5_testing}
+%\include{chapters/6_results}
+%\include{chapters/7_conclusion}
+
+%\bibliographystyle{plainnat}
+%\bibliography{bibliography}
+
+%\include{appendix}
+
+\end{document}
