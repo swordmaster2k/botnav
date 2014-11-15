@@ -3,12 +3,16 @@
 %-------------------------------------------------------------------------------------------------------
 
 \section{Requirements Specification}
+This section will contain the requirements for this system listed as statements or bullet points, use unambiguous English and avoid technical terms or specifications such as definite language or architecture choices.
 
 \subsection{User Requirements}
+Try to imagine what DHL, Eddie Stobart, or Amazon would want from a courier robot system, some high level statements that run broadly along the issue of getting from a to b, list as statements.
 
 \subsection{Functional Requirements}
+State requirements like efficiency, smoothness of the path, traversability, tolerance to change, establishing that there is no valid route to a goal, list as statements.
 
 \subsection{Non-Functional Requirements}
+Any other implicit requirements security, crash avoidance, conserving battery life, list as statements...
 
 \newpage
 
@@ -17,13 +21,15 @@
 \section{System Modelling}
 
 \subsection{Overview}
+One big diagram of the entire system should feature here, provide the viewer with a complete overview of the system and how everything relates to each other. Explain it in a general way.
 
 \subsection{Interaction Models}
+Include various UML based diagrams that show the interactions between the major components in the system the Planner, Algorithm, and Proxy in particular. Keep it high level do not go down into scrupulous detail, focus on communication mechanisms. 
 
 \subsection{Core Class Diagrams}
 
 \noindent
-Class diagrams showing relationships between entities such as inheritance, each class diagram should be accompanied with an explanation. Core classes to model includes:
+Class diagrams showing relationships between entities such as inheritance, each class diagram should be accompanied with an explanation. Core classes to model include:
 
 \begin{itemize}
 \item Robot
@@ -33,6 +39,8 @@ Class diagrams showing relationships between entities such as inheritance, each 
 \item DStarLite (inherits Algorithm)
 \item FieldDStar (inherits Algorithm)
 \end{itemize} 
+
+\newpage
 
 \subsection{Threaded Architecture}
 
@@ -45,15 +53,13 @@ Since threaded programming is notoriously difficult to understand the threading 
 \item Planner - Path Planning
 \end{itemize} 
 
-\newpage
-
 \subsection{Communications Protocol}
-
-\newpage
+Very important section that covers the communication channel that a robot must implement and understand to interact with the navigation system, some of it will be covered here while the full specification along with explain code should appear in the Appendix.
 
 %-------------------------------------------------------------------------------------------------------
 
-\section{Interchangeable User Interfaces}
+\section{User Interface Independence}
+By default the system is independent of any user interface and is designed around a core. User interfaces can be plugged in to tap into the functionality of that core while it remains independent, discuss this concept.
 
 \newpage
 
@@ -62,28 +68,59 @@ Since threaded programming is notoriously difficult to understand the threading 
 \section{Programming Platforms}
 
 \subsection{Unix Flavours}
+Target platform is Unix and its derivatives Linux and OSX, particularly Linux in this case. Choice was made because:
+
+\begin{itemize}
+\item Unix is a mature standard and Linux is an open implementation of that standard.
+\item Linux lends itself to robotics as it is embeddable, ROS uses it.
+\item Candidates programming skills are predominantly Linux based.
+\end{itemize} 
+
+Note the Linux distributions.
 
 \subsection{Python3}
+Provide a couple of reasons for using python like:
+
+\begin{itemize}
+\item Speed of development - no need to compile constantly to machine code.
+\item Interactive shell makes it very easy to test code on the fly.
+\item Also a key language missing from my skill set invaluable learning opportunity.
+\item Widely used in robotics ROS, Thrun's Udacity program .
+\end{itemize} 
+
+Note the version of Python.
 
 \subsection{Cython Modules}
+State that one drawback to python's flexibility is the potential loss of execution speed as it is an interpreted language. Thankfully Python can be extended using C with tools like Cython implementing the core algorithms this way gets around Python's performance issues. Note the version of GCC.
 
 \newpage
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Source Control}
+This section covers how the project was managed, the source control system used, frequency off commits, total commits, and any branching.
 
 \subsection{Git}
+Mention the fact that the project was controlled throughout its development with the Git source control version system. Give some reasons for this advantages, roll back, open standard, and a clear work history.
 
 \subsection{Open Repository}
-
-\newpage
+Project is hosted on Github and has a open repository under my user swordmaster2k, mention the ReadMe file and Licensing.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Hardware Agent Specification}
+Discuss the hardware requirements for a mobile agent that will use this system, include:
+
+\begin{itemize}
+\item Odometers
+\item Communications
+\item External Sensors
+\end{itemize}
+
+Also possibly mention some suitable components Arduino and Raspberry Pi in particular. 
 
 \subsection{Motion Model}
+Very important that the motion model be mentioned here. This system assumes that the agent/robot can turn on the spot which differentiates it from most cars that are based on rack-and-pinion models.
 
 \newpage
 

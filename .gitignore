@@ -2,6 +2,13 @@
 ###################
 *.pyc
 *.o
+*.aux
+*.bbl
+*.blg
+*.lof
+*.lot
+*.out
+*.toc
 
 # Package Files #
 #################
@@ -17,3 +24,4 @@ Python/output
 # Project Files #
 #################
 robonav.geany
+.idea/

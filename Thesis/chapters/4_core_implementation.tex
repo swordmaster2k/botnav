@@ -3,47 +3,65 @@
 %-------------------------------------------------------------------------------------------------------
 
 \section{Building the Project}
+Section discusses the steps required to get the project up and running from raw source code, including getting the source, compiling C code, and running it from Python3. Basically a how to guide.
 
 \subsection{Obtaining the Source}
+State the three ways to obtain the source:
+
+\begin{itemize}
+\item Check it out using git.
+\item Download it as a Zip.
+\item Or use the CD at the back of this thesis.
+\end{itemize}
 
 \subsection{Compiling the Cython Modules}
+State that since C code is target dependent it is necessary that the compilation be explained since it can be built for x86, x64, ARM, SPARC, PowerPC, etc. Build tool that will be used is Make. Talk about the Makefile contents.
+
+\subsection{Running it in Python3}
+Explain how you go about running the project once it is compiled, by default it will run a simulation example. Give the command line arguments for running it from a terminal.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Running Simulations}
+Talk about how simulations provide an easy means to test the system against predefined use cases, speeds up the testing process, and provides a means for reproducing results. Discuss these points here.
 
 \subsection{Configuration}
-
-\subsection{Command Line Execution}
-
-\subsection{Output}
+Outline the changes that need to be made to the configuration file, basically the simulation flag will need to be set.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Using a Real Bot}
+Mention how using a real robot differs by:
+
+\begin{itemize}
+\item The need for communications.
+\item Introducing drift wheel slippage etc.
+\item By proving the practical application of the planner.
+\end{itemize}
 
 \subsection{Configuration}
-
-\subsection{Command Line Execution}
-
-\subsection{Output}
+Outline the changes that need to be made to the configuration file, highlight the fact that communications medium is required USB, Bluetooth, or Wifi. Explain the different variations.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{How the Planner Works}
+Explain how the planner was implemented in code, the control logic, looping structure, reacting to change, and the conditions for terminating the planner.
 
 \subsection{Five Simple Steps}
-
-\subsection{Dealing with Change}
+Every planner in robotics splits the problem into five simple steps, include them under this section as numbered items. State any recursive operations that take place. Also include a flowchart or diagram in some form.
 
 \subsection{Abstracting Away from the Algorithm}
+This section will cover the abstract model that the Algorithm class enforces, every planning algorithm has a common interfaces which allows them to be interchanged. Explain how this is achieved using abstraction and talk about the advantages.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Open Field D*}
+Core of the project very important, state that every implementation of Field D* to date is closed source NASA's code is not available, nor is Carnegie Mellon's. Open Field D* is significant because it bucks this trend making it open to ITB students and others.
 
 \subsection{Modifying D* Lite}
+Point out the key differences between D* Lite and Field D* from a coding perspective, nodes to cell corners how this is represented, linear interpolation. Using Georgia Institute of Technologies D* Lite code state the modifications required to get Field D*.
 
 \subsection{Basic Implementation}
+Cover basic implementation of Field D*, most importantly state any problems encountered, or variations/optimisations made during the coding stage.
 
 %-------------------------------------------------------------------------------------------------------

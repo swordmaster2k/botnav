@@ -3,7 +3,7 @@
 %% Adapted from Dalhousie University
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
-\documentclass[12pt,ITBthesis]{report}
+\documentclass[12pt]{report}
 
 \usepackage{amsfonts}
 \usepackage{amssymb,amsmath}
@@ -14,7 +14,6 @@
 \usepackage{longtable}
 \usepackage{lscape}
 \usepackage{latexsym}
-\usepackage{natbib}
 \usepackage{geometry}
 \usepackage{fancyhdr}
 \usepackage{xthesis}
@@ -23,7 +22,7 @@
 \usepackage{times}
 \usepackage[hidelinks]{hyperref}
 
-\bibpunct[, ]{(}{)}{;}{a}{,}{,}
+\bibliographystyle{ieeetr}
 
 % Line spacing -----------------------------------------------------------
 \newlength{\defbaselineskip}
@@ -34,6 +33,28 @@
                            {2.0 \defbaselineskip}}
 \newcommand{\singlespacing}{\setlength{\baselineskip}{\defbaselineskip}}
 % ------------------------------------------------------------------------
+\makeatletter
+\renewcommand\appendix{%
+ \par
+ \setcounter{chapter}{0}%
+ \setcounter{section}{0}%
+ \setcounter{subsection}{0}%
+ \gdef\thesection{\@Alph\c@section}
+ \gdef\@sect##1##2##3##4##5##6[##7]##8{%
+  \refstepcounter{##1}%
+  \protected@edef\@svsec{\@seccntformat{##1}\relax}%
+  \begingroup
+    \hspace{-\parindent}##6\appendixname~ {%
+    \@hangfrom{\hskip ##3 \relax\@svsec}\par%
+    \hspace{-\parindent}\interlinepenalty \@M ##8 \@@par}%
+  \endgroup
+  \csname ##1mark\endcsname{##7}%
+  \addcontentsline{toc}{##1}{\protect\numberline{\csname the##1\endcsname}##7}%
+  \@xsect{##5}%
+ }%
+}%
+\makeatother
+%%% ----------------------------------------------------------------------
 
 \begin{document}
 
@@ -58,12 +79,12 @@
 %\dedicate{To my wife\\
 % \begin{Huge}{\textbf{Glenda}}\end{Huge}}
 
-%\beforepreface
+\beforepreface
 
-%{ 
-%\typeout{Abbreviations}
-%\include{abbreviations} %write your list of abbreviations in a file called abbreviations.tex
-%}
+{ 
+\typeout{Abbreviations}
+\include{abbreviations} %write your list of abbreviations in a file called abbreviations.tex
+}
 
 %{ 
 %\typeout{Glossary}
@@ -71,23 +92,23 @@
 %}
 
 % ------------------------------------------------------------------------
-%\afterpreface
+\afterpreface
 %\def\baselinestretch{1}
 % ------------------------------------------------------------------------
 
+\pagestyle{fancy}
 \setcounter{page}{1}
 
-%\include{chapters/1_introduction}
-%\include{chapters/2_literature_review}
+\include{chapters/1_introduction}
+\include{chapters/2_literature_review}
 \include{chapters/3_system_design}
-%\include{chapters/4_core_implementation}
-%\include{chapters/5_testing}
-%\include{chapters/6_results}
-%\include{chapters/7_conclusion}
+\include{chapters/4_core_implementation}
+\include{chapters/5_results}
+\include{chapters/6_conclusion}
+\include{chapters/7_further_work}
 
-%\bibliographystyle{plainnat}
-%\bibliography{bibliography}
+\bibliography{bibliography}
 
-%\include{appendix}
+\include{appendix}
 
 \end{document}
