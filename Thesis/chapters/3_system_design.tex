@@ -9,10 +9,22 @@ This section will contain the requirements for this system listed as statements 
 Try to imagine what DHL, Eddie Stobart, or Amazon would want from a courier robot system, some high level statements that run broadly along the issue of getting from a to b, list as statements.
 
 \subsection{Functional Requirements}
-State requirements like efficiency, smoothness of the path, traversability, tolerance to change, establishing that there is no valid route to a goal, list as statements. Should be testable!
+
+\begin{itemize}
+\item When computing a shortest path the number of vertex accesses should be no more than the total number of vertices.
+\item The total time taken for the autonomous agent to traverse the physical path can be at most 50\% more expensive than a tele-operated agent.
+\item Given an environment containing a start and goal state the path planner must compute a shortest path if one exists.
+\item Where there is no traversable path to a goal state the system must immediately abort the planning procedure.
+\item The path planner cannot constrain an agents heading to fixed increments of $\dfrac{\pi}{2}$, $\dfrac{\pi}{4}$, or $\dfrac{\pi}{8}$.
+\end{itemize}
 
 \subsection{Non-Functional Requirements}
-Any other implicit requirements security, crash avoidance, conserving battery life, list as statements...
+
+\begin{itemize}
+\item Paths produced by the system should minimise the physical distance to be traversed with the aim of conserving energy resources.
+\item The autonomous agents motion model must be based on a skid steering system that allows for on the spot rotations.
+\item Obstacle collisions should be avoid or minimised using path and occupancy smoothing techniques.
+\end{itemize}
 
 \newpage
 
