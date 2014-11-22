@@ -36,12 +36,12 @@ class SimulatedRobot(Robot):
 		self.heading = 1.57
 
 		# List of visited points.
-		self.path = []
-		self.path.append([self.x, self.y])
+		self.trail = []
+		self.trail.append([self.x, self.y])
 
 		# Physical dimensions in meters.
 		self.width = 0.18
-		self.lenght = 0.23
+		self.length = 0.23
 
 		# State string.
 		self.state = ""
@@ -101,7 +101,7 @@ class SimulatedRobot(Robot):
 		self.x = 0
 		self.y = 0
 		self.heading = 1.57
-		self.path = []
+		self.trail = []
 		self.state = ""
 
 	'''
@@ -200,7 +200,7 @@ class SimulatedRobot(Robot):
 			self.heading -= 6.28
 
 		if changed:
-			self.path.append([self.x, self.y])
+			self.trail.append([self.x, self.y])
 
 		return changed
 

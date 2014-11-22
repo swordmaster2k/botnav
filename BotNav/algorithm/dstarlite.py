@@ -13,7 +13,7 @@ class DStarLite(Algorithm):
 	'''
 	use underlying computeshortestpath in C version of D* Lite
 	'''
-	def replan(self):
+	def plan(self):
 		raise NotImplementedError
 	
 	'''

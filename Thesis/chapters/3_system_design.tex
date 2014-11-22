@@ -5,26 +5,50 @@
 \section{Requirements Specification}
 This section will contain the requirements for this system listed as statements or bullet points, use unambiguous English and avoid technical terms or specifications such as definite language or architecture choices.
 
-\subsection{User Requirements}
-Try to imagine what DHL, Eddie Stobart, or Amazon would want from a courier robot system, some high level statements that run broadly along the issue of getting from a to b, list as statements.
+\newpage
 
 \subsection{Functional Requirements}
 
+\noindent
+\textit{When computing a shortest path the number of vertex accesses should be no more than the total number of vertices.}
 \begin{itemize}
-\item When computing a shortest path the number of vertex accesses should be no more than the total number of vertices.
-\item The total time taken for the autonomous agent to traverse the physical path can be at most 50\% more expensive than a tele-operated agent.
-\item Given an environment containing a start and goal state the path planner must compute a shortest path if one exists.
-\item Where there is no traversable path to a goal state the system must immediately abort the planning procedure.
-\item The path planner cannot constrain an agents heading to fixed increments of $\dfrac{\pi}{2}$, $\dfrac{\pi}{4}$, or $\dfrac{\pi}{8}$.
+\item Input: Map state space containing a goal and a start position.
+\item Output: Total number of vertices that are accessed during the computation. \\
 \end{itemize}
+
+\noindent
+\textit{The total time taken for the autonomous agent to traverse the physical path can be at most 50\% more expensive than a tele-operated agent.}
+\begin{itemize}
+\item Input: A path of points in Cartesian format. 
+\item Output: Time taken in seconds to reach the goal. \\
+\end{itemize}
+
+\noindent
+\textit{Given an environment containing a start and goal state the path planner must compute a shortest path if one exists.} 
+\begin{itemize}
+\item Input: Map state space containing a goal and a start position. 
+\item Output: A shortest path from the start to the goal or an error if none exists.\\
+\end{itemize}
+
+\noindent
+\textit{Where there is no traversable path to a goal state the system must immediately abort the planning procedure.} 
+\begin{itemize}
+\item Input: Map state space containing an unreachable goal. 
+\item Output: None. \\
+\end{itemize}
+
+\newpage
 
 \subsection{Non-Functional Requirements}
 
-\begin{itemize}
-\item Paths produced by the system should minimise the physical distance to be traversed with the aim of conserving energy resources.
-\item The autonomous agents motion model must be based on a skid steering system that allows for on the spot rotations.
-\item Obstacle collisions should be avoid or minimised using path and occupancy smoothing techniques.
-\end{itemize}
+\noindent
+\textit{Paths produced by the system should minimise the physical distance to be traversed with the aim of conserving energy resources.} \\
+
+\noindent
+\textit{The autonomous agents motion model must be based on a skid steering system that allows for on the spot rotations.} \\
+
+\noindent
+\textit{At least one physical courier robot must be capable of carrying out the instructions given to it from the path planning system.} \\
 
 \newpage
 

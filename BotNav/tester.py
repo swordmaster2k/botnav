@@ -65,10 +65,11 @@ class Tester(threading.Thread):
 
                     print("Waiting for odometry change...")
 
-                # Wait for odometry change to take affect.
-                # while (self.robot.x != round(x + 0.5, 2) and
-                #		self.robot.y != round(y + 0.5, 2)):
-                #	continue
+                    # Wait for odometry change to take affect.
+                    while self.robot.x != round(x + 0.5, 2) and self.robot.y != round(y + 0.5, 2):
+                        continue
+
+                    print("Odometry change successful!")
 
                 elif line[x] == "G":
                     self.map.goal_x = x
