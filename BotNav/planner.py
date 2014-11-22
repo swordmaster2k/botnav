@@ -1,3 +1,4 @@
+import sys
 import threading
 
 from threading import Thread
@@ -16,17 +17,23 @@ It is implemented on its own thread.
 
 
 class Planner(threading.Thread):
-    '''
+    """
     Initialises the planner with a map and algorithm. It gets the
     robot from the map it is passed.
-    '''
+    """
 
-    def __init__(self, map, algorithm, proxy):
+    def __init__(self, map, algorithm, proxy, output_file, gnuplot_file):
         self.map = map
         self.robot = self.map.robot
         self.algorithm = algorithm
+
         self.proxy = proxy
         self.proxy.listeners.append(self)
+
+        # Make sure these are open before we write to them.
+        self.output_file = output_file
+        self.gnuplot_file = gnuplot_file
+
         self.finished = False
         self.last_scan = 0
 
@@ -53,9 +60,12 @@ class Planner(threading.Thread):
     def run(self):
 
         # Print the initial state.
-        self.algorithm.print_path()
-        self.algorithm.print_cost_grid()
-        self.algorithm.print_occupancy_grid()
+        self.algorithm.print_cost_grid(sys.stdout)
+        self.algorithm.print_occupancy_grid(sys.stdout)
+
+        if not self.output_file.closed:
+            self.algorithm.print_cost_grid(self.output_file)
+            self.algorithm.print_occupancy_grid(self.output_file)
 
         try:
             '''
@@ -64,9 +74,14 @@ class Planner(threading.Thread):
             self.algorithm.plan()
 
             # Print state after first planning step.
-            self.algorithm.print_path()
-            self.algorithm.print_cost_grid()
-            self.algorithm.print_occupancy_grid()
+            self.algorithm.print_path(sys.stdout)
+            self.algorithm.print_cost_grid(sys.stdout)
+            self.algorithm.print_occupancy_grid(sys.stdout)
+
+            if not self.output_file.closed:
+                self.algorithm.print_path(self.output_file)
+                self.algorithm.print_cost_grid(self.output_file)
+                self.algorithm.print_occupancy_grid(self.output_file)
 
             # Calculate our initial distance from the goal.
             x_difference = self.map.goal_x - self.robot.x
@@ -80,12 +95,12 @@ class Planner(threading.Thread):
 
             print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
             print(
-            "x: %.2f" % (self.robot.x * self.map.cell_size) +
-            ", y: %.2f" % (self.robot.y * self.map.cell_size) +
-            ", heading %.2f" % self.robot.heading)
+                "x: %.2f" % (self.robot.x * self.map.cell_size) +
+                ", y: %.2f" % (self.robot.y * self.map.cell_size) +
+                ", heading %.2f" % self.robot.heading)
             print("\n" + ('-' * 73) + "\n")
 
-            # While we are not with 0.5 cells of the goal in both x and y.
+            # While we are not within 0.5 cells of the goal in both x and y.
             while x_difference > 0.5 or y_difference > 0.5:
                 '''
                 Step 2: Scan the immediate area for obstacles and free space.
@@ -126,14 +141,15 @@ class Planner(threading.Thread):
                 self.robot.state = ""  # Reset the state.
 
                 # Print some information.
-                self.algorithm.print_path()
-                self.algorithm.print_cost_grid()
-                self.algorithm.print_occupancy_grid()
+                self.algorithm.print_path(sys.stdout)
+                self.algorithm.print_cost_grid(sys.stdout)
+                self.algorithm.print_occupancy_grid(sys.stdout)
+
                 print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
                 print(
-                "x: %.2f" % (self.robot.x * self.map.cell_size) +
-                ", y: %.2f" % (self.robot.y * self.map.cell_size) +
-                ", heading %.2f" % self.robot.heading
+                    "x: %.2f" % (self.robot.x * self.map.cell_size) +
+                    ", y: %.2f" % (self.robot.y * self.map.cell_size) +
+                    ", heading %.2f" % self.robot.heading
                 )
                 print("\n" + ('-' * 73) + "\n")
 
@@ -150,15 +166,16 @@ class Planner(threading.Thread):
 
             self.robot.halt()
 
-            if not self.finished:
-                self.finished = True
         except exceptions.NoPathException as ex:
             print(ex)
+        finally:
+            # Print the final state.
+            self.algorithm.print_cost_grid(sys.stdout)
+            self.algorithm.print_occupancy_grid(sys.stdout)
+
+            if not self.output_file.closed:
+                self.algorithm.print_cost_grid(self.output_file)
+                self.algorithm.print_occupancy_grid(self.output_file)
 
             if not self.finished:
                 self.finished = True
-        finally:
-            # Print the final state.
-            self.algorithm.print_path()
-            self.algorithm.print_cost_grid()
-            self.algorithm.print_occupancy_grid()

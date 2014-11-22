@@ -12,75 +12,81 @@ queue.
 Compatible with any from of connection as long as they implement write()
 and readline().
 '''
+
+
 class Proxy(Thread):
-	'''
+    '''
 
-	'''
-	def __init__(self, port):
-		self.listeners = []
-		self.connection = port
+    '''
 
-		Thread.__init__(self)
-		self.daemon = True
+    def __init__(self, port):
+        self.listeners = []
+        self.connection = port
 
-	'''
-	Sends a message to the robot by writing it to the output file of 
-	the connection.
-	'''
-	def send(self, message):
-		try:
-			self.connection.write(message)
-		except:
-			return
+        Thread.__init__(self)
+        self.daemon = True
 
-	'''
-	Reads lines from the connection parsing any useful information.
-	'''
-	def run(self):
-		if self.connection == "DUMMY":
-			return
-		
-		while not self.connection.closed:
-			try:
-				data = self.connection.readline()
+    '''
+    Sends a message to the robot by writing it to the output file of
+    the connection.
+    '''
 
-				if data[0] == 'o':
-					parameters = data.split(',')
+    def send(self, message):
+        try:
+            self.connection.write(message)
+        except:
+            return
 
-					if len(parameters) != 4:
-						continue
+    '''
+    Reads lines from the connection parsing any useful information.
+    '''
 
-					event = OdometryReport(
-					float(parameters[1]),
-					float(parameters[2]),
-					float(parameters[3]))
+    def run(self):
+        if self.connection == "DUMMY":
+            return
 
-					for listener in self.listeners:
-						listener.handle_event(event)
-				elif data[0] == 's':
-					parameters = data.split(',')
+        while not self.connection.closed:
+            try:
+                data = self.connection.readline()
 
-					if len(parameters) < 2:
-						continue
+                if data[0] == 'o':
+                    parameters = data.split(',')
 
-					parameters.remove('s')
+                    if len(parameters) != 4:
+                        continue
 
-					event = ScanResult(parameters)
+                    event = OdometryReport(
+                        float(parameters[1]),
+                        float(parameters[2]),
+                        float(parameters[3]))
 
-					for listener in self.listeners:
-						listener.handle_event(event)
-				elif (data == "Going Forward\n" or
-				data == "Going Backward\n" or
-				data == "Turning Right\n" or
-				data == "Turning Left\n" or
-				data == "Halted\n" or
-				data == "Scanning\n" or
-				data == "Travelled\n"):
-					event = StateEvent(data.strip('\n'))
-						
-					for listener in self.listeners:
-						listener.handle_event(event)
-				else:
-					print(data)
-			except:
-				continue
+                    for listener in self.listeners:
+                        listener.handle_event(event)
+                elif data[0] == 's':
+                    parameters = data.split(',')
+
+                    if len(parameters) < 2:
+                        continue
+
+                    parameters.remove('s')
+
+                    event = ScanResult(parameters)
+
+                    for listener in self.listeners:
+                        listener.handle_event(event)
+
+                elif (data == "Going Forward\n" or
+                              data == "Going Backward\n" or
+                              data == "Turning Right\n" or
+                              data == "Turning Left\n" or
+                              data == "Halted\n" or
+                              data == "Scanning\n" or
+                              data == "Travelled\n"):
+                    event = StateEvent(data.strip('\n'))
+
+                    for listener in self.listeners:
+                        listener.handle_event(event)
+                else:
+                    print(data)
+            except:
+                continue

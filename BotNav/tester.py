@@ -3,6 +3,7 @@ import time
 import select
 import threading
 
+from pathlib import Path
 from threading import Thread
 
 from proxy import Proxy
@@ -29,15 +30,23 @@ class Tester(threading.Thread):
 
         self.robot = SimulatedRobot(self.proxy)
 
-        self.open_map(map_file)
+        self.map_file = map_file
 
-        self.algorithm = GridNav(self.map)
-        self.planner = Planner(self.map, self.algorithm, self.proxy)
+        # Will be assigned in open_map().
+        self.cell_size = None
+        self.grid_size = None
+        self.map = None
+
+        self.algorithm = None
+        self.planner = None
+
+        self.output_file = None
+        self.gnuplot_file = None
 
         Thread.__init__(self)
 
-    def open_map(self, path):
-        infile = open(path, 'r')
+    def open_map(self):
+        infile = Path(self.map_file).open()
 
         # Do not bother with any validation for now.
         self.grid_size = float(infile.readline())
@@ -79,9 +88,41 @@ class Tester(threading.Thread):
 
         infile.close()
 
+    def setup_output(self):
+        # Establish the path to the "output" directory.
+        p = Path(str(Path(self.map_file).parents[0]) + "/output")
+
+        # Check to see if the "output" directory actually exists.
+        if not Path(str(Path(self.map_file).parents[0]) + "/output").exists():
+            # It does not exist so create it.
+            p.mkdir()
+
+        # Create the general output file by tagging the ".output" extension to the existing file.
+        p = Path(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".output")
+
+        if p.exists():
+            p.replace(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".output")
+        else:
+            p.touch()
+
+        self.output_file = p.open(mode='w')
+        self.output_file.write("hello")
+
+        # Do the same with the gnuplot output.
+        p = Path(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".gnuplot")
+        p.touch(exist_ok=True)
+
+        if p.exists():
+            p.replace(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".gnuplot")
+        else:
+            p.touch()
+
+        self.gnuplot_file = p.open(mode='w')
+        self.gnuplot_file.write("hello")
+
     def handle_event(self, event):
         if isinstance(event, OdometryReport):
-            didChange = self.robot.update_odometry(event)
+            did_change = self.robot.update_odometry(event)
         elif isinstance(event, StateEvent):
             self.robot.state = event.state
 
@@ -106,13 +147,33 @@ class Tester(threading.Thread):
                 elif command == "quit":
                     self.planner.finished = True
 
+        # Close the debugging files.
+        self.output_file.close()
+        self.gnuplot_file.close()
+
 
 if __name__ == '__main__':
     import sys
 
     if len(sys.argv) == 2:
-        # Just assume the information is correct for now.
         map_file = sys.argv[1]
 
+        if not Path(map_file).exists():
+            print(map_file + " does not exist.")
+            exit(-1)
+
         tester = Tester(map_file)
+
+        try:
+            tester.open_map()
+            tester.setup_output()
+        except IOError as err:
+            print(err)
+            exit(-1)
+
+        tester.algorithm = GridNav(tester.map)
+        tester.planner = Planner(tester.map, tester.algorithm, tester.proxy, tester.output_file, tester.gnuplot_file)
+
+        print("Type \"begin\" to start run...")
+
         tester.start()
