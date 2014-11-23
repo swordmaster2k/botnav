@@ -1,27 +1,28 @@
-'''
-	gridnav.py
-	
-	Version 3.0 - more efficient.  A grid-based navigation algorithm for 
-	mobile robots.
-	
-	Python port of the original C implementation by Tucker Balch, ported
-	by Joshua Michael Daly. Modified to build the entire path and catch
-	exceptions where there is no path to the goal.
-	
-	Copyright (C) 1995 Tucker Balch
-	Copyright (C) 2014 Joshua Michael Daly
-	
-	This program is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 3 of the License, or
-	(at your option) any later version.
+"""
+    gridnav.py
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-'''
+    Version 3.0 - more efficient.  A grid-based navigation algorithm for
+    mobile robots.
 
+    Python port of the original C implementation by Tucker Balch, ported
+    by Joshua Michael Daly. Modified to build the entire path and catch
+    exceptions where there is no path to the goal.
+
+    Copyright (C) 1995 Tucker Balch
+    Copyright (C) 2014 Joshua Michael Daly
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+"""
+
+import time
 import math
 
 from .abstract_algorithm import AbstractAlgorithm
@@ -51,9 +52,6 @@ class GridNav(AbstractAlgorithm):
         # Expressed in cells, move 0.15m in real world units.
         self.MAX_VELOCITY = 0.15 / self.map_state.cell_size
 
-        # Keep track of computations.
-        self.cell_count = 0
-
         # Linked list stuff.
         self.open_list = []
         self.free_head = 0
@@ -77,7 +75,7 @@ class GridNav(AbstractAlgorithm):
         self.open_head = self.EMPTY
 
     '''
-    Setup each cell in the occpancy grid based on their content i.e.
+    Setup each cell in the occupancy grid based on their content i.e.
     it contains the goal, an obstacle, or free space.
     '''
 
@@ -176,7 +174,7 @@ class GridNav(AbstractAlgorithm):
     '''
 
     def cell_cost(self, x, y):
-        self.cell_count += 1
+        self.vertex_accesses += 1
 
         # Check if the current cell is an obstacle.
         if self.map_state.grid[x][y].data.occupancy == self.FULL:
@@ -251,6 +249,9 @@ class GridNav(AbstractAlgorithm):
     '''
 
     def plan(self):
+        self.total_plan_steps += 1
+        start_time = time.process_time()
+
         result = self.EMPTY
         self.insert_node(self.map_state.goal_x, self.map_state.goal_y, 0.0)
 
@@ -273,6 +274,8 @@ class GridNav(AbstractAlgorithm):
         except RuntimeError as err:
             if str(err) == "maximum recursion depth exceeded in comparison":
                 raise NoPathException("No path to Goal!")
+
+        self.time_taken += round(time.process_time() - start_time, 3)
 
 
     '''
@@ -365,6 +368,12 @@ class GridNav(AbstractAlgorithm):
         if x_difference <= 0.5 and y_difference <= 0.5:
             return
         else:
+            # Ensure that the next more will be into another cell
+            # otherwise we'll end up in an infinite loop.
+            if int(math.floor(next_x)) == x or int(math.floor(next_y)) == y:
+                next_x += 1
+                next_y += 1
+
             self.build_path(int(math.floor(next_x)), int(math.floor(next_y)))
 
 
@@ -385,20 +394,20 @@ class GridNav(AbstractAlgorithm):
             elif cell.x == self.map_state.goal_x and cell.y == self.map_state.goal_y:
                 continue
 
-            occpancy = self.map_state.grid[cell.x][cell.y].data.occupancy
+            occupancy = self.map_state.grid[cell.x][cell.y].data.occupancy
 
-            if cell.state == 0 and occpancy != self.EMPTY:
+            if cell.state == 0 and occupancy != self.EMPTY:
                 self.map_state.grid[cell.x][cell.y].data.occupancy = self.EMPTY
-            elif cell.state == 1 and occpancy != self.EMPTY:
+            elif cell.state == 1 and occupancy != self.EMPTY:
                 self.map_state.grid[cell.x][cell.y].data.occupancy = self.EMPTY
-            elif cell.state == 2 and occpancy != self.FULL:
+            elif cell.state == 2 and occupancy != self.FULL:
                 self.map_state.grid[cell.x][cell.y].data.occupancy = self.FULL
 
     '''
     Prints the contents of the occupancy grid to the standard output.
     '''
 
-    def print_occupancy_grid(self):
+    def print_occupancy_grid(self, out):
         y = self.map_state.cells_square - 1
         footer = ""
         rows = ""
@@ -411,7 +420,7 @@ class GridNav(AbstractAlgorithm):
         while y >= 0:
             if y < 10:
                 rows += str(y) + "  "
-            elif y >= 10 and y < 100:
+            elif 10 <= y < 100:
                 rows += str(y) + " "
             else:
                 rows += str(y)
@@ -424,10 +433,10 @@ class GridNav(AbstractAlgorithm):
             elif cell < 10:
                 start_spacing = "    "
                 end_spacing = start_spacing
-            elif cell > 10 and cell < 100:
+            elif 10 < cell < 100:
                 start_spacing = "   "
                 end_spacing = "    "
-            elif cell > 100 and cell < 1000:
+            elif 100 < cell < 1000:
                 start_spacing = "  "
                 end_spacing = "     "
 
@@ -446,7 +455,7 @@ class GridNav(AbstractAlgorithm):
                 else:
                     for point in self.path:
                         if (math.floor(point[0]) == x and
-                                    math.floor(point[1]) == y):
+                                math.floor(point[1]) == y):
                             symbol = "  *  "
 
                 rows += "[ " + symbol + " ]"
@@ -456,14 +465,14 @@ class GridNav(AbstractAlgorithm):
             if y >= 0:
                 rows += "\n\n"
 
-        print(rows)
-        print(footer + '\n')
+        out.write(rows + "\n")
+        out.write(footer + "\n\n")
 
     '''
     Prints the contents of the cost grid to the standard output.
     '''
 
-    def print_cost_grid(self):
+    def print_cost_grid(self, out):
         y = self.map_state.cells_square - 1
         footer = ""
         footer_padding = "         "
@@ -477,7 +486,7 @@ class GridNav(AbstractAlgorithm):
         while y >= 0:
             if y < 10:
                 rows += str(y) + "  "
-            elif y >= 10 and y < 100:
+            elif 10 <= y < 100:
                 rows += str(y) + " "
             else:
                 rows += str(y)
@@ -490,10 +499,10 @@ class GridNav(AbstractAlgorithm):
             elif cell < 10:
                 start_spacing = "    "
                 end_spacing = "     "
-            elif cell > 10 and cell < 100:
+            elif 10 < cell < 100:
                 start_spacing = "   "
                 end_spacing = "     "
-            elif cell > 100 and cell < 1000:
+            elif 100 < cell < 1000:
                 start_spacing = "  "
                 end_spacing = "      "
 
@@ -515,14 +524,14 @@ class GridNav(AbstractAlgorithm):
             if y >= 0:
                 rows += "\n\n"
 
-        print(rows)
-        print(footer + '\n')
+        out.write(rows + "\n")
+        out.write(footer + "\n\n")
 
     '''
     Prints the points in the robots path.
     '''
 
-    def print_path(self):
+    def print_path(self, out):
         path = "path: "
 
         for i in range(len(self.path)):
@@ -531,7 +540,7 @@ class GridNav(AbstractAlgorithm):
             if i != len(self.path) - 1:
                 path += "->"
 
-        print(path + "\n")
+        out.write(path + "\n\n")
 
 # ----------------------------------------------------------------------#
 # Inner Classes                                            		   #

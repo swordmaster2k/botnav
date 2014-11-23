@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<XMI verified="false" xmi.version="1.2" timestamp="2014-11-22T21:25:14" xmlns:UML="http://schema.omg.org/spec/UML/1.3">
+<XMI verified="false" xmi.version="1.2" timestamp="2014-11-23T17:39:01" xmlns:UML="http://schema.omg.org/spec/UML/1.3">
  <XMI.header>
   <XMI.documentation>
    <XMI.exporter>umbrello uml modeller http://umbrello.kde.org</XMI.exporter>
@@ -33,6 +33,7 @@
         <UML:DataType stereotype="datatype" visibility="public" isSpecification="false" namespace="Datatypes" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="rsTIO6HKQID5" name="dict"/>
         <UML:DataType stereotype="datatype" visibility="public" isSpecification="false" namespace="Datatypes" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="usYL3tOGCu71" name="object"/>
         <UML:DataType stereotype="datatype" visibility="public" isSpecification="false" namespace="Datatypes" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="3D3xxBcm152Q" name="set"/>
+        <UML:DataType stereotype="datatype" visibility="public" isSpecification="false" namespace="Datatypes" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="ihX4monJl5YU" name="stream"/>
        </UML:Namespace.ownedElement>
       </UML:Package>
       <UML:Class visibility="public" isSpecification="false" namespace="Logical View" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="gky7w8A0FXRT" name="OdometryReport">
@@ -51,6 +52,7 @@
           <UML:Attribute visibility="public" isSpecification="false" xmi.id="Pj9RojD1ci4s" type="wL1thdgSRBN4" initialValue="[]" name="path"/>
           <UML:Attribute visibility="public" isSpecification="false" xmi.id="H9yEwVJTBbhy" type="fVjyDz9rvDph" initialValue="0" name="vertex_accesses"/>
           <UML:Attribute visibility="public" isSpecification="false" xmi.id="dkKYwMHL5Omr" type="fVjyDz9rvDph" initialValue="0" name="time_taken"/>
+          <UML:Attribute visibility="public" isSpecification="false" xmi.id="zxT5KZ3MPdkR" type="fVjyDz9rvDph" initialValue="0" name="total_plan_steps"/>
           <UML:Operation visibility="public" isSpecification="false" isQuery="false" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="khzy9oqegK7Q" name="plan">
            <UML:BehavioralFeature.parameter>
             <UML:Parameter visibility="private" isSpecification="false" xmi.id="9tzp4pxbGvHW" type="nqVwd5wTdabF" value="" name="self"/>
@@ -71,16 +73,25 @@
           <UML:Operation visibility="public" isSpecification="false" isQuery="false" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="RrZ4ot685ei6" name="print_cost_grid">
            <UML:BehavioralFeature.parameter>
             <UML:Parameter visibility="private" isSpecification="false" xmi.id="WcjcMCqJ3Ble" type="nqVwd5wTdabF" value="" name="self"/>
+            <UML:Parameter visibility="private" isSpecification="false" xmi.id="ThkPMmMQdnoZ" type="ihX4monJl5YU" value="" name="out"/>
            </UML:BehavioralFeature.parameter>
           </UML:Operation>
           <UML:Operation visibility="public" isSpecification="false" isQuery="false" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="eFmE4yuVpSYd" name="print_occupancy_grid">
            <UML:BehavioralFeature.parameter>
             <UML:Parameter visibility="private" isSpecification="false" xmi.id="LekQJSUn2BNP" type="nqVwd5wTdabF" value="" name="self"/>
+            <UML:Parameter visibility="private" isSpecification="false" xmi.id="YvW9vgibLFf7" type="ihX4monJl5YU" value="" name="out"/>
            </UML:BehavioralFeature.parameter>
           </UML:Operation>
           <UML:Operation visibility="public" isSpecification="false" isQuery="false" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="MBiPMR20eoDj" name="print_path">
            <UML:BehavioralFeature.parameter>
             <UML:Parameter visibility="private" isSpecification="false" xmi.id="m5CZXkDqPxEg" type="nqVwd5wTdabF" value="" name="self"/>
+            <UML:Parameter visibility="private" isSpecification="false" xmi.id="1QPnVxFydxLz" type="ihX4monJl5YU" value="" name="out"/>
+           </UML:BehavioralFeature.parameter>
+          </UML:Operation>
+          <UML:Operation visibility="public" isSpecification="false" isQuery="false" isAbstract="false" isLeaf="false" isRoot="false" xmi.id="jfNMTCtz7N80" name="print_debug">
+           <UML:BehavioralFeature.parameter>
+            <UML:Parameter visibility="private" isSpecification="false" xmi.id="4qaN4DT3csq7" type="nqVwd5wTdabF" value="" name="self"/>
+            <UML:Parameter visibility="private" isSpecification="false" xmi.id="n34Q0NQj3n5U" type="ihX4monJl5YU" value="" name="out"/>
            </UML:BehavioralFeature.parameter>
           </UML:Operation>
          </UML:Classifier.feature>
@@ -279,10 +290,10 @@
      </UML:Namespace.ownedElement>
      <XMI.extension xmi.extender="umbrello">
       <diagrams>
-       <diagram showopsig="1" linecolor="#ff0000" snapx="25" showattribassocs="1" snapy="25" linewidth="0" showattsig="1" textcolor="#000000" isopen="1" showpackage="1" showpubliconly="0" showstereotype="1" name="Overview" font="Sans Serif,9,-1,0,50,0,0,0,0,0" canvasheight="277.4099563458643" canvaswidth="465.8237767584096" localid="-1" snapcsgrid="0" showgrid="0" showops="1" griddotcolor="#d3d3d3" backgroundcolor="#ffffff" usefillcolor="1" fillcolor="#ffff00" zoom="160" xmi.id="ro3EfCwnFVFP" documentation="" showscope="1" snapgrid="0" showatts="1" type="1">
+       <diagram showopsig="1" linecolor="#ff0000" snapx="25" showattribassocs="1" snapy="25" linewidth="0" showattsig="1" textcolor="#000000" isopen="1" showpackage="1" showpubliconly="0" showstereotype="1" name="Overview" font="Sans Serif,9,-1,0,50,0,0,0,0,0" canvasheight="73.20458984375" canvaswidth="87" localid="-1" snapcsgrid="0" showgrid="0" showops="1" griddotcolor="#d3d3d3" backgroundcolor="#ffffff" usefillcolor="1" fillcolor="#ffff00" zoom="160" xmi.id="ro3EfCwnFVFP" documentation="" showscope="1" snapgrid="0" showatts="1" type="1">
         <widgets>
-         <floatingtext linecolor="none" usesdiagramfillcolor="1" linewidth="none" textcolor="none" usesdiagramusefillcolor="1" x="-1411.096562633776" showstereotype="1" y="-825.70458984375" text="map_state" font="Ubuntu,11,-1,5,50,0,0,0,0,0" localid="51zZ9RAO6tz1" pretext="+" role="710" width="87" isinstance="0" posttext="" usefillcolor="1" fillcolor="none" xmi.id="hrNAmAKjqN44" height="21"/>
-         <floatingtext linecolor="none" usesdiagramfillcolor="1" linewidth="none" textcolor="none" usesdiagramusefillcolor="1" x="-1398.023730916715" showstereotype="1" y="-778.9379029813527" text="robot" font="Ubuntu,11,-1,5,50,0,0,0,0,0" localid="FuX3IZ58wpX5" pretext="+" role="710" width="54" isinstance="0" posttext="" usefillcolor="1" fillcolor="none" xmi.id="XgIFo33OxE4i" height="21"/>
+         <floatingtext linecolor="none" usesdiagramfillcolor="1" linewidth="none" textcolor="none" usesdiagramusefillcolor="1" x="-1411.096557617188" showstereotype="1" y="-825.70458984375" text="map_state" font="Ubuntu,11,-1,5,50,0,0,0,0,0" localid="51zZ9RAO6tz1" pretext="+" role="710" width="87" isinstance="0" posttext="" usefillcolor="1" fillcolor="none" xmi.id="hrNAmAKjqN44" height="21"/>
+         <floatingtext linecolor="none" usesdiagramfillcolor="1" linewidth="none" textcolor="none" usesdiagramusefillcolor="1" x="-1398.023681640625" showstereotype="1" y="-778.9379272460938" text="robot" font="Ubuntu,11,-1,5,50,0,0,0,0,0" localid="FuX3IZ58wpX5" pretext="+" role="710" width="54" isinstance="0" posttext="" usefillcolor="1" fillcolor="none" xmi.id="XgIFo33OxE4i" height="21"/>
         </widgets>
         <messages/>
         <associations/>
@@ -306,7 +317,7 @@
   </UML:Model>
  </XMI.content>
  <XMI.extensions xmi.extender="umbrello">
-  <docsettings viewid="ro3EfCwnFVFP" uniqueid="wup9Ebjb9hFT" documentation=""/>
+  <docsettings viewid="ro3EfCwnFVFP" uniqueid="zxT5KZ3MPdkR" documentation=""/>
   <listview>
    <listitem open="1" type="800" id="Views">
     <listitem open="1" type="821" id="Component View"/>
@@ -320,10 +331,12 @@
        <listitem open="0" type="815" id="khzy9oqegK7Q"/>
        <listitem open="0" type="815" id="1MMzbq2JWzFd"/>
        <listitem open="0" type="815" id="RrZ4ot685ei6"/>
+       <listitem open="0" type="815" id="jfNMTCtz7N80"/>
        <listitem open="0" type="815" id="eFmE4yuVpSYd"/>
        <listitem open="0" type="815" id="MBiPMR20eoDj"/>
        <listitem open="0" type="814" id="ZuDgnChS24ao"/>
        <listitem open="0" type="814" id="dkKYwMHL5Omr"/>
+       <listitem open="0" type="814" id="zxT5KZ3MPdkR"/>
        <listitem open="0" type="815" id="dGvtACN9Wk65"/>
        <listitem open="0" type="814" id="H9yEwVJTBbhy"/>
       </listitem>
@@ -343,6 +356,7 @@
       <listitem open="1" type="829" id="usYL3tOGCu71"/>
       <listitem open="1" type="829" id="3D3xxBcm152Q"/>
       <listitem open="1" type="829" id="xWvWHzEzCnba"/>
+      <listitem open="1" type="829" id="ihX4monJl5YU"/>
       <listitem open="1" type="829" id="qQkWeRRsNLH5"/>
       <listitem open="1" type="829" id="FJYqr962wk9f"/>
       <listitem open="1" type="829" id="IPiaIANDgGhx"/>

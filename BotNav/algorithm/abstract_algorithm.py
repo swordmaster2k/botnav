@@ -18,7 +18,8 @@ class AbstractAlgorithm:
 
         # For debugging.
         self.vertex_accesses = 0  # Number of times any vertex is accessed.
-        self.time_taken = 0  # Total execution time in seconds of every planning stage.
+        self.time_taken = 0  # The sum of every planning execution time in seconds.
+        self.total_plan_steps = 0  # Total number of calls to plan.
 
     '''
     Subclass should implement the logic behind calculating its cost
@@ -56,19 +57,34 @@ class AbstractAlgorithm:
     Should print the cost grid to standard output.
     '''
 
-    def print_cost_grid(self):
+    def print_cost_grid(self, out):
         raise NotImplementedError
 
     '''
     Should print the occupancy grid to standard output.
     '''
 
-    def print_occupancy_grid(self):
+    def print_occupancy_grid(self, out):
         raise NotImplementedError
 
     '''
     Should print the contents of the robots path.
     '''
 
-    def print_path(self):
+    def print_path(self, out):
         raise NotImplementedError
+
+    '''
+    Prints the final state of all debugging information to a stream.
+    '''
+
+    def print_debug(self, out):
+        out.write(('-' * 73) + "\n")
+        out.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
+        out.write("Total Vertices: " + str(self.map_state.cells_square ** 2) + "\n\n")
+
+        out.write("Vertex Accesses: " + str(self.vertex_accesses) + "\n")
+        out.write("Average: " + str(self.vertex_accesses / self.total_plan_steps) + "\n\n")
+
+        out.write("Total Time Taken: " + str(self.time_taken) + "s\n")
+        out.write("Average: " + str(self.time_taken / self.total_plan_steps) + "s\n")

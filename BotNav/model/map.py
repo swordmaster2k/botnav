@@ -161,11 +161,11 @@ class Map:
         header = ""
         rows = ""
         symbol = ""
-        foundRobot = False
+        found_robot = False
         robot_position = self.point_to_cell(self.robot.x, self.robot.y)
 
         if robot_position == -1:
-            foundRobot = True
+            found_robot = True
 
         for y in self.cells_square:
             x = 0
@@ -173,9 +173,9 @@ class Map:
             rows += str(y) + " "
 
             for x in range(self.cells_square):
-                if not foundRobot and robot_position.x == x and robot_position.y == y:
+                if not found_robot and robot_position.x == x and robot_position.y == y:
                     rows += "[ R ]"
-                    foundRobot = True
+                    found_robot = True
                 else:
                     if self.grid[x][y].state == 0:
                         symbol = "#"

@@ -1,6 +1,5 @@
-import sys
-import time
 import select
+import datetime
 import threading
 
 from pathlib import Path
@@ -97,28 +96,29 @@ class Tester(threading.Thread):
             # It does not exist so create it.
             p.mkdir()
 
-        # Create the general output file by tagging the ".output" extension to the existing file.
-        p = Path(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".output")
+        # Create the general output file by tagging the ".output" extension to the existing file and a time stamp.
+        file_string = str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + \
+            str(datetime.datetime.utcnow()) + ".output"
+        p = Path(file_string)
 
         if p.exists():
-            p.replace(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".output")
+            p.replace(file_string)
         else:
             p.touch()
 
         self.output_file = p.open(mode='w')
-        self.output_file.write("hello")
 
         # Do the same with the gnuplot output.
-        p = Path(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".gnuplot")
-        p.touch(exist_ok=True)
+        file_string = str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + \
+            str(datetime.datetime.utcnow()) + ".gnuplot"
+        p = Path(file_string)
 
         if p.exists():
-            p.replace(str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + ".gnuplot")
+            p.replace(file_string)
         else:
             p.touch()
 
         self.gnuplot_file = p.open(mode='w')
-        self.gnuplot_file.write("hello")
 
     def handle_event(self, event):
         if isinstance(event, OdometryReport):

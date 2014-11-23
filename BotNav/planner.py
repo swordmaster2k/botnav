@@ -61,11 +61,14 @@ class Planner(threading.Thread):
 
         # Print the initial state.
         self.algorithm.print_cost_grid(sys.stdout)
+        self.algorithm.print_path(sys.stdout)
         self.algorithm.print_occupancy_grid(sys.stdout)
 
-        if not self.output_file.closed:
-            self.algorithm.print_cost_grid(self.output_file)
-            self.algorithm.print_occupancy_grid(self.output_file)
+        if self.output_file is not None:
+            if not self.output_file.closed:
+                self.algorithm.print_cost_grid(self.output_file)
+                self.algorithm.print_path(self.output_file)
+                self.algorithm.print_occupancy_grid(self.output_file)
 
         try:
             '''
@@ -73,15 +76,16 @@ class Planner(threading.Thread):
             '''
             self.algorithm.plan()
 
-            # Print state after first planning step.
-            self.algorithm.print_path(sys.stdout)
+            # Print state after first planning step to stdout.
             self.algorithm.print_cost_grid(sys.stdout)
+            self.algorithm.print_path(sys.stdout)
             self.algorithm.print_occupancy_grid(sys.stdout)
 
-            if not self.output_file.closed:
-                self.algorithm.print_path(self.output_file)
-                self.algorithm.print_cost_grid(self.output_file)
-                self.algorithm.print_occupancy_grid(self.output_file)
+            if self.output_file is not None:
+                if not self.output_file.closed:
+                    self.algorithm.print_cost_grid(self.output_file)
+                    self.algorithm.print_path(self.output_file)
+                    self.algorithm.print_occupancy_grid(self.output_file)
 
             # Calculate our initial distance from the goal.
             x_difference = self.map.goal_x - self.robot.x
@@ -124,12 +128,12 @@ class Planner(threading.Thread):
                         self.algorithm.update_occupancy_grid(updated_cells)
 
                         '''
-                        Step 4: Recompute the plan if necessary.
+                        Step 3a: Recompute the plan if necessary.
                         '''
                         self.algorithm.plan()
 
                 '''
-                Step 5: Pop the next point from the current path.
+                Step 4: Pop the next point from the current path.
                 '''
                 new_point = self.algorithm.pop_next_point()
                 self.robot.go_to(new_point[0], new_point[1])
@@ -140,10 +144,16 @@ class Planner(threading.Thread):
 
                 self.robot.state = ""  # Reset the state.
 
-                # Print some information.
+                # Print some information to stdout.
                 self.algorithm.print_path(sys.stdout)
                 self.algorithm.print_cost_grid(sys.stdout)
                 self.algorithm.print_occupancy_grid(sys.stdout)
+
+                if self.output_file is not None:
+                    if not self.output_file.closed:
+                        self.algorithm.print_path(self.output_file)
+                        self.algorithm.print_cost_grid(self.output_file)
+                        self.algorithm.print_occupancy_grid(self.output_file)
 
                 print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
                 print(
@@ -169,13 +179,16 @@ class Planner(threading.Thread):
         except exceptions.NoPathException as ex:
             print(ex)
         finally:
-            # Print the final state.
+            # Print the final state to stdout.
             self.algorithm.print_cost_grid(sys.stdout)
             self.algorithm.print_occupancy_grid(sys.stdout)
+            self.algorithm.print_debug(sys.stdout)
 
-            if not self.output_file.closed:
-                self.algorithm.print_cost_grid(self.output_file)
-                self.algorithm.print_occupancy_grid(self.output_file)
+            if self.output_file is not None:
+                if not self.output_file.closed:
+                    self.algorithm.print_cost_grid(self.output_file)
+                    self.algorithm.print_occupancy_grid(self.output_file)
+                    self.algorithm.print_debug(self.output_file)
 
             if not self.finished:
                 self.finished = True
