@@ -167,6 +167,9 @@ class Planner(threading.Thread):
                         self.algorithm.print_cost_grid(self.output_file)
                         self.algorithm.print_occupancy_grid(self.output_file)
 
+                # Append a copy of the path to our paths record.
+                paths.append(self.algorithm.path[:])
+
                 print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
                 print(
                     "x: %.2f" % (self.robot.x * self.map.cell_size) +
