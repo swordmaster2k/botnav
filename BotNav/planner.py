@@ -4,6 +4,8 @@ import threading
 from threading import Thread
 
 from events import ScanResult
+from util import gnuplotter
+
 import exceptions
 
 '''
@@ -59,6 +61,10 @@ class Planner(threading.Thread):
 
     def run(self):
 
+        # Variable for holding all the paths that
+        # are generated for later writing to gnuplot file.
+        paths = []
+
         # Print the initial state.
         self.algorithm.print_cost_grid(sys.stdout)
         self.algorithm.print_path(sys.stdout)
@@ -86,6 +92,9 @@ class Planner(threading.Thread):
                     self.algorithm.print_cost_grid(self.output_file)
                     self.algorithm.print_path(self.output_file)
                     self.algorithm.print_occupancy_grid(self.output_file)
+
+            # Append a copy of the path to our paths record.
+            paths.append(self.algorithm.path[:])
 
             # Calculate our initial distance from the goal.
             x_difference = self.map.goal_x - self.robot.x
@@ -131,6 +140,9 @@ class Planner(threading.Thread):
                         Step 3a: Recompute the plan if necessary.
                         '''
                         self.algorithm.plan()
+
+                        # Append a copy of the path to our paths record.
+                        paths.append(self.algorithm.path[:])
 
                 '''
                 Step 4: Pop the next point from the current path.
@@ -189,6 +201,10 @@ class Planner(threading.Thread):
                     self.algorithm.print_cost_grid(self.output_file)
                     self.algorithm.print_occupancy_grid(self.output_file)
                     self.algorithm.print_debug(self.output_file)
+
+            if self.gnuplot_file is not None:
+                if not self.gnuplot_file.closed:
+                    gnuplotter.write_paths(self.gnuplot_file, paths)
 
             if not self.finished:
                 self.finished = True

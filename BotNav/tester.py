@@ -118,7 +118,7 @@ class Tester(threading.Thread):
         else:
             p.touch()
 
-        self.gnuplot_file = p.open(mode='w')
+        self.gnuplot_file = p.open(mode='w+')
 
     def handle_event(self, event):
         if isinstance(event, OdometryReport):
