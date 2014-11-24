@@ -79,7 +79,7 @@ class AbstractAlgorithm:
     '''
 
     def print_debug(self, out):
-        out.write(('-' * 73) + "\n")
+        out.write(('-' * 120) + "\n\n")
         out.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
         out.write("Total Vertices: " + str(self.map_state.cells_square ** 2) + "\n\n")
 

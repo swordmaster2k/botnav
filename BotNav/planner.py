@@ -69,12 +69,14 @@ class Planner(threading.Thread):
         self.algorithm.print_cost_grid(sys.stdout)
         self.algorithm.print_path(sys.stdout)
         self.algorithm.print_occupancy_grid(sys.stdout)
+        sys.stdout.write(('-' * 120) + '\n\n')
 
         if self.output_file is not None:
             if not self.output_file.closed:
                 self.algorithm.print_cost_grid(self.output_file)
                 self.algorithm.print_path(self.output_file)
                 self.algorithm.print_occupancy_grid(self.output_file)
+                self.output_file.write(('-' * 120) + '\n\n')
 
         try:
             '''
@@ -86,12 +88,14 @@ class Planner(threading.Thread):
             self.algorithm.print_cost_grid(sys.stdout)
             self.algorithm.print_path(sys.stdout)
             self.algorithm.print_occupancy_grid(sys.stdout)
+            sys.stdout.write(('-' * 120) + '\n\n')
 
             if self.output_file is not None:
                 if not self.output_file.closed:
                     self.algorithm.print_cost_grid(self.output_file)
                     self.algorithm.print_path(self.output_file)
                     self.algorithm.print_occupancy_grid(self.output_file)
+                    self.output_file.write(('-' * 120) + '\n\n')
 
             # Append a copy of the path to our paths record.
             paths.append(self.algorithm.path[:])
@@ -160,12 +164,14 @@ class Planner(threading.Thread):
                 self.algorithm.print_path(sys.stdout)
                 self.algorithm.print_cost_grid(sys.stdout)
                 self.algorithm.print_occupancy_grid(sys.stdout)
+                sys.stdout.write(('-' * 120) + '\n\n')
 
                 if self.output_file is not None:
                     if not self.output_file.closed:
                         self.algorithm.print_path(self.output_file)
                         self.algorithm.print_cost_grid(self.output_file)
                         self.algorithm.print_occupancy_grid(self.output_file)
+                        self.output_file.write(('-' * 120) + '\n\n')
 
                 # Append a copy of the path to our paths record.
                 paths.append(self.algorithm.path[:])
@@ -176,7 +182,7 @@ class Planner(threading.Thread):
                     ", y: %.2f" % (self.robot.y * self.map.cell_size) +
                     ", heading %.2f" % self.robot.heading
                 )
-                print("\n" + ('-' * 73) + "\n")
+                print("\n" + ('-' * 120) + "\n\n")
 
                 # Recalculate the x and y differences from our position
                 # to the goal.
