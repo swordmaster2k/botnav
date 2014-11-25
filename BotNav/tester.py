@@ -1,3 +1,4 @@
+import sys
 import select
 import datetime
 import threading
@@ -8,6 +9,7 @@ from threading import Thread
 from proxy import Proxy
 from model.map import Map
 from planner import Planner
+from util import gnuplotter
 from model.robot import Robot
 from algorithm.gridnav import GridNav
 from connection.bluetooth_connection import BluetoothConnection
@@ -15,19 +17,16 @@ from events import OdometryReport, ScanResult, StateEvent
 from model.simulated_robot import SimulatedRobot
 
 
+
 class Tester(threading.Thread):
     def __init__(self, map_file):
-        '''
-        self.proxy = Proxy(BluetoothConnection("00:00:12:06:56:83", 0x1001))
-        self.proxy.listeners.append(self)
-
-        self.robot = Robot(self.proxy)
-        '''
+        #self.proxy = Proxy(BluetoothConnection("00:00:12:06:56:83", 0x1001))
+        #self.robot = Robot(self.proxy)
 
         self.proxy = Proxy("DUMMY")  # Dummy connection.
-        self.proxy.listeners.append(self)
-
         self.robot = SimulatedRobot(self.proxy)
+
+        self.proxy.listeners.append(self)
 
         self.map_file = map_file
 
@@ -41,6 +40,8 @@ class Tester(threading.Thread):
 
         self.output_file = None
         self.gnuplot_file = None
+
+        self.output_path = None
 
         Thread.__init__(self)
 
@@ -92,13 +93,24 @@ class Tester(threading.Thread):
         p = Path(str(Path(self.map_file).parents[0]) + "/output")
 
         # Check to see if the "output" directory actually exists.
-        if not Path(str(Path(self.map_file).parents[0]) + "/output").exists():
+        if not p.exists():
             # It does not exist so create it.
             p.mkdir()
 
+        directory_path = str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + \
+            str(datetime.datetime.utcnow())
+
+        # Create the directory for this run.
+        p = Path(directory_path)
+
+        if not p.exists():
+            # It does not exist so create it.
+            p.mkdir()
+
+        self.output_path = directory_path
+
         # Create the general output file by tagging the ".output" extension to the existing file and a time stamp.
-        file_string = str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + \
-            str(datetime.datetime.utcnow()) + ".output"
+        file_string = directory_path + "/debug_info.output"
         p = Path(file_string)
 
         if p.exists():
@@ -109,8 +121,7 @@ class Tester(threading.Thread):
         self.output_file = p.open(mode='w')
 
         # Do the same with the gnuplot output.
-        file_string = str(Path(self.map_file).parents[0]) + "/output/" + str(Path(self.map_file).name) + \
-            str(datetime.datetime.utcnow()) + ".gnuplot"
+        file_string = directory_path + "/paths.gnuplot"
         p = Path(file_string)
 
         if p.exists():
@@ -151,10 +162,9 @@ class Tester(threading.Thread):
         self.output_file.close()
         self.gnuplot_file.close()
 
+        gnuplotter.generate_output(self.output_path, self.algorithm.total_plan_steps, self.grid_size, "png")
 
 if __name__ == '__main__':
-    import sys
-
     if len(sys.argv) == 2:
         map_file = sys.argv[1]
 

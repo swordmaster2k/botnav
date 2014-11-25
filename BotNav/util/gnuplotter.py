@@ -45,6 +45,31 @@ def write_paths(stream, paths):
 
     #print("\nloops: " + str(loops) + "\n")
 
+import os
+
+
+def generate_output(directory, paths, grid_size, output_type):
+    gnuplot = os.popen('/usr/bin/gnuplot', 'w')
+
+    column1 = 1
+    column2 = 2
+
+    if not gnuplot.closed:
+        for i in range(paths):
+            configuration = "set output '" + directory + "/path" + str(i) + ".png'; set terminal " + str(output_type) + ";"
+            commands = "plot [0:" + str(grid_size) + "] [0:" + str(grid_size) + "] " + '\"' + directory + '/paths.gnuplot\"' + \
+                " u " + str(column1) + ":" + str(column2) + " with linespoints\n"
+
+            gnuplot.write(configuration)
+            gnuplot.write(commands)
+
+            column1 += 1
+            column2 += 2
+
+        gnuplot.close()
+    else:
+        print("gnuplot not available please install it.")
+
 import sys
 
 
