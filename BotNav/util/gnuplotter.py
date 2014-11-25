@@ -55,15 +55,27 @@ def generate_output(directory, paths, grid_size, output_type):
     column2 = 2
 
     if not gnuplot.closed:
+        configuration = "set terminal " + str(output_type) + ";" + "set xlabel \'Grid Width (Cells)\'; set ylabel " \
+                                                                   "\'Grid Height (Cells)\';"
+        gnuplot.write(configuration)
+
         for i in range(paths):
-            configuration = "set output '" + directory + "/path" + str(i) + ".png'; set terminal " + str(output_type) + ";"
-            commands = "plot [0:" + str(grid_size) + "] [0:" + str(grid_size) + "] " + '\"' + directory + '/paths.gnuplot\"' + \
-                " u " + str(column1) + ":" + str(column2) + " with linespoints\n"
+            # Setup the output for gnuplot.
+            configuration = "set output '" + directory + "/path" + str(i) + ".png'; set title \"Path " + str(i) + "\";"
+
+            # First command for plot contains the robots path.
+            commands1 = "plot [0:" + str(grid_size) + "] [0:" + str(grid_size) + "] " + '\"' + directory + \
+                        '/paths.gnuplot\"' + " using " + str(column1) + ":" + str(column2) + \
+                        " title \'path\' with linespoints"
+
+            # Second command contains the obstacles in the environment.
+            commands2 = '\"' + directory + '/occupancy.gnuplot\"' + " using " + str(1) + ":" + str(2) + \
+                        " title \'obstacles\' with points\n"
 
             gnuplot.write(configuration)
-            gnuplot.write(commands)
+            gnuplot.write(commands1 + "," + commands2)
 
-            column1 += 1
+            column1 += 2
             column2 += 2
 
         gnuplot.close()

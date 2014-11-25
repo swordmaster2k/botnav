@@ -16,6 +16,7 @@ from connection.bluetooth_connection import BluetoothConnection
 from events import OdometryReport, ScanResult, StateEvent
 from model.simulated_robot import SimulatedRobot
 
+GNU_PLOT_OUTPUT = "png"
 
 
 class Tester(threading.Thread):
@@ -40,6 +41,7 @@ class Tester(threading.Thread):
 
         self.output_file = None
         self.gnuplot_file = None
+        self.occupancy_file = None
 
         self.output_path = None
 
@@ -131,6 +133,17 @@ class Tester(threading.Thread):
 
         self.gnuplot_file = p.open(mode='w+')
 
+        # Do the same with the occupancy grid output.
+        file_string = directory_path + "/occupancy.gnuplot"
+        p = Path(file_string)
+
+        if p.exists():
+            p.replace(file_string)
+        else:
+            p.touch()
+
+        self.occupancy_file = p.open(mode='w+')
+
     def handle_event(self, event):
         if isinstance(event, OdometryReport):
             did_change = self.robot.update_odometry(event)
@@ -158,11 +171,19 @@ class Tester(threading.Thread):
                 elif command == "quit":
                     self.planner.finished = True
 
-        # Close the debugging files.
+        # Populate the occupancy file.
+        for x in range(self.map.cells_square):
+            for y in range(self.map.cells_square):
+                if self.map.grid[x][y].state == 2:
+                    # Its occupied write this point out.
+                    self.occupancy_file.write(str(x) + "\t" + str(y) + "\n")
+
+        # Close files.
         self.output_file.close()
         self.gnuplot_file.close()
+        self.occupancy_file.close()
 
-        gnuplotter.generate_output(self.output_path, self.algorithm.total_plan_steps, self.grid_size, "png")
+        gnuplotter.generate_output(self.output_path, self.algorithm.total_plan_steps, self.grid_size, GNU_PLOT_OUTPUT)
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
