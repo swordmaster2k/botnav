@@ -11,8 +11,7 @@ import exceptions
 '''
 The Planner actually deals with moving the robot from A to B until it
 reaches the goal. It makes use of the map, robot, and a path planning
-algorithm to do this. The algorithm being used must implement: 
-replan(), update_occupancy_grid(), and check_plan().
+algorithm to do this.
 
 It is implemented on its own thread.
 '''
@@ -45,6 +44,36 @@ class Planner(threading.Thread):
         if isinstance(event, ScanResult):
             self.last_scan = event
 
+    def write_state(self):
+        # Print some information to stdout.
+        self.algorithm.print_path(sys.stdout)
+        self.algorithm.print_cost_grid(sys.stdout)
+        self.algorithm.print_occupancy_grid(sys.stdout)
+        sys.stdout.write(('-' * 120) + '\n\n')
+
+        if self.output_file is not None:
+            if not self.output_file.closed:
+                self.algorithm.print_path(self.output_file)
+                self.algorithm.print_cost_grid(self.output_file)
+                self.algorithm.print_occupancy_grid(self.output_file)
+                self.output_file.write(('-' * 120) + '\n\n')
+
+    def write_debug_info(self):
+        sys.stdout.write("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y + "\n")
+        sys.stdout.write(
+            "x: %.2f" % (self.robot.x * self.map.cell_size) +
+            ", y: %.2f" % (self.robot.y * self.map.cell_size) + "\n"
+            "heading %.2f" % self.robot.heading)
+        sys.stdout.write("\n\n" + ('-' * 120) + "\n\n")
+
+        if self.output_file is not None:
+            if not self.output_file.closed:
+                self.output_file.write("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y + "\n")
+                self.output_file.write(
+                    "x: %.2f" % (self.robot.x * self.map.cell_size) +
+                    ", y: %.2f" % (self.robot.y * self.map.cell_size) + "\n" +
+                    "heading %.2f" % self.robot.heading)
+                self.output_file.write("\n\n" + ('-' * 120) + "\n\n")
 
     '''
     The actions of the Planner using any algorithm are:
@@ -65,18 +94,8 @@ class Planner(threading.Thread):
         # are generated for later writing to gnuplot file.
         paths = []
 
-        # Print the initial state.
-        self.algorithm.print_cost_grid(sys.stdout)
-        self.algorithm.print_path(sys.stdout)
-        self.algorithm.print_occupancy_grid(sys.stdout)
-        sys.stdout.write(('-' * 120) + '\n\n')
-
-        if self.output_file is not None:
-            if not self.output_file.closed:
-                self.algorithm.print_cost_grid(self.output_file)
-                self.algorithm.print_path(self.output_file)
-                self.algorithm.print_occupancy_grid(self.output_file)
-                self.output_file.write(('-' * 120) + '\n\n')
+        # Write the initial state.
+        self.write_state()
 
         try:
             '''
@@ -84,18 +103,8 @@ class Planner(threading.Thread):
             '''
             self.algorithm.plan()
 
-            # Print state after first planning step to stdout.
-            self.algorithm.print_cost_grid(sys.stdout)
-            self.algorithm.print_path(sys.stdout)
-            self.algorithm.print_occupancy_grid(sys.stdout)
-            sys.stdout.write(('-' * 120) + '\n\n')
-
-            if self.output_file is not None:
-                if not self.output_file.closed:
-                    self.algorithm.print_cost_grid(self.output_file)
-                    self.algorithm.print_path(self.output_file)
-                    self.algorithm.print_occupancy_grid(self.output_file)
-                    self.output_file.write(('-' * 120) + '\n\n')
+            # Write the state after first planning step.
+            self.write_state()
 
             # Append a copy of the path to our paths record.
             paths.append(self.algorithm.path[:])
@@ -110,12 +119,8 @@ class Planner(threading.Thread):
             if y_difference < 0:
                 y_difference = -y_difference
 
-            print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
-            print(
-                "x: %.2f" % (self.robot.x * self.map.cell_size) +
-                ", y: %.2f" % (self.robot.y * self.map.cell_size) +
-                ", heading %.2f" % self.robot.heading)
-            print("\n" + ('-' * 73) + "\n")
+            # Write some debugging info.
+            self.write_debug_info()
 
             # While we are not within 0.5 cells of the goal in both x and y.
             while x_difference > 0.5 or y_difference > 0.5:
@@ -151,8 +156,8 @@ class Planner(threading.Thread):
                 '''
                 Step 4: Pop the next point from the current path.
                 '''
-                new_point = self.algorithm.pop_next_point()
-                self.robot.go_to(new_point[0], new_point[1])
+                next_point = self.algorithm.pop_next_point()
+                self.robot.go_to(next_point[0], next_point[1])
 
                 # Wait for the robot to finish travelling.
                 while self.robot.state != "Travelled":
@@ -160,32 +165,10 @@ class Planner(threading.Thread):
 
                 self.robot.state = ""  # Reset the state.
 
-                # Print some information to stdout.
-                self.algorithm.print_path(sys.stdout)
-                self.algorithm.print_cost_grid(sys.stdout)
-                self.algorithm.print_occupancy_grid(sys.stdout)
-                sys.stdout.write(('-' * 120) + '\n\n')
+                # Write the state and debug info after the movement.
+                self.write_state()
+                self.write_debug_info()
 
-                if self.output_file is not None:
-                    if not self.output_file.closed:
-                        self.algorithm.print_path(self.output_file)
-                        self.algorithm.print_cost_grid(self.output_file)
-                        self.algorithm.print_occupancy_grid(self.output_file)
-                        self.output_file.write(('-' * 120) + '\n\n')
-
-                # Append a copy of the path to our paths record.
-                paths.append(self.algorithm.path[:])
-
-                print("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y)
-                print(
-                    "x: %.2f" % (self.robot.x * self.map.cell_size) +
-                    ", y: %.2f" % (self.robot.y * self.map.cell_size) +
-                    ", heading %.2f" % self.robot.heading
-                )
-                print("\n" + ('-' * 120) + "\n\n")
-
-                # Recalculate the x and y differences from our position
-                # to the goal.
                 x_difference = self.map.goal_x - self.robot.x
                 y_difference = self.map.goal_y - self.robot.y
 
@@ -200,7 +183,7 @@ class Planner(threading.Thread):
         except exceptions.NoPathException as ex:
             print(ex)
         finally:
-            # Print the final state to stdout.
+            # Write the final state.
             self.algorithm.print_cost_grid(sys.stdout)
             self.algorithm.print_occupancy_grid(sys.stdout)
             self.algorithm.print_debug(sys.stdout)
@@ -211,6 +194,7 @@ class Planner(threading.Thread):
                     self.algorithm.print_occupancy_grid(self.output_file)
                     self.algorithm.print_debug(self.output_file)
 
+            # Write all of the paths that were used to the gnuplot file.
             if self.gnuplot_file is not None:
                 if not self.gnuplot_file.closed:
                     gnuplotter.write_paths(self.gnuplot_file, paths)
