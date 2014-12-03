@@ -70,14 +70,13 @@ class Tester(threading.Thread):
                 if line[x] == "#":
                     self.map.grid[x][y].state = 2
                 elif line[x] == "R":
-                    # Put the robot in the center of the cell.
-                    self.robot.change_odometry(round(x + 0.5, 2),
-                                               round(y + 0.5, 2), 1.57)
+                    self.robot.change_odometry(round(x, 2),
+                                               round(y, 2), 1.57)
 
                     print("Waiting for odometry change...")
 
                     # Wait for odometry change to take affect.
-                    while self.robot.x != round(x + 0.5, 2) and self.robot.y != round(y + 0.5, 2):
+                    while self.robot.x != round(x, 2) and self.robot.y != round(y, 2):
                         continue
 
                     print("Odometry change successful!")

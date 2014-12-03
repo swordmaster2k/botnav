@@ -8,22 +8,29 @@ from util import gnuplotter
 
 import exceptions
 
-'''
-The Planner actually deals with moving the robot from A to B until it
-reaches the goal. It makes use of the map, robot, and a path planning
-algorithm to do this.
-
-It is implemented on its own thread.
-'''
-
 
 class Planner(threading.Thread):
     """
-    Initialises the planner with a map and algorithm. It gets the
-    robot from the map it is passed.
+    The Planner actually deals with moving the robot from A to B until it
+    reaches the goal. It makes use of the map, robot, and a path planning
+    algorithm to do this.
+
+    It is implemented on its own thread.
     """
 
     def __init__(self, map, algorithm, proxy, output_file, gnuplot_file):
+        """
+        Initialises the planner with a map and algorithm. It gets the
+        robot from the map it is passed.
+
+        :param map: current state space of the environment
+        :param algorithm: path planning algorithm to use during run()
+        :param proxy: communications connection to the robot
+        :param output_file: debugging information file
+        :param gnuplot_file: plot file for paths
+        :return: a new planner
+        """
+
         self.map = map
         self.robot = self.map.robot
         self.algorithm = algorithm
@@ -41,10 +48,22 @@ class Planner(threading.Thread):
         Thread.__init__(self)
 
     def handle_event(self, event):
+        """
+        Handles specific events received from the system.
+
+        :param event: generated system event from robot
+        :return: none
+        """
         if isinstance(event, ScanResult):
             self.last_scan = event
 
     def write_state(self):
+        """
+        Writes the current state of the planning operation to the debug file.
+
+        :return: none
+        """
+
         # Print some information to stdout.
         self.algorithm.print_path(sys.stdout)
         self.algorithm.print_cost_grid(sys.stdout)
@@ -59,6 +78,12 @@ class Planner(threading.Thread):
                 self.output_file.write(('-' * 120) + '\n\n')
 
     def write_debug_info(self):
+        """
+        Writes additional information to the debug file.
+
+        :return: none
+        """
+
         sys.stdout.write("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y + "\n")
         sys.stdout.write(
             "x: %.2f" % (self.robot.x * self.map.cell_size) +
@@ -75,20 +100,21 @@ class Planner(threading.Thread):
                     "heading %.2f" % self.robot.heading)
                 self.output_file.write("\n\n" + ('-' * 120) + "\n\n")
 
-    '''
-    The actions of the Planner using any algorithm are:
-
-        1. Plan
-        2. Check sensors to find obstacles.
-        3. Update map if sensors show a discrepancy.
-        4. If the map has changed, recompute the plan.
-        5. Check plan and initiate movement along shortest path.
-        6. Go to 2.
-
-    Until we reach the goal.
-    '''
-
     def run(self):
+        """
+        The actions of the Planner using any algorithm are:
+
+        1 . Plan
+        2 . Check sensors to find obstacles.
+        3 . Check the map for discrepancies.
+        3a. If the map has changed, recompute the plan.
+        4 . Check plan and initiate movement along shortest path.
+        5 . Go to 2.
+
+        Until we reach the goal.
+
+        :return: none
+        """
 
         # Variable for holding all the paths that
         # are generated for later writing to gnuplot file.
@@ -108,6 +134,10 @@ class Planner(threading.Thread):
 
             # Append a copy of the path to our paths record.
             paths.append(self.algorithm.path[:])
+
+            # Stick the starting position of the robot into
+            # the first path.
+            paths[0].insert(0, (self.robot.x, self.robot.y))
 
             # Calculate our initial distance from the goal.
             x_difference = self.map.goal_x - self.robot.x

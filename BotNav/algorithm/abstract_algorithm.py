@@ -15,6 +15,7 @@ class AbstractAlgorithm:
         self.robot = self.map_state.robot
 
         self.path = []  # Contains a list of (x, y) points in cell units.
+        self.do_smooth_path = False  # Enable global path smoothing?
 
         # For debugging.
         self.vertex_accesses = 0  # Number of times any vertex is accessed.
@@ -52,6 +53,31 @@ class AbstractAlgorithm:
 
     def update_occupancy_grid(self, cells):
         raise NotImplementedError
+
+    '''
+    Smooths a path. Taken from Sebastian Thurn's Udacity lectures on self driving cars.
+    '''
+
+    @staticmethod
+    def smooth_path(path, weight_data=0.5, weight_smooth=0.5, tolerance=0.000001):
+        # Make a deep copy of path into newpath.
+        newpath = [[0 for col in range(len(path[0]))] for row in range(len(path))]
+        for i in range(len(path)):
+            for j in range(len(path[0])):
+                newpath[i][j] = path[i][j]
+
+        change = tolerance
+        while change >= tolerance:
+            change = 0.0
+            for i in range(1, len(path) - 1):
+                for j in range(len(path[0])):
+                    aux = newpath[i][j]
+                    newpath[i][j] += weight_data * (path[i][j] - newpath[i][j])
+                    newpath[i][j] += weight_smooth * (newpath[i - 1][j] + newpath[i + 1][j] - (2.0 * newpath[i][j]))
+                    change +- abs(aux - newpath[i][j])
+
+        return newpath
+
 
     '''
     Should print the cost grid to standard output.

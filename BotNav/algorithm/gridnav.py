@@ -28,18 +28,21 @@ import math
 from .abstract_algorithm import AbstractAlgorithm
 from exceptions import NoPathException
 
-'''
-A grid based navigation algorithm for mobile robots. Closest to the 
-Shortest Path soultion presented by Dijkstra.
-'''
-
 
 class GridNav(AbstractAlgorithm):
-    '''
-    Initialises the GridNav algorithm with its default settings.
-    '''
+    """
+    A grid based navigation algorithm for mobile robots. Closest to the
+    Shortest Path soultion presented by Dijkstra.
+    """
 
     def __init__(self, map):
+        """
+        Initialises the GridNav algorithm with its default settings.
+
+        :param map: state space of the map we are operating in
+        :return: a new GridNav planner
+        """
+
         AbstractAlgorithm.__init__(self, map)
 
         # GridNav constants.
@@ -52,6 +55,9 @@ class GridNav(AbstractAlgorithm):
         # Expressed in cells, move 0.15m in real world units.
         self.MAX_VELOCITY = 0.15 / self.map_state.cell_size
 
+        # Move at least a cell every time.
+        #self.MAX_VELOCITY = 1.42  # Just over the SQRT2.
+
         # Linked list stuff.
         self.open_list = []
         self.free_head = 0
@@ -60,11 +66,13 @@ class GridNav(AbstractAlgorithm):
         self.setup_open_list()
         self.setup_occupancy_grid()
 
-    '''
-    Setup the open list with default Nodes.
-    '''
-
     def setup_open_list(self):
+        """
+        Setup the open list with default Nodes.
+
+        :return: none
+        """
+
         for i in range(self.map_state.cells_square * self.map_state.cells_square):
             self.open_list.append(Node(0, 0, self.BIG_COST, i + 1))
 
@@ -74,12 +82,14 @@ class GridNav(AbstractAlgorithm):
         self.free_head = 0
         self.open_head = self.EMPTY
 
-    '''
-    Setup each cell in the occupancy grid based on their content i.e.
-    it contains the goal, an obstacle, or free space.
-    '''
-
     def setup_occupancy_grid(self):
+        """
+        Setup each cell in the occupancy grid based on their content i.e.
+        it contains the goal, an obstacle, or free space.
+
+        :return: none
+        """
+
         for x in range(self.map_state.cells_square):
             for y in range(self.map_state.cells_square):
                 data = GridNavData(self)
@@ -99,11 +109,13 @@ class GridNav(AbstractAlgorithm):
 
                 self.map_state.grid[x][y].data = data
 
-    '''
-    Get a free node of the free list.
-    '''
-
     def get_node(self):
+        """
+        Get a free node of the free list.
+
+        :return: index of next free node
+        """
+
         if self.free_head == self.EMPTY:
             print("get_node: out of free nodes.\n")
             return
@@ -113,11 +125,13 @@ class GridNav(AbstractAlgorithm):
 
         return i
 
-    '''
-    Pop the lowest-cost node off the open list.
-    '''
-
     def pop_node(self):
+        """
+        Pop the lowest-cost node off the open list.
+
+        :return: lowest costing node from the open list
+        """
+
         if self.open_head == self.EMPTY:
             i = 0
             x = 0
@@ -136,11 +150,16 @@ class GridNav(AbstractAlgorithm):
 
         return [x, y, i]
 
-    '''
-    Put a node on the open list. In sorted order by cost.
-    '''
-
     def insert_node(self, x, y, key):
+        """
+        Put a node on the open list. In sorted order by cost.
+
+        :param x: cell x
+        :param y: cell y
+        :param key: cell cost, used for sorting
+        :return: none
+        """
+
         if self.map_state.grid[x][y].data.scheduled == self.NOT_SCHEDULED:
             i = self.get_node()
             self.open_list[i].x = x
@@ -167,13 +186,15 @@ class GridNav(AbstractAlgorithm):
 
             self.map_state.grid[x][y].data.scheduled = self.SCHEDULED
 
-    '''
-    Calculate the cost of travelling from a cell to the goal.
-
-    Returns False if no change, True otherwise.
-    '''
-
     def cell_cost(self, x, y):
+        """
+        Calculate the cost of travelling from a cell to the goal.
+
+        :param x: cell x
+        :param y: cell y
+        :return: False if no change, True otherwise.
+        """
+
         self.vertex_accesses += 1
 
         # Check if the current cell is an obstacle.
@@ -186,9 +207,6 @@ class GridNav(AbstractAlgorithm):
             self.map_state.grid[x][y].data.cost = 0
             return False
 
-        low_x = x
-        low_y = y
-        temp_cost = 0
         low_cost = self.map_state.grid[x][y].data.cost
 
         # Look at neighbors to find lowest potential cost - low_cost.
@@ -205,8 +223,6 @@ class GridNav(AbstractAlgorithm):
 
                 if temp_cost < low_cost:  # If lowest cost so far, reset tracking variables.
                     low_cost = temp_cost
-                    low_x = i
-                    low_y = j
                 j += 1
             i += 1
 
@@ -217,12 +233,16 @@ class GridNav(AbstractAlgorithm):
         else:
             return False
 
-    '''
-    Pop a node of the open list and expand it by computing the costs of neighbors and
-    pushing them on the open list.
-    '''
-
     def expand(self, x, y):
+        """
+        Pop a node of the open list and expand it by computing the costs of neighbors and
+        pushing them on the open list.
+
+        :param x: cell x
+        :param y: cell y
+        :return: none
+        """
+
         i = x - 1
 
         # Try to lower the costs of neighbors.
@@ -233,7 +253,7 @@ class GridNav(AbstractAlgorithm):
                     change = False
 
                     # If the neighbor is not an obstacle and it has not
-                    # yet been expaned.
+                    # yet been expanded.
                     if ((self.map_state.grid[i][j].data.cost == self.BIG_COST) and
                             (self.map_state.grid[i][j].data.occupancy != self.FULL)):
                         change = self.cell_cost(i, j)
@@ -244,11 +264,13 @@ class GridNav(AbstractAlgorithm):
                 j += 1
             i += 1
 
-    '''
-    Compute the cost grid based on the map represented in the occupancy grid.
-    '''
-
     def plan(self):
+        """
+        Compute the cost grid based on the map represented in the occupancy grid.
+
+        :return: none
+        """
+
         self.total_plan_steps += 1
         start_time = time.process_time()
 
@@ -263,8 +285,8 @@ class GridNav(AbstractAlgorithm):
             else:
                 break
 
-        x = int(math.floor(self.robot.x + 0.5))
-        y = int(math.floor(self.robot.y + 0.5))
+        x = int(math.floor(self.robot.x))
+        y = int(math.floor(self.robot.y))
 
         # When there has been a change to the plan rebuild the path.
         self.path = []
@@ -275,18 +297,24 @@ class GridNav(AbstractAlgorithm):
             if str(err) == "maximum recursion depth exceeded in comparison":
                 raise NoPathException("No path to Goal!")
 
+        if self.do_smooth_path:
+            self.path = self.smooth_path(self.path)
+
         self.time_taken += round(time.process_time() - start_time, 3)
 
-
-    '''
-    Recursively build the path based on the robot's position x and y,
-    until the final point is less than 0.5 away in both x and y.
-
-    If the robot ends up surround by obstacles this could throw a
-    recursive error.
-    '''
-
     def build_path(self, x, y):
+        """
+        Recursively build the path based on the robot's position x and y,
+        until the final point is less than 0.5 away in both x and y.
+
+        If the robot ends up surround by obstacles this could throw a
+        recursive error.
+
+        :param x: cell x
+        :param y: cell y
+        :return: none
+        """
+
         i = x - 1
         x_part = 0
         y_part = 0
@@ -336,13 +364,10 @@ class GridNav(AbstractAlgorithm):
             # Use the lowest cost neighboring cell as the heading instead
             # of the gradient. This is in the case of a nearby obstacle.
             low_cost = self.map_state.grid[x][y].data.cost
-            x_part = 0
-            y_part = 1
             i = x - 1
 
             while i <= x + 1:
                 j = y - 1
-
                 while j <= y + 1:
                     if self.map_state.grid[i][j].data.cost < low_cost:
                         low_cost = self.map_state.grid[i][j].data.cost
@@ -370,19 +395,39 @@ class GridNav(AbstractAlgorithm):
         else:
             # Ensure that the next more will be into another cell
             # otherwise we'll end up in an infinite loop.
+            #
+            # Moves towards the neighbouring cell with the lowest cost
             if int(math.floor(next_x)) == x or int(math.floor(next_y)) == y:
-                next_x += 1
-                next_y += 1
+                lowest = [x - 1, y + 1]  # First direction, top left cell from current.
+
+                # All other surrounding cells.
+                directions = [(0, 1), (1, 1), (-1, 0), (1, 0), (-1, -1), (0, -1), (1, -1)]
+
+                for direction in directions:
+                    current_x = x + direction[0]
+                    current_y = y + direction[1]
+                    if (self.map_state.grid[current_x][current_y].data.cost <
+                            self.map_state.grid[lowest[0]][lowest[1]].data.cost):
+                        lowest = [current_x, current_y]
+
+                if self.map_state.grid[lowest[0]][lowest[1]].data.cost == self.BIG_COST:
+                    # No path to goal.
+                    raise NoPathException("No path to Goal!")
+
+                next_x = lowest[0]
+                next_y = lowest[1]
 
             self.build_path(int(math.floor(next_x)), int(math.floor(next_y)))
 
-
-    '''
-    Updates the occupancy grid based on the cells that were updated on
-    the map.
-    '''
-
     def update_occupancy_grid(self, cells):
+        """
+        Updates the occupancy grid based on the cells that were updated on
+        the map.
+
+        :param cells: affected cells
+        :return: none
+        """
+
         for cell in cells:
             '''
             If it's a cell on the boundary or the goal ignore it
@@ -403,11 +448,14 @@ class GridNav(AbstractAlgorithm):
             elif cell.state == 2 and occupancy != self.FULL:
                 self.map_state.grid[cell.x][cell.y].data.occupancy = self.FULL
 
-    '''
-    Prints the contents of the occupancy grid to the standard output.
-    '''
-
     def print_occupancy_grid(self, out):
+        """
+        Prints the contents of the occupancy grid to the standard output.
+
+        :param out: output stream
+        :return: none
+        """
+
         y = self.map_state.cells_square - 1
         footer = ""
         rows = ""
@@ -468,11 +516,14 @@ class GridNav(AbstractAlgorithm):
         out.write(rows + "\n")
         out.write(footer + "\n\n")
 
-    '''
-    Prints the contents of the cost grid to the standard output.
-    '''
-
     def print_cost_grid(self, out):
+        """
+        Prints the contents of the cost grid to the standard output.
+
+        :param out: output stream
+        :return:
+        """
+
         y = self.map_state.cells_square - 1
         footer = ""
         footer_padding = "         "
@@ -527,11 +578,14 @@ class GridNav(AbstractAlgorithm):
         out.write(rows + "\n")
         out.write(footer + "\n\n")
 
-    '''
-    Prints the points in the robots path.
-    '''
-
     def print_path(self, out):
+        """
+        Prints the points in the robots path.
+
+        :param out: output stream
+        :return: none
+        """
+
         path = "path: "
 
         for i in range(len(self.path)):
@@ -546,13 +600,13 @@ class GridNav(AbstractAlgorithm):
 # Inner Classes                                            		   #
 # ----------------------------------------------------------------------#
 
-'''
-A linked list node object that contains the cells current x, y, its
-key in the form of a cost value, and the next nodes index.
-'''
-
 
 class Node:
+    """
+    A linked list node object that contains the cells current x, y, its
+    key in the form of a cost value, and the next nodes index.
+    """
+
     def __init__(self, x, y, key, next_node):
         self.x = x
         self.y = y
@@ -560,15 +614,14 @@ class Node:
         self.next_node = next_node
 
 
-'''
-The data the GridNav algorithm uses for its calculations. It is 
-stored in each map cells data attribute.
-	
-self.map.grid[x][y].data = some grid nav data.
-'''
-
-
 class GridNavData:
+    """
+    The data the GridNav algorithm uses for its calculations. It is
+    stored in each map cells data attribute.
+
+    self.map.grid[x][y].data = some grid nav data.
+    """
+
     def __init__(self, gridnav):
         self.occupancy = gridnav.EMPTY
         self.scheduled = gridnav.NOT_SCHEDULED
