@@ -448,21 +448,37 @@ class GridNav(AbstractAlgorithm):
             elif cell.state == 2 and occupancy != self.FULL:
                 self.map_state.grid[cell.x][cell.y].data.occupancy = self.FULL
 
-    def print_occupancy_grid(self, out):
+    def print_path(self, stream):
+        """
+        Prints the points in the robots path.
+
+        :param stream: output stream
+        :return: none
+        """
+
+        path = "path: "
+
+        for i in range(len(self.path)):
+            path += str(self.path[i])
+
+            if i != len(self.path) - 1:
+                path += "->"
+
+        stream.write(path + "\n\n")
+
+    def print_occupancy_grid(self, stream):
         """
         Prints the contents of the occupancy grid to the standard output.
 
-        :param out: output stream
+        :param stream: output stream
         :return: none
         """
 
         y = self.map_state.cells_square - 1
         footer = ""
         rows = ""
-        symbol = "     "
         start_spacing = ""
         end_spacing = ""
-        cell = 0
         grid = self.map_state.grid
 
         while y >= 0:
@@ -513,25 +529,22 @@ class GridNav(AbstractAlgorithm):
             if y >= 0:
                 rows += "\n\n"
 
-        out.write(rows + "\n")
-        out.write(footer + "\n\n")
+        stream.write(rows + "\n")
+        stream.write(footer + "\n\n")
 
-    def print_cost_grid(self, out):
+    def print_cost_grid(self, stream):
         """
         Prints the contents of the cost grid to the standard output.
 
-        :param out: output stream
+        :param stream: output stream
         :return:
         """
 
         y = self.map_state.cells_square - 1
         footer = ""
-        footer_padding = "         "
         rows = ""
-        cost = ""
         start_spacing = ""
         end_spacing = ""
-        cell = 0
         grid = self.map_state.grid
 
         while y >= 0:
@@ -575,26 +588,8 @@ class GridNav(AbstractAlgorithm):
             if y >= 0:
                 rows += "\n\n"
 
-        out.write(rows + "\n")
-        out.write(footer + "\n\n")
-
-    def print_path(self, out):
-        """
-        Prints the points in the robots path.
-
-        :param out: output stream
-        :return: none
-        """
-
-        path = "path: "
-
-        for i in range(len(self.path)):
-            path += str(self.path[i])
-
-            if i != len(self.path) - 1:
-                path += "->"
-
-        out.write(path + "\n\n")
+        stream.write(rows + "\n")
+        stream.write(footer + "\n\n")
 
 # ----------------------------------------------------------------------#
 # Inner Classes                                            		   #

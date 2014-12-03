@@ -61,7 +61,7 @@ def generate_output(directory, paths, grid_size, output_type):
 
         for i in range(paths):
             # Setup the output for gnuplot.
-            configuration = "set output '" + directory + "/path" + str(i) + ".png'; set title \"Path " + str(i) + "\";"
+            configuration = "set output '" + directory + "/path" + str(i) + ".png'; set title \"Path " + str(i + 1) + "\";"
 
             # First command for plot contains the robots path.
             commands1 = "plot [0:" + str(grid_size) + "] [0:" + str(grid_size) + "] " + '\"' + directory + \

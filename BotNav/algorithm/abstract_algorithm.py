@@ -1,16 +1,20 @@
-"""
-Super class that all path planning algorithms should inherit from.
-The sub classes should provide the logic behind the unimplemented
-methods here.
-"""
 
 
 class AbstractAlgorithm:
     """
-    Default constructor simply assigns the map attribute.
+    Super class that all path planning algorithms should inherit from.
+    The sub classes should provide the logic behind the unimplemented
+    methods here.
     """
 
     def __init__(self, map_state):
+        """
+        Default constructor simply assigns the map attribute.
+
+        :param map_state:
+        :return:
+        """
+
         self.map_state = map_state
         self.robot = self.map_state.robot
 
@@ -23,43 +27,70 @@ class AbstractAlgorithm:
         self.total_plan_steps = 0  # Total number of calls to plan.
 
     '''
-    Subclass should implement the logic behind calculating its cost
-    grid and gradients to the goal.
 
-    time_taken will have its value incremented here using += operator
-    just before the function returns.
     '''
 
     def plan(self):
+        """
+        Subclass should implement the logic behind calculating its cost
+        grid and gradients to the goal.
+
+        time_taken will have its value incremented here using += operator
+        just before the function returns.
+
+        :return:
+        """
+
         raise NotImplementedError
 
-    '''
-    Pops the next point from the current path.
-
-    Returns the next point to travel too, or -1 if there are none.
-    '''
-
     def pop_next_point(self):
+        """
+        Pops the next point from the current path.
+
+        Returns the next point to travel too, or -1 if there are none.
+
+        :return:
+        """
+
         try:
             return self.path.pop(0)
         except IndexError as err:
             print(str(err))
             return -1
 
-    '''
-    Subclass should use this method to update the state of its
-    occupancy grid based on the updated cells provided.
-    '''
+    def update_robot_position(self):
+        """
+        Base class will override this if it is needed.
+        Typically by C modules.
+
+        :return:
+        """
+
+        return
 
     def update_occupancy_grid(self, cells):
-        raise NotImplementedError
+        """
+        Subclass should use this method to update the state of its
+        occupancy grid based on the updated cells provided.
 
-    '''
-    Smooths a path. Taken from Sebastian Thurn's Udacity lectures on self driving cars.
-    '''
+        :param cells:
+        :return:
+        """
+
+        raise NotImplementedError
 
     @staticmethod
     def smooth_path(path, weight_data=0.5, weight_smooth=0.5, tolerance=0.000001):
+        """
+        Smooths a path. Taken from Sebastian Thurn's Udacity lectures on self driving cars.
+
+        :param path:
+        :param weight_data:
+        :param weight_smooth:
+        :param tolerance:
+        :return:
+        """
+
         # Make a deep copy of path into newpath.
         newpath = [[0 for col in range(len(path[0]))] for row in range(len(path))]
         for i in range(len(path)):
@@ -78,39 +109,50 @@ class AbstractAlgorithm:
 
         return newpath
 
+    def print_path(self, stream):
+        """
+        Should print the contents of the robots path.
 
-    '''
-    Should print the cost grid to standard output.
-    '''
+        :param stream:
+        :return:
+        """
 
-    def print_cost_grid(self, out):
         raise NotImplementedError
 
-    '''
-    Should print the occupancy grid to standard output.
-    '''
+    def print_cost_grid(self, stream):
+        """
+        Should print the cost grid to standard output.
 
-    def print_occupancy_grid(self, out):
+        :param stream:
+        :return:
+        """
+
         raise NotImplementedError
 
-    '''
-    Should print the contents of the robots path.
-    '''
+    def print_occupancy_grid(self, stream):
+        """
+        Should print the occupancy grid to standard output.
 
-    def print_path(self, out):
+        :param stream:
+        :return:
+        """
+
         raise NotImplementedError
 
-    '''
-    Prints the final state of all debugging information to a stream.
-    '''
+    def print_debug(self, stream):
+        """
+        Prints the final state of all debugging information to a stream.
 
-    def print_debug(self, out):
-        out.write(('-' * 120) + "\n\n")
-        out.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
-        out.write("Total Vertices: " + str(self.map_state.cells_square ** 2) + "\n\n")
+        :param stream:
+        :return:
+        """
 
-        out.write("Vertex Accesses: " + str(self.vertex_accesses) + "\n")
-        out.write("Average: " + str(self.vertex_accesses / self.total_plan_steps) + "\n\n")
+        stream.write(('-' * 120) + "\n\n")
+        stream.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
+        stream.write("Total Vertices: " + str(self.map_state.cells_square ** 2) + "\n\n")
 
-        out.write("Total Time Taken: " + str(self.time_taken) + "s\n")
-        out.write("Average: " + str(self.time_taken / self.total_plan_steps) + "s\n")
+        stream.write("Vertex Accesses: " + str(self.vertex_accesses) + "\n")
+        stream.write("Average: " + str(self.vertex_accesses / self.total_plan_steps) + "\n\n")
+
+        stream.write("Total Time Taken: " + str(self.time_taken) + "s\n")
+        stream.write("Average: " + str(self.time_taken / self.total_plan_steps) + "s\n")

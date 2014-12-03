@@ -15,7 +15,7 @@ struct cell
     cell *searchtree;		/* use this to get the path */
     cell *trace;			/* where the robot has been */		
     short obstacle;			/* 0 = free, 1 = obstacle */
-    int x, y;				/* x, y coordinates of cell in grid*/
+    int x, y;				/* x, y coordinates of cell in grid */
     int g;					/* estimate of distance to goal */
     int rhs;				/* one step lookahead value based on g */
     int key[3];				/*  */

@@ -18,10 +18,17 @@
 #define RUNS 1                  /* number of different runs */
 //#define TIEBREAKING           /* tie breaking towards larger g-values (otherwise: smaller g-values) */
 
+/*
 #define DIRECTIONS 4
-static int dx[DIRECTIONS] = {1, 0, -1,  0};
-static int dy[DIRECTIONS] = {0, 1,  0, -1};
-static int reverse[DIRECTIONS] = {2, 3, 0, 1};
+static int dx[DIRECTIONS] =      {1, 0, -1,  0};
+static int dy[DIRECTIONS] =      {0, 1,  0, -1};
+static int reverse[DIRECTIONS] = {2, 3,  0,  1};
+*/
+
+#define DIRECTIONS 8
+static int dx[DIRECTIONS] =      {1, 1, 0, -1, -1, -1,  0,  1};
+static int dy[DIRECTIONS] =      {0, 1, 1,  1,  0, -1, -1, -1};
+static int reverse[DIRECTIONS] = {4, 5, 6,  7,  0,  1,  2,  3};
 
 #ifdef INFORMEDSEARCH
 	#define H(cell) (abs((cell)->y - mazegoal->y) + abs((cell)->x - mazegoal->x))

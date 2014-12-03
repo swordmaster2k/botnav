@@ -38,7 +38,7 @@ void preprocessmaze()
 				{
 					newy = y + dy[d];
 					newx = x + dx[d];
-					maze[y][x].succ[d] = (newy >= 0 && newy < mazesize && 
+					maze[y][x].succ[d] = (newy >= 0 && newy < mazesize &&
 						newx >= 0 && newx < mazesize) ? &maze[newy][newx] : NULL;
 				}
 			}

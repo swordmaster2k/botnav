@@ -1,53 +1,55 @@
-'''
-Need to expose the path to C code.
+import time
+import dstarlite  # Import dstarlite C module.
 
-Ability to update cells that are either occupied or not.
-'''
-class DStarLite(Algorithm):
-	'''
-	Default constructor simply assigns the map attribute.
-	'''
-	def __init__(self, map):
-		Algorithm.__init__(self, map)
-		
-	'''
-	use underlying computeshortestpath in C version of D* Lite
-	'''
-	def plan(self):
-		raise NotImplementedError
-	
-	'''
-	Pops the next point from the current path.
-	
-	Returns the next point to travel too, or -1 if there are none.
-	'''	
-	def pop_next_point(self):
-		try:
-			return self.path.pop(0)
-		except IndexError as err:
-			print(str(err))
-			return -1
-		
-	'''
-	probably need to work it out with updatemaze in C version
-	'''
-	def update_occupancy_grid(self, cells):
-		raise NotImplementedError
-	
-	'''
-	not implemented in D* Lite handle this Error
-	'''	
-	def print_cost_grid(self):
-		raise NotImplementedError
-	
-	'''
-	not implemented in D* Lite handle this Error
-	'''	
-	def print_occupancy_grid(self):
-		raise NotImplementedError
-	
-	'''
-	redirect to C implementation
-	'''	
-	def print_path(self):
-		raise NotImplementedError
+from .abstract_algorithm import AbstractAlgorithm
+
+
+class DStarLite(AbstractAlgorithm):
+    def __init__(self, map_state):
+        AbstractAlgorithm.__init__(self, map_state)
+
+    @staticmethod
+    def setup(self, file_path):
+        """
+
+        :param file_path:
+        :return:
+        """
+
+        dstarlite.setup(file_path)
+
+    def plan(self):
+        self.total_plan_steps += 1
+        start_time = time.process_time()
+
+        self.path = dstarlite.plan()
+        self.vertex_accesses = dstarlite.getvertexaccesses()
+
+        self.time_taken += round(time.process_time() - start_time, 3)
+
+    def update_robot_position(self):
+        dstarlite.updaterobotposition(self.robot.x, self.robot.y)
+
+    def update_occupancy_grid(self, cells):
+        for cell in cells:
+            '''
+            If it's a cell on the boundary or the goal ignore it
+            and continue.
+            '''
+            if ((cell.x == 0) or (cell.x == (self.map_state.cells_square - 1)) or
+                    (cell.y == 0) or (cell.y == (self.map_state.cells_square - 1))):
+                continue
+            elif cell.x == self.map_state.goal_x and cell.y == self.map_state.goal_y:
+                continue
+
+            # Redirect to C module which is storing all the state information.
+            dstarlite.updatecelloccupancy(cell.x, cell.y, cell.state)
+
+    def print_path(self, stream):
+        dstarlite.printpath(stream)
+
+    def print_cost_grid(self, stream):
+        dstarlite.printcostgrid(stream)
+
+    def print_occupancy_grid(self, stream):
+        dstarlite.printoccupancygrid(stream)

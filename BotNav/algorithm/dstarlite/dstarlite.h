@@ -11,6 +11,8 @@
 int keymodifier;
 cell goaltmpcell, oldtmpcell;
 
+int vertexaccesses = 0; /* number of times cells are accessed */
+
 /*
  * *********************************************************************
  * Callable Functions
@@ -27,7 +29,13 @@ setup(PyObject *self, PyObject *args);
  * 
  */ 
 static PyObject * 
-replan(PyObject *self, PyObject *args);
+plan(PyObject *self, PyObject *args);
+
+/*
+*
+*/
+static PyObject *
+getvertexaccesses(PyObject *self, PyObject *args);
 
 /*
  * 
@@ -48,6 +56,12 @@ static PyObject *
 printpath(PyObject *self, PyObject *args);
 
 /*
+*
+*/
+static PyObject *
+printcostgrid(PyObject *self, PyObject *args);
+
+/*
  * 
  */ 
 static PyObject *
@@ -58,11 +72,13 @@ printoccupancygrid(PyObject *self, PyObject *args);
  */  
 static PyMethodDef dstarlite_methods[] = {
 	{"setup", setup, METH_VARARGS, "func doc"},    /* name, &func, fmt, doc */
-	{"replan", replan, METH_VARARGS, "func doc"},
+	{"plan", plan, METH_VARARGS, "func doc"},
+	{"getvertexaccesses", getvertexaccesses, METH_VARARGS, "func doc"},
 	{"updaterobotposition", updaterobotposition, METH_VARARGS, "func doc"},  
 	{"updatecelloccupancy", updatecelloccupancy, METH_VARARGS, "func doc"},
+	{"printpath", printpath, METH_VARARGS, "func doc"},
+	{"printcostgrid", printcostgrid, METH_VARARGS, "func doc"},
 	{"printoccupancygrid", printoccupancygrid, METH_VARARGS, "func doc"},
-	{"printpath", printpath, METH_VARARGS, "func doc"},  
 	{NULL, NULL, 0, NULL}                       /* end of table marker */
 };
 

@@ -61,11 +61,20 @@ setup(PyObject *self, PyObject *args)
  * 
  */ 
 static PyObject * 
-replan(PyObject *self, PyObject *args)
+plan(PyObject *self, PyObject *args)
 {
 	computeshortestpath();
 	
-	return Py_BuildValue("i", 0); 
+	return Py_BuildValue("i", 0);
+}
+
+/*
+*
+*/
+static PyObject *
+getvertexaccesses(PyObject *self, PyObject *args)
+{
+    return Py_BuildValue("i", vertexaccesses);
 }
 
 /*
@@ -82,6 +91,7 @@ updaterobotposition(PyObject *self, PyObject *args)
 	
 	/* simply assign cell data */
 	mazegoal = &maze[y][x];
+	initializecell(mazegoal);
 	
 	return Py_BuildValue("i", 0);
 }
@@ -141,9 +151,20 @@ updatecelloccupancy(PyObject *self, PyObject *args)
 static PyObject * 
 printpath(PyObject *self, PyObject *args)
 {
-	printrobotpath(stdout);
+	printrobotpath(stream);
 	
 	return Py_BuildValue("i", 0);
+}
+
+/*
+*
+*/
+static PyObject *
+printcostgrid(PyObject *self, PyObject *args)
+{
+    printcostgrid(stream);
+
+    return Py_BuildValue("i", 0);
 }
 
 /*
@@ -152,7 +173,7 @@ printpath(PyObject *self, PyObject *args)
 static PyObject * 
 printoccupancygrid(PyObject *self, PyObject *args)
 {
-	printknownmaze(stdout);
+	printknownmaze(stream);
 
 	return Py_BuildValue("i", 0); 
 }
@@ -379,6 +400,8 @@ void initializecell(cell *thiscell)
  */
 void updatecell(cell *thiscell)
 {
+    ++vertexaccesses;
+
     if (thiscell->g < thiscell->rhs)
     {
 #ifdef TIEBREAKING
