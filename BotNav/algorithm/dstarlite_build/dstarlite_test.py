@@ -5,8 +5,11 @@ dstarlite.setup("map.txt")
 
 # do initial plan
 print("initial plan")
-print(dstarlite.replan())
-dstarlite.printoccupancygrid()
+dstarlite.plan()
+print(dstarlite.getvertexaccesses())
+print(dstarlite.getrobotpath())
+print(dstarlite.getoccupancygrid())
+print(dstarlite.getcostgrid())
 
 '''
 # move the robot somewhere else

@@ -12,6 +12,7 @@ from planner import Planner
 from util import gnuplotter
 from model.robot import Robot
 from algorithm.gridnav import GridNav
+from algorithm.dstarlite import DStarLite
 from connection.bluetooth_connection import BluetoothConnection
 from events import OdometryReport, ScanResult, StateEvent
 from model.simulated_robot import SimulatedRobot
@@ -201,7 +202,11 @@ if __name__ == '__main__':
             print(err)
             exit(-1)
 
-        tester.algorithm = GridNav(tester.map)
+        #tester.algorithm = GridNav(tester.map)
+
+        tester.algorithm = DStarLite(tester.map)
+        tester.algorithm.setup(map_file)
+
         tester.planner = Planner(tester.map, tester.algorithm, tester.proxy, tester.output_file, tester.gnuplot_file)
 
         print("Type \"begin\" to start run...")

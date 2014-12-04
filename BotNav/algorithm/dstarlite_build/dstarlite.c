@@ -78,6 +78,93 @@ getvertexaccesses(PyObject *self, PyObject *args)
     return Py_BuildValue("i", vertexaccesses);
 }
 
+static PyObject *
+getrobotpath(PyObject *self, PyObject *args)
+{
+    cell *tmpcell;
+    tmpcell = mazegoal->searchtree;
+    int pathlength = 0;
+    int i = 0;
+
+    for (tmpcell = mazegoal->searchtree; tmpcell != NULL; tmpcell = tmpcell->searchtree)
+	{
+	    ++pathlength;
+	}
+
+	PyObject* list = PyList_New(pathlength);
+
+	for (tmpcell = mazegoal->searchtree; tmpcell != NULL; tmpcell = tmpcell->searchtree)
+	{
+	    PyList_SetItem(list, i, Py_BuildValue("(i,i)", tmpcell->x, tmpcell->y));
+	    ++i;
+	}
+
+	return list;
+}
+
+/*
+*
+*/
+static PyObject *
+getoccupancygrid(PyObject *self, PyObject *args)
+{
+    int x, y;
+    PyObject* grid = PyList_New(mazesize);
+
+    for (y = mazesize - 1; y >= 0; --y)
+    {
+        PyObject* column = PyList_New(mazesize);
+
+		for (x = 0; x < mazesize; ++x)
+		{
+			if (mazegoal == &maze[y][x])
+			{
+			    PyList_SetItem(column, x, Py_BuildValue("s", "R"));
+			}
+			else if (mazestart == &maze[y][x])
+			{
+			    PyList_SetItem(column, x, Py_BuildValue("s", "G"));
+			}
+			else if (maze[y][x].obstacle)
+			{
+			    PyList_SetItem(column, x, Py_BuildValue("s", "#"));
+			}
+			else
+			{
+			    PyList_SetItem(column, x, Py_BuildValue("s", " "));
+			}
+		}
+
+		PyList_SetItem(grid, y, column);
+    }
+
+    return grid;
+}
+
+/*
+*
+*/
+static PyObject *
+getcostgrid(PyObject *self, PyObject *args)
+{
+    int x, y;
+    PyObject* grid = PyList_New(mazesize);
+
+    for (y = mazesize - 1; y >= 0; --y)
+    {
+        PyObject* column = PyList_New(mazesize);
+
+		for (x = 0; x < mazesize; ++x)
+		{
+			PyList_SetItem(column, x, Py_BuildValue("i", maze[y][x].g));
+		}
+
+		PyList_SetItem(grid, y, column);
+    }
+
+    return grid;
+}
+
 /*
  * 
  */
@@ -147,42 +234,9 @@ updatecelloccupancy(PyObject *self, PyObject *args)
 }
 
 /*
- * 
- */ 
-static PyObject * 
-printpath(PyObject *self, PyObject *args)
-{
-	printrobotpath(stream);
-	
-	return Py_BuildValue("i", 0);
-}
-
-/*
-*
-*/
-static PyObject *
-printcostgrid(PyObject *self, PyObject *args)
-{
-    printcostgrid(stream);
-
-    return Py_BuildValue("i", 0);
-}
-
-/*
- * 
- */ 
-static PyObject * 
-printoccupancygrid(PyObject *self, PyObject *args)
-{
-	printknownmaze(stream);
-
-	return Py_BuildValue("i", 0); 
-}
-
-/*
  * module initializer
  */  
-PyMODINIT_FUNC PyInit_dstarlite()      /* called on first import */
+PyMODINIT_FUNC PyInit_dstarlite_c()      /* called on first import */
 {                                      /* name matters if loaded dynamically */
 	return PyModule_Create(&dstarlitemodule); 
 }

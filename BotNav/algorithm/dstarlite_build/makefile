@@ -6,7 +6,7 @@ LFLAGS		= -O3 -g -fPIC -I$(PYINC) -shared -L$(PYLIB)python3.4
 CC			= gcc
 
 OBJ			= heap.o maze.o print.o dstarlite.o
-OUT			= dstarlite.so 
+OUT			= dstarlite_c.so
 
 $(OUT):	$(OBJ)
 		$(CC) $(LFLAGS) -o $(OUT) $(OBJ) 

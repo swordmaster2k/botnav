@@ -111,13 +111,21 @@ class AbstractAlgorithm:
 
     def print_path(self, stream):
         """
-        Should print the contents of the robots path.
+        Prints the points in the robots path.
 
-        :param stream:
-        :return:
+        :param stream: output stream
+        :return: none
         """
 
-        raise NotImplementedError
+        path = "path: "
+
+        for i in range(len(self.path)):
+            path += str(self.path[i])
+
+            if i != len(self.path) - 1:
+                path += "->"
+
+        stream.write(path + "\n\n")
 
     def print_cost_grid(self, stream):
         """

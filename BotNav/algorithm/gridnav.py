@@ -451,90 +451,6 @@ class GridNav(AbstractAlgorithm):
             elif cell.state == 2 and occupancy != self.FULL:
                 self.map_state.grid[cell.x][cell.y].data.occupancy = self.FULL
 
-    def print_path(self, stream):
-        """
-        Prints the points in the robots path.
-
-        :param stream: output stream
-        :return: none
-        """
-
-        path = "path: "
-
-        for i in range(len(self.path)):
-            path += str(self.path[i])
-
-            if i != len(self.path) - 1:
-                path += "->"
-
-        stream.write(path + "\n\n")
-
-    def print_occupancy_grid(self, stream):
-        """
-        Prints the contents of the occupancy grid to the standard output.
-
-        :param stream: output stream
-        :return: none
-        """
-
-        y = self.map_state.cells_square - 1
-        footer = ""
-        rows = ""
-        start_spacing = ""
-        end_spacing = ""
-        grid = self.map_state.grid
-
-        while y >= 0:
-            if y < 10:
-                rows += str(y) + "  "
-            elif 10 <= y < 100:
-                rows += str(y) + " "
-            else:
-                rows += str(y)
-
-            cell = (self.map_state.cells_square - 1) - y
-
-            if cell < 1:
-                start_spacing = "       "
-                end_spacing = "    "
-            elif cell < 10:
-                start_spacing = "    "
-                end_spacing = start_spacing
-            elif 10 < cell < 100:
-                start_spacing = "   "
-                end_spacing = "    "
-            elif 100 < cell < 1000:
-                start_spacing = "  "
-                end_spacing = "     "
-
-            footer += start_spacing + str((self.map_state.cells_square - 1) - y) + end_spacing
-
-            for x in range(self.map_state.cells_square):
-                symbol = "     "
-
-                if (x == int(math.floor(self.robot.x))
-                    and y == int(math.floor(self.robot.y))):
-                    symbol = "ROBOT"
-                elif x == self.map_state.goal_x and y == self.map_state.goal_y:
-                    symbol = "GOAL "
-                elif grid[x][y].data.occupancy == self.FULL:
-                    symbol = "#####"
-                else:
-                    for point in self.path:
-                        if (math.floor(point[0]) == x and
-                                math.floor(point[1]) == y):
-                            symbol = "  *  "
-
-                rows += "[ " + symbol + " ]"
-
-            y -= 1
-
-            if y >= 0:
-                rows += "\n\n"
-
-        stream.write(rows + "\n")
-        stream.write(footer + "\n\n")
-
     def print_cost_grid(self, stream):
         """
         Prints the contents of the cost grid to the standard output.
@@ -585,6 +501,71 @@ class GridNav(AbstractAlgorithm):
                     padding = " "
 
                 rows += "[ %.2f" % cost + padding + " ]"
+
+            y -= 1
+
+            if y >= 0:
+                rows += "\n\n"
+
+        stream.write(rows + "\n")
+        stream.write(footer + "\n\n")
+
+    def print_occupancy_grid(self, stream):
+        """
+        Prints the contents of the occupancy grid to the standard output.
+
+        :param stream: output stream
+        :return: none
+        """
+
+        y = self.map_state.cells_square - 1
+        footer = ""
+        rows = ""
+        start_spacing = ""
+        end_spacing = ""
+        grid = self.map_state.grid
+
+        while y >= 0:
+            if y < 10:
+                rows += str(y) + "  "
+            elif 10 <= y < 100:
+                rows += str(y) + " "
+            else:
+                rows += str(y)
+
+            cell = (self.map_state.cells_square - 1) - y
+
+            if cell < 1:
+                start_spacing = "       "
+                end_spacing = "    "
+            elif cell < 10:
+                start_spacing = "    "
+                end_spacing = start_spacing
+            elif 10 < cell < 100:
+                start_spacing = "   "
+                end_spacing = "    "
+            elif 100 < cell < 1000:
+                start_spacing = "  "
+                end_spacing = "     "
+
+            footer += start_spacing + str((self.map_state.cells_square - 1) - y) + end_spacing
+
+            for x in range(self.map_state.cells_square):
+                symbol = "     "
+
+                if x == int(math.floor(self.robot.x)) and y == int(math.floor(self.robot.y)):
+                    symbol = "ROBOT"
+                elif x == self.map_state.goal_x and y == self.map_state.goal_y:
+                    symbol = "GOAL "
+                elif grid[x][y].data.occupancy == self.FULL:
+                    symbol = "#####"
+                else:
+                    for point in self.path:
+                        if (math.floor(point[0]) == x and
+                                math.floor(point[1]) == y):
+                            symbol = "  *  "
+
+                rows += "[ " + symbol + " ]"
 
             y -= 1
 

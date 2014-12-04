@@ -38,6 +38,24 @@ static PyObject *
 getvertexaccesses(PyObject *self, PyObject *args);
 
 /*
+*
+*/
+static PyObject *
+getrobotpath(PyObject *self, PyObject *args);
+
+/*
+*
+*/
+static PyObject *
+getoccupancygrid(PyObject *self, PyObject *args);
+
+/*
+*
+*/
+static PyObject *
+getcostgrid(PyObject *self, PyObject *args);
+
+/*
  * 
  */
 static PyObject * 
@@ -50,35 +68,17 @@ static PyObject *
 updatecelloccupancy(PyObject *self, PyObject *args);
 
 /*
- * 
- */ 
-static PyObject * 
-printpath(PyObject *self, PyObject *args);
-
-/*
-*
-*/
-static PyObject *
-printcostgrid(PyObject *self, PyObject *args);
-
-/*
- * 
- */ 
-static PyObject *
-printoccupancygrid(PyObject *self, PyObject *args);
-
-/*
  * registration table
  */  
 static PyMethodDef dstarlite_methods[] = {
 	{"setup", setup, METH_VARARGS, "func doc"},    /* name, &func, fmt, doc */
 	{"plan", plan, METH_VARARGS, "func doc"},
 	{"getvertexaccesses", getvertexaccesses, METH_VARARGS, "func doc"},
+	{"getrobotpath", getrobotpath, METH_VARARGS, "func doc"},
+	{"getoccupancygrid", getoccupancygrid, METH_VARARGS, "func doc"},
+	{"getcostgrid", getcostgrid, METH_VARARGS, "func doc"},
 	{"updaterobotposition", updaterobotposition, METH_VARARGS, "func doc"},  
 	{"updatecelloccupancy", updatecelloccupancy, METH_VARARGS, "func doc"},
-	{"printpath", printpath, METH_VARARGS, "func doc"},
-	{"printcostgrid", printcostgrid, METH_VARARGS, "func doc"},
-	{"printoccupancygrid", printoccupancygrid, METH_VARARGS, "func doc"},
 	{NULL, NULL, 0, NULL}                       /* end of table marker */
 };
 
@@ -87,7 +87,7 @@ static PyMethodDef dstarlite_methods[] = {
  */ 
 static struct PyModuleDef dstarlitemodule = { 
 	PyModuleDef_HEAD_INIT,
-	"dstarlite",
+	"dstarlite_c",
 	"mod doc",
 	-1,
 	dstarlite_methods
@@ -96,7 +96,7 @@ static struct PyModuleDef dstarlitemodule = {
 /*
  * module initializer
  */ 
-PyMODINIT_FUNC PyInit_dstarlite();
+PyMODINIT_FUNC PyInit_dstarlite_c();
  
  /*
  * *********************************************************************
