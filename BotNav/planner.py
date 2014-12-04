@@ -153,7 +153,7 @@ class Planner(threading.Thread):
             self.write_debug_info()
 
             # While we are not within 0.5 cells of the goal in both x and y.
-            while x_difference > 0.5 or y_difference > 0.5:
+            while not (0.5 >= x_difference >= -0.5 and 0.5 >= y_difference >= -0.5):
                 '''
                 Step 2: Scan the immediate area for obstacles and free space.
                 '''

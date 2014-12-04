@@ -64,7 +64,8 @@ static PyObject *
 plan(PyObject *self, PyObject *args)
 {
 	computeshortestpath();
-	
+
+	// Return a path object like [(x1, y1), (xn, yn)].
 	return Py_BuildValue("i", 0);
 }
 

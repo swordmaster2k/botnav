@@ -1,0 +1,18 @@
+# planner=[grid_nav|d_star_lite|field_d_star|]
+# map=["path/file"]
+# mode=[simulated|physical]
+# if mode == physical
+#   [connection=]
+#   if connection == bluetooth
+#       mac=
+#       port=
+#   elif connection == ip
+#       ip=
+#       port=
+#   elif connection == serial
+#       baud=
+#       port=
+
+planner=grid_nav
+map=maps/bedroom15.map
+mode=simulated

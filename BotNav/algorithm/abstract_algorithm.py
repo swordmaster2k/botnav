@@ -66,7 +66,7 @@ class AbstractAlgorithm:
         :return:
         """
 
-        return
+        raise NotImplementedError
 
     def update_occupancy_grid(self, cells):
         """

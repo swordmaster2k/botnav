@@ -66,6 +66,9 @@ class GridNav(AbstractAlgorithm):
         self.setup_open_list()
         self.setup_occupancy_grid()
 
+    def update_robot_position(self):
+        return  # GridNav doesn't need this since its using a direct robot reference so simply return.
+
     def setup_open_list(self):
         """
         Setup the open list with default Nodes.
@@ -390,7 +393,7 @@ class GridNav(AbstractAlgorithm):
         x_difference = self.map_state.goal_x - next_x
         y_difference = self.map_state.goal_y - next_y
 
-        if x_difference <= 0.5 and y_difference <= 0.5:
+        if 0.5 >= x_difference >= -0.5 and 0.5 >= y_difference >= -0.5:
             return
         else:
             # Ensure that the next more will be into another cell
