@@ -148,12 +148,13 @@ class AbstractAlgorithm:
         """
 
         stream.write(('-' * 120) + "\n\n")
-        stream.write("Planner: " + self.planner_name + "\n")
+        stream.write("Planner: " + self.planner_name + "\n\n")
+
         stream.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
         stream.write("Total Vertices: " + str(self.map_state.cells_square ** 2) + "\n\n")
 
         stream.write("Vertex Accesses: " + str(self.vertex_accesses) + "\n")
         stream.write("Average: " + str(self.vertex_accesses / self.total_plan_steps) + "\n\n")
 
-        stream.write("Total Time Taken: " + str(self.time_taken) + "s\n")
-        stream.write("Average: " + str(self.time_taken / self.total_plan_steps) + "s\n")
+        stream.write("Total Planning Time: " + str(self.time_taken) + "s\n")
+        stream.write("Average Planning Time: " + str(self.time_taken / self.total_plan_steps) + "s\n\n")

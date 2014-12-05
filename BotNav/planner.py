@@ -1,4 +1,5 @@
 import sys
+import time
 import threading
 
 from threading import Thread
@@ -123,6 +124,8 @@ class Planner(threading.Thread):
         # Write the initial state.
         self.write_state()
 
+        start_time = time.process_time()
+
         try:
             '''
             Step 1: Plan.
@@ -213,16 +216,20 @@ class Planner(threading.Thread):
         except exceptions.NoPathException as ex:
             print(ex)
         finally:
+            execution_time = round(time.process_time() - start_time, 3)
+
             # Write the final state.
             self.algorithm.print_cost_grid(sys.stdout)
             self.algorithm.print_occupancy_grid(sys.stdout)
             self.algorithm.print_debug(sys.stdout)
+            sys.stdout.write("Total Execution Time: " + str(execution_time) + "s")
 
             if self.output_file is not None:
                 if not self.output_file.closed:
                     self.algorithm.print_cost_grid(self.output_file)
                     self.algorithm.print_occupancy_grid(self.output_file)
                     self.algorithm.print_debug(self.output_file)
+                    self.output_file.write("Total Execution Time: " + str(execution_time) + "s")
 
             # Write all of the paths that were used to the gnuplot file.
             if self.gnuplot_file is not None:
