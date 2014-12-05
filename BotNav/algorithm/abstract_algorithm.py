@@ -15,6 +15,8 @@ class AbstractAlgorithm:
         :return:
         """
 
+        self.planner_name = "Abstract"
+
         self.map_state = map_state
         self.robot = self.map_state.robot
 
@@ -57,16 +59,6 @@ class AbstractAlgorithm:
         except IndexError as err:
             print(str(err))
             return -1
-
-    def update_robot_position(self):
-        """
-        Base class will override this if it is needed.
-        Typically by C modules.
-
-        :return:
-        """
-
-        raise NotImplementedError
 
     def update_occupancy_grid(self, cells):
         """
@@ -156,6 +148,7 @@ class AbstractAlgorithm:
         """
 
         stream.write(('-' * 120) + "\n\n")
+        stream.write("Planner: " + self.planner_name + "\n")
         stream.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
         stream.write("Total Vertices: " + str(self.map_state.cells_square ** 2) + "\n\n")
 

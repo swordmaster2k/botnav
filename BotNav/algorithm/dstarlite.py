@@ -12,6 +12,7 @@ class DStarLite(AbstractAlgorithm):
 
     def __init__(self, map_state):
         AbstractAlgorithm.__init__(self, map_state)
+        self.planner_name = "D* Lite"
 
     @staticmethod
     def setup(file_path):
@@ -24,11 +25,15 @@ class DStarLite(AbstractAlgorithm):
         dstarlite_c.setup(file_path)
 
     def plan(self):
+        dstarlite_c.updaterobotposition(self.robot.x, self.robot.y)
+
+        # Begin benchmark.
         self.total_plan_steps += 1
         start_time = time.process_time()
 
         dstarlite_c.plan()
 
+        # End benchmark.
         self.time_taken += round(time.process_time() - start_time, 5)
 
         self.path = dstarlite_c.getrobotpath()

@@ -45,6 +45,8 @@ class GridNav(AbstractAlgorithm):
 
         AbstractAlgorithm.__init__(self, map)
 
+        self.planner_name = "GridNav"
+
         # GridNav constants.
         self.BIG_COST = 500  # Highest cost for a cell.
         self.EMPTY = -1
@@ -65,9 +67,6 @@ class GridNav(AbstractAlgorithm):
 
         self.setup_open_list()
         self.setup_occupancy_grid()
-
-    def update_robot_position(self):
-        return  # GridNav doesn't need this since its using a direct robot reference so simply return.
 
     def setup_open_list(self):
         """

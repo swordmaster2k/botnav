@@ -14,6 +14,7 @@ from model.robot import Robot
 from algorithm.gridnav import GridNav
 from algorithm.dstarlite import DStarLite
 from connection.bluetooth_connection import BluetoothConnection
+from connection.ip_connection import IPConnection
 from events import OdometryReport, ScanResult, StateEvent
 from model.simulated_robot import SimulatedRobot
 
@@ -22,13 +23,8 @@ GNU_PLOT_OUTPUT = "png"
 
 class Tester(threading.Thread):
     def __init__(self, map_file):
-        #self.proxy = Proxy(BluetoothConnection("00:00:12:06:56:83", 0x1001))
-        #self.robot = Robot(self.proxy)
-
-        self.proxy = Proxy("DUMMY")  # Dummy connection.
-        self.robot = SimulatedRobot(self.proxy)
-
-        self.proxy.listeners.append(self)
+        self.proxy = None
+        self.robot = None
 
         self.map_file = map_file
 
@@ -185,30 +181,133 @@ class Tester(threading.Thread):
 
         gnuplotter.generate_output(self.output_path, self.algorithm.total_plan_steps, self.grid_size, GNU_PLOT_OUTPUT)
 
+
+def load_config(config_file):
+    """
+
+    :return:
+    """
+
+    p = Path(config_file)
+
+    if not p.exists():
+        raise RuntimeError("config.botnav file not found!")
+
+    test = Tester("")
+    mode = ""
+    algorithm = ""
+    connection = None
+    parameter_1 = None  # First connection parameter.
+    parameter_2 = None  # Second connection paramter.
+    config_file = p.open()
+
+    while True:
+        result = read_config_line(config_file)
+
+        if result is None:  # Comment.
+            continue
+        elif result == "eof":  # End of file.
+            break
+
+        token = result[0]
+        value = result[1]
+
+        if token == "map":
+            test.map_file = value
+        elif token == "planner":
+            algorithm = value
+        elif token == "mode":
+            mode = value
+            if mode == "physical":
+                result = read_config_line(config_file)
+
+                if result is None or result == "eof":
+                    raise RuntimeError("invalid connection in config file")
+
+                token = result[0]
+                value = result[1]
+
+                if token == "connection":
+                    connection = value
+
+                    result = read_config_line(config_file)
+
+                    if result is None or result == "eof":
+                        raise RuntimeError("invalid connection in config file")
+
+                    parameter_1 = result[1]
+
+                    result = read_config_line(config_file)
+
+                    if result is None or result == "eof":
+                        raise RuntimeError("invalid connection in config file")
+
+                    parameter_2 = result[1]
+                else:
+                    raise RuntimeError("invalid connection in config file")
+
+    if test.map_file == "" or mode == "" or algorithm == "":
+        raise RuntimeError("config file is incomplete")
+
+    # If everything was parsed successfully we can safely do this stuff.
+    if mode == "simulated":
+        test.proxy = Proxy("DUMMY")  # Dummy connection.
+        test.robot = SimulatedRobot(test.proxy)
+    elif mode == "physical":
+        if connection == "bluetooth":
+            test.proxy = Proxy(BluetoothConnection(parameter_1, int(parameter_2, base=16)))  # MAC, Port
+        elif connection == "ip":
+            test.proxy = Proxy(IPConnection(parameter_1, int(parameter_2, base=16)))  # IP, Port
+        else:
+            raise RuntimeError("unsupported connection in config file")
+
+        test.robot = Robot(test.proxy)
+    else:
+        raise RuntimeError("unsupported mode in config file")
+
+    test.open_map()
+    test.setup_output()
+
+    if algorithm == "grid_nav":
+        test.algorithm = GridNav(test.map)
+    elif algorithm == "d_star_lite":
+        test.algorithm = DStarLite(test.map)
+        test.algorithm.setup(test.map_file)
+    elif algorithm == "field_d_star":
+        raise RuntimeError("unsupported planner in config file")  # Not ready yet.
+    else:
+        raise RuntimeError("unsupported planner in config file")
+
+    test.proxy.listeners.append(test)
+    test.planner = Planner(test.map, test.algorithm, test.proxy, test.output_file, test.gnuplot_file)
+
+    return test
+
+
+def read_config_line(config_file):
+    line = config_file.readline()
+    line = line.strip()
+
+    if line.startswith('#') or line.startswith('\n'):  # It is a comment or blankline.
+        return None
+    elif line == '':  # EOF.
+        return "eof"
+
+    line = line.rstrip('\n')
+
+    if not '=' in line:
+        raise RuntimeError("missing '=' in config file")
+
+    partition = line.partition('=')
+
+    return partition[0].lower(), partition[2].lower()
+
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        map_file = sys.argv[1]
-
-        if not Path(map_file).exists():
-            print(map_file + " does not exist.")
-            exit(-1)
-
-        tester = Tester(map_file)
-
         try:
-            tester.open_map()
-            tester.setup_output()
-        except IOError as err:
+            tester = load_config(sys.argv[1])
+            print("Type \"begin\" to start run...")
+            tester.start()
+        except RuntimeError as err:
             print(err)
             exit(-1)
-
-        #tester.algorithm = GridNav(tester.map)
-
-        tester.algorithm = DStarLite(tester.map)
-        tester.algorithm.setup(map_file)
-
-        tester.planner = Planner(tester.map, tester.algorithm, tester.proxy, tester.output_file, tester.gnuplot_file)
-
-        print("Type \"begin\" to start run...")
-
-        tester.start()
