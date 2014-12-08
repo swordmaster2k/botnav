@@ -11,7 +11,7 @@
 int keymodifier;
 cell goaltmpcell, oldtmpcell;
 
-int vertexaccesses = 0; /* number of times cells are accessed */
+int vertexaccesses; /* number of times cells are accessed */
 
 /*
  * *********************************************************************

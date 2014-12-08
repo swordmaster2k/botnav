@@ -1,10 +1,10 @@
 /**
- * File: Cherokey4WD.h
+ * File: Cherokey4WD_Arduino.h
  * 
  * 
  *  
  * @author Joshua Michael Daly
- * @version 27/06/2014
+ * @version 07/12/2014
  */
  
 #include <Servo.h>

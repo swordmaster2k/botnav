@@ -79,6 +79,9 @@ def generate_output(directory, paths, grid_size, output_type):
             column2 += 2
 
         gnuplot.close()
+
+        while not gnuplot.closed:
+            continue
     else:
         print("gnuplot not available please install it.")
 

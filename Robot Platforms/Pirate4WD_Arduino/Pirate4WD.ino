@@ -13,7 +13,7 @@
 #include <AFMotor.h>
 #include <HMC5883L.h>
 
-#include "Pirate4WD.h"
+#include "Pirate4WD_Arduino.h"
 
 /************************************************************
  * Arduino Functions

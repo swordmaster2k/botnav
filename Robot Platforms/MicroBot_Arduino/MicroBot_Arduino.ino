@@ -1,21 +1,21 @@
 /**
- * File: Cherokey4WD.ino
+ * File: MicroBot_Arduino.ino
  * 
  * 
  * 
  * @author Joshua Michael Daly
- * @version 27/06/2014
+ * @version 07/12/2014
  */
-
-#include <Servo.h> 
+ 
 #include "I2Cdev.h"
+#include <AFMotor.h>
 #include "MPU6050_6Axis_MotionApps20.h"
 
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
 #endif
 
-#include "Cherokey4WD.h"
+#include "MicroBot_Arduino.h"
 
 /************************************************************
  * Arduino Functions
@@ -26,7 +26,7 @@ void setup()
   Serial.setTimeout(500);
   Serial.begin(115200);
 
-  Serial.println("------------------------------ Booting ------------------------------\n");
+  Serial.println("Booting...\n");
 
   // Join I2C bus (I2Cdev library doesn't do this automatically).
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
@@ -38,13 +38,6 @@ void setup()
   Serial.println("Using Fastwire library.\n");
 #endif
 
-  // Setup the encoders.
-  Serial.println("Attaching encoder interrupts...");
-  attachInterrupt(LEFT_INTERRUPT, leftEncoderInterrupt, CHANGE);    // Init the interrupt mode for the left encoder.
-  attachInterrupt(RIGHT_INTERRUPT, rightEncoderInterrupt, CHANGE);  // Init the interrupt mode for the right encoder. 
-  pinMode(LEFT_ENCODER, INPUT);
-  pinMode(RIGHT_ENCODER, INPUT);
-
   // Setup the sonar.
   Serial.print("Attaching sonar pins echo: ");
   Serial.print(ECHO_PIN);
@@ -54,21 +47,9 @@ void setup()
   pinMode(ECHO_PIN, INPUT);
   pinMode(TRIG_PIN, OUTPUT);
 
-  // Attach sonar servo.
-  Serial.print("Attaching servo to pin ");
-  Serial.print(SERVO_PIN);
-  Serial.println("...");
-  sonarServo.attach(SERVO_PIN);
-
   // Setup the motors.
-  Serial.println("Attaching motors 1 to 4...");
-  for (int i = 4; i <= 7; i++)
-  {
-    pinMode(i, OUTPUT);
-  }  
-
-  digitalWrite(M1_SPEED_CONTROL,LOW);   
-  digitalWrite(M2_SPEED_CONTROL,LOW);
+  motor1.setSpeed(MOTOR_SPEED);;
+  motor3.setSpeed(MOTOR_SPEED);
 
   /* MPU_6050 Configuration */
 
@@ -125,7 +106,7 @@ void setup()
     }
   }
 
-  Serial.println("\n------------------------------ Ready ------------------------------\n");
+  Serial.println("\nReady...\n");
 }
 
 void loop()
@@ -142,18 +123,11 @@ void loop()
     {
       sendOdometry();     
       timer = millis();
-
-#if DEBUG
-      //      Serial.print("left ticks: ");
-      //      Serial.println(leftTicks);
-      //      Serial.print("right ticks: ");
-      //      Serial.println(rightTicks);
-#endif
     }
   }
 
   processGyro();
-  updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+  updateOdometry();
 }
 
 /************************************************************
@@ -211,7 +185,7 @@ void processCommand(char command[])
     break;
   case 'e':
     halt();
-    scan();
+    ping(); // Call ping in place of scan() here.
     break;
   case 't':
     parseDistance(command);
@@ -244,7 +218,9 @@ void processGyro()
   {
     // Reset so we can continue cleanly.
     mpu.resetFIFO();
+    #if DEBUG
     Serial.println(F("FIFO overflow!"));
+    #endif
   } 
   else if (mpuIntStatus & 0x02) // Otherwise, check for DMP data ready interrupt (this should happen frequently).
   {
@@ -281,42 +257,9 @@ void processGyro()
   }
 }
 
-void updateOdometry(signed long deltaLeft, signed long deltaRight)
+void updateOdometry()
 {
-  // Assume a pure rotation around our point until we fix the encoders...
-  if (state == TURNING_LEFT || state == TURNING_RIGHT)
-  {
-    lastLeftTicks = leftTicks;
-    lastRightTicks = rightTicks;
-    return; 
-  }
-
-  double deltaDistance = (double) ((deltaLeft + deltaRight) * DISTANCE_PER_TICK) / 2;
-  double deltaX;
-  double deltaY;
-
-  if (deltaDistance != 0.0)
-  {
-    if (state == GOING_BACKWARD)
-    {
-      deltaX = (deltaDistance) * cos(-theta);
-      deltaY = (deltaDistance) * sin(-theta);
-    }
-    else
-    {
-      deltaX = (deltaDistance) * cos(theta);
-      deltaY = (deltaDistance) * sin(theta);
-    }
-
-    deltaX += X_DRIFT_CARPET * (deltaX / 0.01); // Calculate x drift over every centimeter and add it to our change in x.
-    deltaY += Y_DRIFT_CARPET * (deltaY / 0.01); // Calculate y drift over every centimeter and add it to our change in y.
-
-    x += deltaX;
-    y += deltaY;
-  }
-
-  lastLeftTicks = leftTicks;
-  lastRightTicks = rightTicks;  
+  // Use accelerometer to calculate movement.
 }
 
 void ping()
@@ -328,40 +271,6 @@ void ping()
   Serial.print(scanReadingsHeader);
   Serial.print(',');
   Serial.println(takeReading());
-
-  mpu.setDMPEnabled(true);
-}
-
-void scan()
-{
-  Serial.println("Scanning");
-
-  mpu.setDMPEnabled(false);
-
-  state = SCANNING;
-
-  unsigned char degree;
-
-  for (degree = 0; degree < 170; degree++)        // Goes from 11 degrees to 180 degrees 
-  {                                               // in steps of 1 degree.  
-    sonarServo.write(degree + 11);                // Account for the fact that we start at 0 instead of 11.
-    delay(25);                                    // Waits 25ms for the servo to reach the degree.
-    distances[degree] = takeReading();            // Store sonar reading at current degree.
-  } 
-
-  // Return to center.
-  sonarServo.write(90);
-
-  // Send readings back to the host.
-  Serial.print(scanReadingsHeader);
-
-  for (int i = 0; i < 170; i++)
-  {
-    Serial.print(",");
-    Serial.print(distances[i]); 
-  }
-
-  Serial.println(); // Message terminated by CR/LF.
 
   mpu.setDMPEnabled(true);
 }
@@ -495,12 +404,14 @@ void rotateTo(double heading)
 
     if (interrupted)
     {
+      #if DEBUG
       Serial.println("Interrupted during rotatation!");
+      #endif
       break; 
     }
 
     processGyro();
-    updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+    updateOdometry();
 
     if (millis() - timer > 1000)
     {
@@ -511,8 +422,10 @@ void rotateTo(double heading)
 
   halt();
 
+#if DEBUG
   Serial.print("Current Heading = ");
   Serial.println(theta); // Output in degrees.
+#endif
 
   if (interrupted)
   {
@@ -580,7 +493,7 @@ void travel(double distance)
     }
 
     processGyro();
-    updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+    updateOdometry();
 
     travelled = sqrt(pow((startX - x), 2) + pow((startY - y), 2));
 
@@ -693,16 +606,6 @@ void changeOdometry(char command[MAX_CHARACTERS])
  * Interrupt Handlers
  ************************************************************/
 
-void leftEncoderInterrupt()
-{
-  leftTicks++;
-}
-
-void rightEncoderInterrupt()
-{
-  rightTicks++;
-}
-
 void dmpDataReady() 
 {
   mpuInterrupt = true;
@@ -714,11 +617,9 @@ void dmpDataReady()
 
 void goForward()
 {
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
-  digitalWrite(M1, LOW);    
-  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
-  digitalWrite(M2, LOW);
-
+  motor1.run(FORWARD);
+  motor3.run(FORWARD);
+  
   state = GOING_FORWARD;
 
   Serial.println("Going Forward");
@@ -726,10 +627,8 @@ void goForward()
 
 void goBackward()
 {
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
-  digitalWrite(M1, HIGH);    
-  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
-  digitalWrite(M2, HIGH);
+  motor1.run(BACKWARD);
+  motor3.run(BACKWARD);
 
   state = GOING_BACKWARD;
 
@@ -738,10 +637,8 @@ void goBackward()
 
 void turnLeft()
 {
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
-  digitalWrite(M1, LOW);    
-  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
-  digitalWrite(M2, HIGH);
+  motor1.run(FORWARD);
+  motor3.run(BACKWARD);
 
   state = TURNING_LEFT;
 
@@ -750,10 +647,8 @@ void turnLeft()
 
 void turnRight()
 {
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
-  digitalWrite(M1, HIGH);    
-  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
-  digitalWrite(M2, LOW);
+  motor1.run(BACKWARD);
+  motor3.run(FORWARD);
 
   state = TURNING_RIGHT;
 
@@ -762,10 +657,8 @@ void turnRight()
 
 void halt()
 {
-  digitalWrite(M1_SPEED_CONTROL,0); 
-  digitalWrite(M1, LOW);    
-  digitalWrite(M2_SPEED_CONTROL,0);   
-  digitalWrite(M2, LOW);
+  motor1.run(RELEASE);
+  motor3.run(RELEASE);
 
   state = HALTED;
 
@@ -781,7 +674,7 @@ double roundDigit(double number, int digits)
   // Round correctly so that print(1.999, 2) prints as "2.00"
   double rounding = 0.5;
 
-  for (uint8_t i=0; i < digits; ++i)
+  for (uint8_t i = 0; i < digits; ++i)
     rounding /= 10.0;
 
   number += rounding;

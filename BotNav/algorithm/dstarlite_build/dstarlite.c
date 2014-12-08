@@ -49,6 +49,7 @@ setup(PyObject *self, PyObject *args)
 		}
 		else
 		{
+		    vertexaccesses = 0;
 			establishmaze(file);
 			initialize();
 		}

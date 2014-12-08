@@ -1,10 +1,13 @@
 import sys
+import time
 import select
+import _thread
 import datetime
 import threading
 
 from pathlib import Path
 from threading import Thread
+from threading import Lock
 
 from proxy import Proxy
 from model.map import Map
@@ -18,6 +21,7 @@ from connection.ip_connection import IPConnection
 from events import OdometryReport, ScanResult, StateEvent
 from model.simulated_robot import SimulatedRobot
 
+NUMBER_OF_RUNS = 10
 GNU_PLOT_OUTPUT = "png"
 
 
@@ -36,11 +40,15 @@ class Tester(threading.Thread):
         self.algorithm = None
         self.planner = None
 
+        self.mode = None
+
         self.output_file = None
         self.gnuplot_file = None
         self.occupancy_file = None
 
         self.output_path = None
+
+        self.lock = None
 
         Thread.__init__(self)
 
@@ -151,21 +159,31 @@ class Tester(threading.Thread):
 
         command = ""
 
-        while command != "quit":
-            if self.planner.finished:
-                break
+        if NUMBER_OF_RUNS == 1:
+            print("Type \"begin\" to start run...")
 
-            # This method only work on Unix, try timers.
-            i, o, e = select.select([sys.stdin], [], [], 1)
+            while command != "quit":
+                if self.planner.finished:
+                    break
 
-            if i:
-                command = sys.stdin.readline().strip()
+                # This method only works on POSIX.
+                stdin, o, e = select.select([sys.stdin], [], [], 1)
 
-                if command == "begin":
-                    if not self.planner.finished:
-                        self.planner.start()
-                elif command == "quit":
-                    self.planner.finished = True
+                if stdin:
+                    command = sys.stdin.readline().strip()
+
+                    if command == "begin":
+                        if not self.planner.finished:
+                            self.planner.start()
+                    elif command == "quit":
+                        self.planner.finished = True
+        elif self.mode == "simulated":
+            self.planner.start()
+        else:
+            sys.stdout.write("Number of runs greater than 1 and not in simulated mode!")
+
+        while not self.planner.finished:
+            continue
 
         # Populate the occupancy file.
         for x in range(self.map.cells_square):
@@ -180,6 +198,8 @@ class Tester(threading.Thread):
         self.occupancy_file.close()
 
         gnuplotter.generate_output(self.output_path, self.algorithm.total_plan_steps, self.grid_size, GNU_PLOT_OUTPUT)
+
+        self.lock.acquire()
 
 
 def load_config(config_file):
@@ -265,6 +285,8 @@ def load_config(config_file):
     else:
         raise RuntimeError("unsupported mode in config file")
 
+    test.mode = mode
+
     test.open_map()
     test.setup_output()
 
@@ -305,9 +327,14 @@ def read_config_line(config_file):
 if __name__ == '__main__':
     if len(sys.argv) == 2:
         try:
-            tester = load_config(sys.argv[1])
-            print("Type \"begin\" to start run...")
-            tester.start()
+            for i in range(NUMBER_OF_RUNS):
+                thread_lock = _thread.allocate_lock()
+                tester = load_config(sys.argv[1])
+                tester.lock = thread_lock
+                tester.start()
+
+                while not thread_lock.locked():
+                    continue
         except RuntimeError as err:
             print(err)
             exit(-1)
