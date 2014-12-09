@@ -25,7 +25,8 @@ class DStarLite(AbstractAlgorithm):
         dstarlite_c.setup(file_path)
 
     def plan(self):
-        dstarlite_c.updaterobotposition(self.robot.x, self.robot.y)
+        # D* Lite expects the position in cell coordinates.
+        dstarlite_c.updaterobotposition(int(self.robot.get_cell_x()), int(self.robot.get_cell_y()))
 
         # Begin benchmark.
         self.total_plan_steps += 1
@@ -38,9 +39,6 @@ class DStarLite(AbstractAlgorithm):
 
         self.path = dstarlite_c.getrobotpath()
         self.vertex_accesses = dstarlite_c.getvertexaccesses()
-
-    def update_robot_position(self):
-        dstarlite_c.updaterobotposition(self.robot.x, self.robot.y)
 
     def update_occupancy_grid(self, cells):
         for cell in cells:
@@ -159,7 +157,7 @@ class DStarLite(AbstractAlgorithm):
             for x in range(self.map_state.cells_square):
                 symbol = "     "
 
-                if x == int(math.floor(self.robot.x)) and y == int(math.floor(self.robot.y)):
+                if x == int(math.ceil(self.robot.get_cell_x())) and y == int(math.ceil(self.robot.get_cell_y())):
                     symbol = "ROBOT"
                 elif grid[y][x] == "G":
                     symbol = "GOAL "

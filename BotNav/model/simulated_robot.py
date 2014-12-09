@@ -30,26 +30,7 @@ class SimulatedRobot(Robot):
     '''
 
     def __init__(self, connection):
-        # Data connection to robot.
-        self.connection = connection
-
-        # Odometry, x and y are cell based.
-        self.x = 0
-        self.y = 0
-        self.heading = 1.57
-
-        # List of visited points.
-        self.trail = []
-
-        # Physical dimensions in meters.
-        self.width = 0.18
-        self.length = 0.23
-
-        # State string.
-        self.state = ""
-
-        # Size of the cells we are operating in.
-        self.cell_size = 0.15
+        Robot.__init__(self, connection)
 
     '''
     Instructs the robot to go forward.
@@ -104,17 +85,6 @@ class SimulatedRobot(Robot):
             listener.handle_event(ScanResult([0]))
 
     '''
-    Instructs the robot to reset itself.
-    '''
-
-    def reset(self):
-        self.x = 0
-        self.y = 0
-        self.heading = 1.57
-        self.trail = []
-        self.state = ""
-
-    '''
     Instructs the robot to update its odometry with the new parameters.
     '''
 
@@ -122,105 +92,17 @@ class SimulatedRobot(Robot):
         self.x = x
         self.y = y
         self.heading
-        self.trail.append([x, y])
-
-    '''
-    Instructs the robot to rotate to face the specified heading.
-    '''
-
-    def rotate_to(self, heading):
-        if not (0 <= heading <= 6.28):
-            print("heading not within bounds: " + str(heading))
-            return self.heading
-        elif self.heading == heading:
-            print("already at heading: " + str(heading))
-            return self.heading
-
-        print("rotate_to: " + str(heading))
-
-        self.heading = heading
-
-        return heading
-
-    '''
-    Instructs the robot to travel a straight line distance.
-    '''
-
-    def travel_distance(self, distance):
-        print("travel_distance: " + str(round(distance * self.cell_size, 2)))
-
-        self.x = math.floor(self.x + (distance * math.cos(self.heading)))
-        self.y = math.floor(self.y + (distance * math.sin(self.heading)))
-
-    '''
-    Instructs the robot to face a point.
-    '''
-
-    def face(self, x, y):
-        dx = x - self.x
-        dy = y - self.y
-
-        alpha = math.atan2(dy, dx)
-        beta = alpha - self.heading
-
-        if beta < 0:
-            beta += 6.28
-        elif beta >= 6.28:
-            beta -= 6.28
-
-        heading = self.heading + beta
-
-        if heading < 0:
-            heading += 6.28
-        elif heading >= 6.28:
-            heading -= 6.28
-
-        self.heading = heading
-
-        return heading
+        self.trail.append([self.get_cell_x(), self.get_cell_y()])
 
     '''
     Instructs the robot to go a point.
     '''
 
     def go_to(self, x, y):
-        self.x = x + random.uniform(-0.2, 0.2)  # Introduce a little uncertainty.
-        self.y = y + random.uniform(-0.2, 0.2)
+        self.x = (x + random.uniform(-0.2, 0.2)) * self.cell_size  # Introduce a little uncertainty.
+        self.y = (y + random.uniform(-0.2, 0.2)) * self.cell_size
 
-        self.trail.append([self.x, self.y])
+        self.trail.append([self.get_cell_x(), self.get_cell_y()])
 
         self.state = "Travelled"
-
-    '''
-    Returns a boolean value to the caller indicating if there has
-    been a change.
-
-    The update stores the x and y coordinates in meters so they must
-    be converted.
-    '''
-
-    def update_odometry(self, update):
-        changed = False
-
-        if self.x != (update.x / self.cell_size):
-            self.x = (update.x / self.cell_size)
-            changed = True
-
-        if self.y != (update.y / self.cell_size):
-            self.y = (update.y / self.cell_size)
-            changed = True
-
-        if self.heading != update.heading:
-            self.heading = update.heading
-            changed = True
-
-        if self.heading < 0:
-            self.heading += 6.28
-        elif self.heading >= 6.28:
-            self.heading -= 6.28
-
-        if changed:
-            self.trail.append([self.x, self.y])
-
-        return changed
 

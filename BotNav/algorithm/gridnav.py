@@ -287,8 +287,8 @@ class GridNav(AbstractAlgorithm):
             else:
                 break
 
-        x = int(math.floor(self.robot.x))
-        y = int(math.floor(self.robot.y))
+        x = int(self.robot.get_cell_x())
+        y = int(self.robot.get_cell_y())
 
         # When there has been a change to the plan rebuild the path.
         self.path = []
@@ -552,7 +552,7 @@ class GridNav(AbstractAlgorithm):
             for x in range(self.map_state.cells_square):
                 symbol = "     "
 
-                if x == int(math.floor(self.robot.x)) and y == int(math.floor(self.robot.y)):
+                if x == int(self.robot.get_cell_x()) and y == int(self.robot.get_cell_y()):
                     symbol = "ROBOT"
                 elif x == self.map_state.goal_x and y == self.map_state.goal_y:
                     symbol = "GOAL "

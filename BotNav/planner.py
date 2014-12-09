@@ -85,19 +85,19 @@ class Planner(threading.Thread):
         :return: none
         """
 
-        sys.stdout.write("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y + "\n")
+        sys.stdout.write("cell x: %.2f" % self.robot.get_cell_x() + ", cell y: %.2f" % self.robot.get_cell_y() + "\n")
         sys.stdout.write(
-            "x: %.2f" % (self.robot.x * self.map.cell_size) +
-            ", y: %.2f" % (self.robot.y * self.map.cell_size) + "\n"
+            "x: %.2f" % (self.robot.x) +
+            ", y: %.2f" % (self.robot.y) + "\n"
             "heading %.2f" % self.robot.heading)
         sys.stdout.write("\n\n" + ('-' * 120) + "\n\n")
 
         if self.output_file is not None:
             if not self.output_file.closed:
-                self.output_file.write("cell x: %.2f" % self.robot.x + ", cell y: %.2f" % self.robot.y + "\n")
+                self.output_file.write("cell x: %.2f" % self.robot.get_cell_x() + ", cell y: %.2f" % self.robot.get_cell_y() + "\n")
                 self.output_file.write(
-                    "x: %.2f" % (self.robot.x * self.map.cell_size) +
-                    ", y: %.2f" % (self.robot.y * self.map.cell_size) + "\n" +
+                    "x: %.2f" % (self.robot.x) +
+                    ", y: %.2f" % (self.robot.y) + "\n" +
                     "heading %.2f" % self.robot.heading)
                 self.output_file.write("\n\n" + ('-' * 120) + "\n\n")
 
@@ -140,11 +140,11 @@ class Planner(threading.Thread):
 
             # Stick the starting position of the robot into
             # the first path.
-            paths[0].insert(0, (self.robot.x, self.robot.y))
+            paths[0].insert(0, (self.robot.get_cell_x(), self.robot.get_cell_y()))
 
             # Calculate our initial distance from the goal.
-            x_difference = self.map.goal_x - self.robot.x
-            y_difference = self.map.goal_y - self.robot.y
+            x_difference = self.map.goal_x - self.robot.get_cell_x()
+            y_difference = self.map.goal_y - self.robot.get_cell_y()
 
             if x_difference < 0:
                 x_difference = -x_difference
@@ -202,8 +202,8 @@ class Planner(threading.Thread):
                 self.write_state()
                 self.write_debug_info()
 
-                x_difference = self.map.goal_x - self.robot.x
-                y_difference = self.map.goal_y - self.robot.y
+                x_difference = self.map.goal_x - self.robot.get_cell_x()
+                y_difference = self.map.goal_y - self.robot.get_cell_y()
 
                 if x_difference < 0:
                     x_difference = +x_difference

@@ -169,4 +169,4 @@ def test_generate_dataset():
     generate_dataset("../maps/output", "debug_info.output")
 
 #test_write_paths()
-test_generate_dataset()
+#test_generate_dataset()

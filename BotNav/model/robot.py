@@ -30,8 +30,7 @@ class Robot:
         # Data connection to robot.
         self.connection = connection
 
-        # Odometry, x and y are cell based.
-        self.x = 0
+        self.x = 0  # In meters.
         self.y = 0
         self.heading = 1.57
 
@@ -47,6 +46,20 @@ class Robot:
 
         # Size of the cells we are operating in.
         self.cell_size = 0.15
+
+    '''
+    Gets the robots x position in cells.
+    '''
+
+    def get_cell_x(self):
+        return self.x / self.cell_size
+
+    '''
+    Gets the robots y position in cells.
+    '''
+
+    def get_cell_y(self):
+        return self.y / self.cell_size
 
     '''
     Instructs the robot to go forward.
@@ -109,8 +122,6 @@ class Robot:
     '''
 
     def change_odometry(self, x, y, heading):
-        x = round(x * self.cell_size, 2)
-        y = round(y * self.cell_size, 2)
         self.connection.send("c," + str(x) + "," + str(y) + "," +
                              str(heading) + "\n")
 
@@ -147,8 +158,8 @@ class Robot:
     '''
 
     def face(self, x, y):
-        dx = x - self.x
-        dy = y - self.y
+        dx = x - self.get_cell_x()
+        dy = y - self.get_cell_y()
 
         alpha = math.atan2(dy, dx)
         beta = alpha - self.heading
@@ -180,7 +191,7 @@ class Robot:
             while self.state != "Halted":
                 continue
 
-        distance = math.sqrt((x - self.x) ** 2 + (y - self.y) ** 2)
+        distance = math.sqrt((x - self.get_cell_x()) ** 2 + (y - self.get_cell_y()) ** 2)
 
         self.travel_distance(round(distance, 2))
 
@@ -195,12 +206,12 @@ class Robot:
     def update_odometry(self, update):
         changed = False
 
-        if self.x != (update.x / self.cell_size):
-            self.x = (update.x / self.cell_size)
+        if self.x != update.x:
+            self.x = update.x
             changed = True
 
-        if self.y != (update.y / self.cell_size):
-            self.y = (update.y / self.cell_size)
+        if self.y != update.y:
+            self.y = update.y
             changed = True
 
         if self.heading != update.heading:
@@ -213,6 +224,6 @@ class Robot:
             self.heading -= 6.28
 
         if changed:
-            self.trail.append([self.x, self.y])
+            self.trail.append([self.get_cell_x(), self.get_cell_y()])
 
         return changed
