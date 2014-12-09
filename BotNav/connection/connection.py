@@ -5,9 +5,11 @@ methods that a connection contains.
 
 
 class Connection():
-    def __init__(self, infile, outfile):
+    def __init__(self, infile, outfile, connection):
         self.infile = infile  # File opened with 'r' option.
         self.outfile = outfile  # File opened with 'w' option.
+
+        self.connection = connection
 
         self.closed = self.infile.closed and self.outfile.closed
 
@@ -17,8 +19,8 @@ class Connection():
 
     def write(self, data):
         if not self.outfile.closed:
-            self.connection.write(data)
-            self.connection.flush()
+            self.outfile.write(data)
+            self.outfile.flush()
 
     '''
     Read a line from the connection, assumes that the stream can be read from.
@@ -26,7 +28,7 @@ class Connection():
 
     def readline(self):
         if not self.infile.closed:
-            return self.connection.readline()
+            return self.infile.readline()
 
     '''
     Base class will handle close because closing physical connection types vary.

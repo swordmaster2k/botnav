@@ -21,7 +21,7 @@ class IPConnection(Connection):
             print("No client connected across IP link. Aborting")
             exit()
 
-        Connection.__init__(self, client.makefile('r'), client.makefile('w'))
+        Connection.__init__(self, client.makefile('r'), client.makefile('w'), client)
 
     '''
     Closes the socket connection and any open files.

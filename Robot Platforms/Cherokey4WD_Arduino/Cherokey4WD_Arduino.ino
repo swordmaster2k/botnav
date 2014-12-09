@@ -26,7 +26,7 @@ void setup()
   Serial.setTimeout(500);
   Serial.begin(115200);
 
-  Serial.println("------------------------------ Booting ------------------------------\n");
+  Serial.println("Booting...\n");
 
   // Join I2C bus (I2Cdev library doesn't do this automatically).
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
@@ -125,7 +125,7 @@ void setup()
     }
   }
 
-  Serial.println("\n------------------------------ Ready ------------------------------\n");
+  Serial.println("\nReady\n");
 }
 
 void loop()

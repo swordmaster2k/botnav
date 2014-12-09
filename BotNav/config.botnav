@@ -4,19 +4,18 @@
 # if mode == physical
 #   [connection=]
 #   if connection == bluetooth
-#       mac=
 #       port=
 #   elif connection == ip
 #       ip=
+#       mac=
 #       port=
 #   elif connection == serial
 #       baud=
 #       port=
-map=maps/bedroom15.map
-planner=d_star_lite
-mode=simulated
-
-#mode=physical
-#connection=bluetooth
-#mac=00:00:12:06:56:83
-#port=0x1001
+map=maps/board30.map
+planner=grid_nav
+#mode=simulated
+mode=physical
+connection=bluetooth
+mac=00:00:12:06:56:83
+port=0x1001

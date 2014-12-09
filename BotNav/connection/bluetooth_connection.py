@@ -18,11 +18,11 @@ class BluetoothConnection(Connection):
         self.addr = addr
         self.port = port
 
-        self.sock = socket.socket(socket.AF_BLUETOOTH,
+        sock = socket.socket(socket.AF_BLUETOOTH,
                                   socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-        self.sock.connect((self.addr, self.port))
+        sock.connect((self.addr, self.port))
 
-        Connection.__init__(self, self.sock.makefile('r'), self.sock.makefile('w'))
+        Connection.__init__(self, sock.makefile('r'), sock.makefile('w'), sock)
 
     '''
     Closes the socket connection and any open files.

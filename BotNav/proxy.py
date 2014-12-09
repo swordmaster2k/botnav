@@ -19,9 +19,9 @@ class Proxy(Thread):
 
     '''
 
-    def __init__(self, port):
+    def __init__(self, connection):
         self.listeners = []
-        self.connection = port
+        self.connection = connection
 
         Thread.__init__(self)
         self.daemon = True
@@ -88,5 +88,6 @@ class Proxy(Thread):
                         listener.handle_event(event)
                 else:
                     print(data)
-            except:
+            except Exception as ex:
+                print(ex)
                 continue

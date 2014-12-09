@@ -166,8 +166,8 @@ class Planner(threading.Thread):
                     continue
 
                 # Just take 1 reading for now.
-                affected_cells = self.map.ping_to_cells(
-                    round(float(self.last_scan.readings[0]) / self.map.cell_size, 2))
+                affected_cells = []#self.map.ping_to_cells(
+                    #round(float(self.last_scan.readings[0]) / self.map.cell_size, 2))
                 self.last_scan = 0
 
                 '''

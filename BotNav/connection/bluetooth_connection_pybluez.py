@@ -19,7 +19,7 @@ while True:
     #if(len(data) == 0): break
     #sock.send("a")
     #data = sock.recv(1024)
-    file.write("e\n")
+    #file.write("e\n")
     print(filein.readline())
 
 sock.close()

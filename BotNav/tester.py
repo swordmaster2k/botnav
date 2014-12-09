@@ -82,8 +82,8 @@ class Tester(threading.Thread):
                     print("Waiting for odometry change...")
 
                     # Wait for odometry change to take affect.
-                    while self.robot.x != round(x, 2) and self.robot.y != round(y, 2):
-                        continue
+                    #while self.robot.x != round(x, 2) and self.robot.y != round(y, 2):
+                    #    continue
 
                     print("Odometry change successful!")
 
