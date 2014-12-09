@@ -37,7 +37,6 @@ class Robot:
 
         # List of visited points.
         self.trail = []
-        self.trail.append([self.x, self.y])
 
         # Physical dimensions in meters.
         self.width = 0.18

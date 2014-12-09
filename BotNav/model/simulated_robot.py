@@ -1,5 +1,5 @@
 import math
-import time
+import random
 
 from .robot import Robot
 from events import ScanResult
@@ -22,185 +22,205 @@ It does not matter if the robot is a wheeled, tracked, bipod, etc. as
 long as the hardware conforms to the generic interface required by
 the robonav tool. 
 '''
+
+
 class SimulatedRobot(Robot):
-	'''
-	Initialises the robot using the connection specified.
-	'''
-	def __init__(self, connection):
-		# Data connection to robot.
-		self.connection = connection
+    '''
+    Initialises the robot using the connection specified.
+    '''
 
-		# Odometry, x and y are cell based.
-		self.x = 0
-		self.y = 0
-		self.heading = 1.57
+    def __init__(self, connection):
+        # Data connection to robot.
+        self.connection = connection
 
-		# List of visited points.
-		self.trail = []
-		self.trail.append([self.x, self.y])
+        # Odometry, x and y are cell based.
+        self.x = 0
+        self.y = 0
+        self.heading = 1.57
 
-		# Physical dimensions in meters.
-		self.width = 0.18
-		self.length = 0.23
+        # List of visited points.
+        self.trail = []
 
-		# State string.
-		self.state = ""
+        # Physical dimensions in meters.
+        self.width = 0.18
+        self.length = 0.23
 
-		# Size of the cells we are operating in.
-		self.cell_size = 0.15
+        # State string.
+        self.state = ""
 
-	'''
-	Instructs the robot to go forward.
-	'''
-	def go_forward(self):
-		return
+        # Size of the cells we are operating in.
+        self.cell_size = 0.15
 
-	'''
-	Instructs the robot to go backward.
-	'''
-	def go_backward(self):
-		return
+    '''
+    Instructs the robot to go forward.
+    '''
 
-	'''
-	Instructs the robot to rotate left.
-	''' 
-	def rotate_left(self):
-		return
+    def go_forward(self):
+        return
 
-	'''
-	Instructs the robot to rotate right.
-	'''
-	def rotate_right(self):
-		return
+    '''
+    Instructs the robot to go backward.
+    '''
 
-	'''
-	Instructs the robot to halt.
-	'''
-	def halt(self):
-		return
+    def go_backward(self):
+        return
 
-	'''
-	Instructs the robot to begin a scan.
-	'''
-	def scan(self):
-		return
+    '''
+    Instructs the robot to rotate left.
+    '''
 
-	'''
-	Instructs the robot to ping.
-	'''
-	def ping(self):
-		# Send a dummy scan result with a distance of 0.
-		# Will have no effect.
-		for listener in self.connection.listeners:
-			listener.handle_event(ScanResult([0]))
+    def rotate_left(self):
+        return
 
-	'''
-	Instructs the robot to reset itself.
-	'''
-	def reset(self):
-		self.x = 0
-		self.y = 0
-		self.heading = 1.57
-		self.trail = []
-		self.state = ""
+    '''
+    Instructs the robot to rotate right.
+    '''
 
-	'''
-	Instructs the robot to update its odometry with the new parameters.
-	'''
-	def change_odometry(self, x, y, heading):
-		self.x = x
-		self.y = y
+    def rotate_right(self):
+        return
 
-	'''
-	Instructs the robot to rotate to face the specified heading.
-	'''
-	def rotate_to(self, heading):
-		if (not (heading >= 0.0 and heading <= 6.28)):
-			print("heading not within bounds: " + str(heading))
-			return self.heading
-		elif (self.heading == heading):
-			print("already at heading: " + str(heading))
-			return self.heading
+    '''
+    Instructs the robot to halt.
+    '''
 
-		print("rotate_to: " + str(heading))
+    def halt(self):
+        return
 
-		self.heading = heading
+    '''
+    Instructs the robot to begin a scan.
+    '''
 
-		return heading
+    def scan(self):
+        return
 
-	'''
-	Instructs the robot to travel a straight line distance.
-	'''
-	def travel_distance(self, distance):
-		print("travel_distance: " + str(round(distance * self.cell_size, 2)))
+    '''
+    Instructs the robot to ping.
+    '''
 
-		self.x = math.floor(self.x + (distance * math.cos(self.heading)))
-		self.y = math.floor(self.y + (distance * math.sin(self.heading)))
+    def ping(self):
+        # Send a dummy scan result with a distance of 0.
+        # Will have no effect.
+        for listener in self.connection.listeners:
+            listener.handle_event(ScanResult([0]))
 
-	'''
-	Instructs the robot to face a point.
-	'''
-	def face(self, x, y):
-		dx = x - self.x
-		dy = y - self.y
+    '''
+    Instructs the robot to reset itself.
+    '''
 
-		alpha = math.atan2(dy, dx)
-		beta = alpha - self.heading
+    def reset(self):
+        self.x = 0
+        self.y = 0
+        self.heading = 1.57
+        self.trail = []
+        self.state = ""
 
-		if beta < 0:
-			beta += 6.28
-		elif beta >= 6.28:
-			beta -= 6.28
+    '''
+    Instructs the robot to update its odometry with the new parameters.
+    '''
 
-		heading = self.heading + beta
+    def change_odometry(self, x, y, heading):
+        self.x = x
+        self.y = y
+        self.heading
+        self.trail.append([x, y])
 
-		if heading < 0:
-			heading += 6.28
-		elif heading >= 6.28:
-			heading -= 6.28
+    '''
+    Instructs the robot to rotate to face the specified heading.
+    '''
 
-		self.heading = heading
+    def rotate_to(self, heading):
+        if not (0 <= heading <= 6.28):
+            print("heading not within bounds: " + str(heading))
+            return self.heading
+        elif self.heading == heading:
+            print("already at heading: " + str(heading))
+            return self.heading
 
-		return heading
+        print("rotate_to: " + str(heading))
 
-	'''
-	Instructs the robot to go a point.
-	'''
-	def go_to(self, x, y):
-		self.x = x
-		self.y = y
-		
-		self.state = "Travelled"
-		
-	'''
-	Returns a boolean value to the caller indicating if there has 
-	been a change.
+        self.heading = heading
 
-	The update stores the x and y coordinates in meters so they must 
-	be converted.
-	'''
-	def update_odometry(self, update):
-		changed = False
+        return heading
 
-		if self.x != (update.x / self.cell_size):
-			self.x = (update.x / self.cell_size)
-			changed = True
+    '''
+    Instructs the robot to travel a straight line distance.
+    '''
 
-		if self.y != (update.y / self.cell_size):
-			self.y = (update.y / self.cell_size)
-			changed = True
+    def travel_distance(self, distance):
+        print("travel_distance: " + str(round(distance * self.cell_size, 2)))
 
-		if self.heading != update.heading:
-			self.heading = update.heading
-			changed = True
+        self.x = math.floor(self.x + (distance * math.cos(self.heading)))
+        self.y = math.floor(self.y + (distance * math.sin(self.heading)))
 
-		if self.heading < 0:
-			self.heading += 6.28
-		elif self.heading >= 6.28:
-			self.heading -= 6.28
+    '''
+    Instructs the robot to face a point.
+    '''
 
-		if changed:
-			self.trail.append([self.x, self.y])
+    def face(self, x, y):
+        dx = x - self.x
+        dy = y - self.y
 
-		return changed
+        alpha = math.atan2(dy, dx)
+        beta = alpha - self.heading
+
+        if beta < 0:
+            beta += 6.28
+        elif beta >= 6.28:
+            beta -= 6.28
+
+        heading = self.heading + beta
+
+        if heading < 0:
+            heading += 6.28
+        elif heading >= 6.28:
+            heading -= 6.28
+
+        self.heading = heading
+
+        return heading
+
+    '''
+    Instructs the robot to go a point.
+    '''
+
+    def go_to(self, x, y):
+        self.x = x + random.uniform(-0.2, 0.2)  # Introduce a little uncertainty.
+        self.y = y + random.uniform(-0.2, 0.2)
+
+        self.trail.append([self.x, self.y])
+
+        self.state = "Travelled"
+
+    '''
+    Returns a boolean value to the caller indicating if there has
+    been a change.
+
+    The update stores the x and y coordinates in meters so they must
+    be converted.
+    '''
+
+    def update_odometry(self, update):
+        changed = False
+
+        if self.x != (update.x / self.cell_size):
+            self.x = (update.x / self.cell_size)
+            changed = True
+
+        if self.y != (update.y / self.cell_size):
+            self.y = (update.y / self.cell_size)
+            changed = True
+
+        if self.heading != update.heading:
+            self.heading = update.heading
+            changed = True
+
+        if self.heading < 0:
+            self.heading += 6.28
+        elif self.heading >= 6.28:
+            self.heading -= 6.28
+
+        if changed:
+            self.trail.append([self.x, self.y])
+
+        return changed
 

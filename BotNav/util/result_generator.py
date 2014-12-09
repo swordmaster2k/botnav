@@ -1,3 +1,48 @@
+import os
+import sys
+
+from pathlib import Path
+
+
+def generate_dataset(directory, file_name, output=""):
+    # Look for the occurance of these strings in the files that match file_name under
+    # the given path, search all subdirectories.
+    separator = ':'
+    spacer = "\t\t\t"
+    total_vertices = "Total Vertices"
+    vertex_accesses = "Vertex Accesses"
+    total_planning_time = "Total Planning Time"
+
+    p = Path(directory)
+
+    if p.exists():
+        if p.is_dir():
+            for child in p.iterdir():
+                if child.is_dir():
+                    generate_dataset(child, file_name, output)
+                elif child.name == file_name:
+                    # Search the file for the entries we are interested in.
+                    file = child.open()
+                    lines = file.read().splitlines()
+                    lines.reverse()  # Because the items are at the end of the file this is far more efficient.
+
+                    # Assumes that the file format is not corrupted.
+                    for line in lines:
+                        if total_vertices in line:
+                            partition = line.partition(separator)
+                            output += partition[2].strip() + spacer
+                        elif vertex_accesses in line:
+                            partition = line.partition(separator)
+                            output += partition[2].strip() + spacer
+                        elif total_planning_time in line:
+                            partition = line.partition(separator)
+                            output += '%.6f' % float(partition[2].strip()) + spacer
+
+        print(output)
+    else:
+        print(str(p) + " does not exist")
+
+
 def write_paths(stream, paths):
     i = 0
     j = 0
@@ -45,10 +90,8 @@ def write_paths(stream, paths):
 
     #print("\nloops: " + str(loops) + "\n")
 
-import os
 
-
-def generate_output(directory, paths, grid_size, output_type):
+def generate_gnuplot(directory, paths, grid_size, output_type):
     gnuplot = os.popen('/usr/bin/gnuplot', 'w')
 
     column1 = 1
@@ -66,14 +109,18 @@ def generate_output(directory, paths, grid_size, output_type):
             # First command for plot contains the robots path.
             commands1 = "plot [0:" + str(grid_size) + "] [0:" + str(grid_size) + "] " + '\"' + directory + \
                         '/paths.gnuplot\"' + " using " + str(column1) + ":" + str(column2) + \
-                        " title \'path\' with linespoints"
+                        " title \'planned path\' with linespoints"
 
-            # Second command contains the obstacles in the environment.
-            commands2 = '\"' + directory + '/occupancy.gnuplot\"' + " using " + str(1) + ":" + str(2) + \
-                        " title \'obstacles\' with points\n"
+            # Second command is for the actual path the robot took.
+            commands2 = '\"' + directory + '/robot_path.gnuplot\"' + " using " + str(1) + ":" + str(2) + \
+                        " title \'robot path\' with linespoints"
+
+            # Third command contains the obstacles in the environment.
+            commands3 = '\"' + directory + '/occupancy.gnuplot\"' + " using " + str(1) + ":" + str(2) + \
+                        " title \'obstacles\' with points"
 
             gnuplot.write(configuration)
-            gnuplot.write(commands1 + "," + commands2)
+            gnuplot.write(commands1 + "," + commands2 + "," + commands3 + "\n")
 
             column1 += 2
             column2 += 2
@@ -84,8 +131,6 @@ def generate_output(directory, paths, grid_size, output_type):
             continue
     else:
         print("gnuplot not available please install it.")
-
-import sys
 
 
 def test_write_paths():
@@ -119,4 +164,9 @@ def test_write_paths():
 
     write_paths(sys.stdout, paths)
 
+
+def test_generate_dataset():
+    generate_dataset("../maps/output", "debug_info.output")
+
 #test_write_paths()
+test_generate_dataset()

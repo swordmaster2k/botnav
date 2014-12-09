@@ -156,5 +156,5 @@ class AbstractAlgorithm:
         stream.write("Vertex Accesses: " + str(self.vertex_accesses) + "\n")
         stream.write("Average: " + str(self.vertex_accesses / self.total_plan_steps) + "\n\n")
 
-        stream.write("Total Planning Time: " + str(self.time_taken) + "s\n")
-        stream.write("Average Planning Time: " + str(self.time_taken / self.total_plan_steps) + "s\n\n")
+        stream.write("Total Planning Time (seconds): " + str(self.time_taken) + "\n")
+        stream.write("Average Planning Time (seconds): " + str(self.time_taken / self.total_plan_steps) + "\n\n")

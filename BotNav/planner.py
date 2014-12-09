@@ -5,7 +5,7 @@ import threading
 from threading import Thread
 
 from events import ScanResult
-from util import gnuplotter
+from util import result_generator
 
 import exceptions
 
@@ -222,19 +222,19 @@ class Planner(threading.Thread):
             self.algorithm.print_cost_grid(sys.stdout)
             self.algorithm.print_occupancy_grid(sys.stdout)
             self.algorithm.print_debug(sys.stdout)
-            sys.stdout.write("Total Execution Time: " + str(execution_time) + "s")
+            sys.stdout.write("Total Execution Time (seconds): " + str(execution_time))
 
             if self.output_file is not None:
                 if not self.output_file.closed:
                     self.algorithm.print_cost_grid(self.output_file)
                     self.algorithm.print_occupancy_grid(self.output_file)
                     self.algorithm.print_debug(self.output_file)
-                    self.output_file.write("Total Execution Time: " + str(execution_time) + "s")
+                    self.output_file.write("Total Execution Time (seconds): " + str(execution_time))
 
             # Write all of the paths that were used to the gnuplot file.
             if self.gnuplot_file is not None:
                 if not self.gnuplot_file.closed:
-                    gnuplotter.write_paths(self.gnuplot_file, paths)
+                    result_generator.write_paths(self.gnuplot_file, paths)
 
             if not self.finished:
                 self.finished = True
