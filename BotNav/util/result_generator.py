@@ -98,8 +98,12 @@ def generate_gnuplot(directory, paths, grid_size, output_type):
     column2 = 2
 
     if not gnuplot.closed:
-        configuration = "set terminal " + str(output_type) + ";" + "set xlabel \'Grid Width (Cells)\'; set ylabel " \
-                                                                   "\'Grid Height (Cells)\';"
+        configuration = "set terminal " + str(output_type) + ";" \
+                        + "set xlabel \'Grid Width (Cells)\'; set ylabel \'Grid Height (Cells)\';" \
+                        + "set key outside;" \
+                        + "set key right top;"
+
+
         gnuplot.write(configuration)
 
         for i in range(paths):
