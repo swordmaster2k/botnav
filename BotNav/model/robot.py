@@ -130,7 +130,10 @@ class Robot:
     '''
 
     def rotate_to(self, heading):
-        if not (0.0 <= heading <= 6.28):
+        if heading == 6.28: # Catch the rounding issue from face.
+            heading = 0
+
+        if not (0.0 <= heading < 6.28):
             print("heading not within bounds: " + str(heading))
             return self.heading
         elif self.heading == heading:
