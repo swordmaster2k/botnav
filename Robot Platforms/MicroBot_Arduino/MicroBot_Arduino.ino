@@ -8,6 +8,7 @@
  */
  
 #include "I2Cdev.h"
+#include <SharpIR.h>
 #include <AFMotor.h>
 #include "MPU6050_6Axis_MotionApps20.h"
 
@@ -38,15 +39,6 @@ void setup()
   Serial.println("Using Fastwire library.\n");
 #endif
 
-  // Setup the sonar.
-  Serial.print("Attaching sonar pins echo: ");
-  Serial.print(ECHO_PIN);
-  Serial.print(" and trig: ");
-  Serial.print(TRIG_PIN);
-  Serial.println("...");
-  pinMode(ECHO_PIN, INPUT);
-  pinMode(TRIG_PIN, OUTPUT);
-
   // Setup the motors.
   motor1.setSpeed(MOTOR_SPEED);;
   motor3.setSpeed(MOTOR_SPEED);
@@ -54,7 +46,7 @@ void setup()
   /* MPU_6050 Configuration */
 
   // Initialize device.
-  Serial.println(F("\nInitializing MPU6050..."));
+  Serial.println(F("Initializing MPU6050..."));
   mpu.initialize();
 
   // Verify connection.
@@ -102,7 +94,8 @@ void setup()
 
     while (true) // Go it an infinite loop because we failed.
     {
-
+      Serial.println("DMP failed...");
+      delay(1000);
     }
   }
 
@@ -270,31 +263,9 @@ void ping()
 
   Serial.print(scanReadingsHeader);
   Serial.print(',');
-  Serial.println(takeReading());
+  Serial.println(sharpIR.getDistance());
 
   mpu.setDMPEnabled(true);
-}
-
-double takeReading()
-{
-  double duration; // Duration used to calculate distance.
-  double distance; 
-
-  /* The following trigPin/echoPin cycle is used to determine the
-   distance of the nearest object by bouncing soundwaves off of it. */
-  digitalWrite(TRIG_PIN, LOW); 
-  delayMicroseconds(2); 
-
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10); 
-
-  digitalWrite(TRIG_PIN, LOW);
-  duration = pulseIn(ECHO_PIN, HIGH);
-
-  // Calculate the distance (in m) based on the speed of sound.
-  distance = (duration / 58.2) / 100;
-
-  return distance;
 }
 
 void parseRotation(char command[MAX_CHARACTERS])
@@ -307,7 +278,7 @@ void parseRotation(char command[MAX_CHARACTERS])
 
   double heading = atof(data);
 
-  if (heading >= 0.0 && heading <= 6.27)
+  if (0.0 <= heading < 6.28)
   {
     rotateTo(heading); 
   }
@@ -498,7 +469,9 @@ void travel(double distance)
     travelled = sqrt(pow((startX - x), 2) + pow((startY - y), 2));
 
     if (travelled >= distance)
+    {
       break;
+    }
 
     if (millis() - timer > 1000)
     {

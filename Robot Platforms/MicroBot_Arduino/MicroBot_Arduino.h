@@ -8,6 +8,7 @@
  */
  
 #include "I2Cdev.h"
+#include <SharpIR.h>
 #include <AFMotor.h>
 #include "MPU6050_6Axis_MotionApps20.h"
 
@@ -16,9 +17,9 @@
 // MPU6050 connections.
 #define DMP_INTERRUPT 0
 
-// Sonar pins.
-#define TRIG_PIN 22
-#define ECHO_PIN 24
+// Sharp IR.
+#define SHARP_PIN A3
+#define THEORETICAL_DISTANCE 12 // Works for the 4cm-30cm Sharp sensor.
 
 // Speed to run motors at.
 #define MOTOR_SPEED 255
@@ -84,3 +85,6 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 // Motors attached to Adafruit motor controller.
 AF_DCMotor motor1(1, MOTOR12_64KHZ);
 AF_DCMotor motor3(3);
+
+// Sharp IR sensor.
+SharpIR sharpIR(SHARP_PIN, THEORETICAL_DISTANCE);

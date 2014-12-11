@@ -4,7 +4,7 @@
  * 
  *  
  * @author Joshua Michael Daly
- * @version 07/12/2014
+ * @version 11/12/2014
  */
  
 #include <Servo.h>
@@ -41,9 +41,9 @@
 #define M2_SPEED_CONTROL 6
 
 // Constants
-const double DISTANCE_PER_TICK = 0.010205;
+const double DISTANCE_PER_TICK = 0.010205; // In meters.
 const double RADIANS_PER_TICK = 0.085756303;
-const double TRACK_WIDTH = 0.119;
+const double TRACK_WIDTH = 0.119; // In meters.
 
 enum states { 
               GOING_FORWARD = 0, GOING_BACKWARD = 1, 
@@ -75,7 +75,7 @@ const unsigned long messageRate = 500.0; // Milliseconds.
  * Odometry and Scan Data
  ************************************************************/
 
-// Average drift in x and y on a carpet surface.
+// Average drift in x and y on a carpet surface in meters.
 const double X_DRIFT_CARPET = 0.000045;
 const double Y_DRIFT_CARPET = 0.000261;
 

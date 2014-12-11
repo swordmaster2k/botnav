@@ -4,7 +4,7 @@
  * 
  * 
  * @author Joshua Michael Daly
- * @version 07/12/2014
+ * @version 11/12/2014
  */
 
 #include <Servo.h> 
@@ -67,13 +67,13 @@ void setup()
     pinMode(i, OUTPUT);
   }  
 
-  digitalWrite(M1_SPEED_CONTROL,LOW);   
-  digitalWrite(M2_SPEED_CONTROL,LOW);
+  digitalWrite(M1_SPEED_CONTROL, LOW);   
+  digitalWrite(M2_SPEED_CONTROL, LOW);
 
   /* MPU_6050 Configuration */
 
   // Initialize device.
-  Serial.println(F("\nInitializing MPU6050..."));
+  Serial.println(F("Initializing MPU6050..."));
   mpu.initialize();
 
   // Verify connection.
@@ -121,7 +121,8 @@ void setup()
 
     while (true) // Go it an infinite loop because we failed.
     {
-
+      Serial.println("DMP failed...");
+      delay(1000);
     }
   }
 
@@ -143,11 +144,11 @@ void loop()
       sendOdometry();     
       timer = millis();
 
-#if DEBUG
-      //      Serial.print("left ticks: ");
-      //      Serial.println(leftTicks);
-      //      Serial.print("right ticks: ");
-      //      Serial.println(rightTicks);
+#if 0
+      Serial.print("left ticks: ");
+      Serial.println(leftTicks);
+      Serial.print("right ticks: ");
+      Serial.println(rightTicks);
 #endif
     }
   }
@@ -269,7 +270,7 @@ void processGyro()
     theta -= 3.14; // Due to the negatation.
     theta += offset; // If any was specified using the 'c' command.
 
-    // Limit heading to 0 < heading < 6.28.
+    // Limit heading to 0 <= heading < 6.28.
     if (theta < 0)
     {
       theta += 6.28;
@@ -398,7 +399,7 @@ void parseRotation(char command[MAX_CHARACTERS])
 
   double heading = atof(data);
 
-  if (heading >= 0.0 && heading <= 6.27)
+  if (0.0 <= heading < 6.28)
   {
     rotateTo(heading); 
   }
@@ -585,7 +586,9 @@ void travel(double distance)
     travelled = sqrt(pow((startX - x), 2) + pow((startY - y), 2));
 
     if (travelled >= distance)
+    {
       break;
+    }
 
     if (millis() - timer > 1000)
     {
