@@ -12,7 +12,7 @@
 #   elif connection == serial
 #       baud=
 #       port=
-map=maps/bedroom15.map
+map=maps/bedroom30.map
 planner=d_star_lite
 mode=simulated
 #mode=physical

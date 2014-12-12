@@ -61,7 +61,7 @@ class Tester(threading.Thread):
         self.cell_size = float(infile.readline())
 
         # Addition of the boundary.
-        self.grid_size += self.cell_size
+        #self.grid_size += self.cell_size
         self.grid_size = int(self.grid_size / self.cell_size)
 
         self.robot.cell_size = self.cell_size
@@ -72,7 +72,7 @@ class Tester(threading.Thread):
         while y >= 0:
             line = infile.readline()
 
-            for x in range(self.grid_size):
+            for x in range(self.grid_size - 1):
                 if line[x] == "#":
                     self.map.grid[x][y].state = 2
                 elif line[x] == "R":

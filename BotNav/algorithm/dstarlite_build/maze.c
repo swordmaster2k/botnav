@@ -123,7 +123,7 @@ void establishmaze(FILE *file)
 	result = fscanf(file, "%f", &cellsize);
 	
 	mazesize = (int)(mazedimension / cellsize);
-	mazesize++; // for boundary cells
+	//mazesize++; // for boundary cells
 	
 	fpos_t pos;
 	result = fgetpos(file, &pos);
