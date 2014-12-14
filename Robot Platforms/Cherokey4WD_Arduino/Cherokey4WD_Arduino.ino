@@ -26,16 +26,19 @@ void setup()
   Serial.setTimeout(500);
   Serial.begin(115200);
 
-  Serial.println("Booting...\n");
+  Serial.println("Booting...");
+
+  // Setup this robot's buzzer.
+  pinMode(BUZZER_PIN, OUTPUT);
 
   // Join I2C bus (I2Cdev library doesn't do this automatically).
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
   TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
-  Serial.println("Using Arduino Wire library.\n");
+  Serial.println("Using Arduino Wire library.");
 #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
   Fastwire::setup(400, true);
-  Serial.println("Using Fastwire library.\n");
+  Serial.println("Using Fastwire library.");
 #endif
 
   // Setup the encoders.
@@ -78,7 +81,7 @@ void setup()
 
   // Verify connection.
   Serial.println(F("Testing MPU6050 connection..."));
-  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful\n") : F("MPU6050 connection failed\n"));
+  Serial.println(mpu.testConnection() ? F("MPU6050 connection successful") : F("MPU6050 connection failed"));
 
   // Load and configure the DMP.
   Serial.println(F("Initializing DMP..."));
@@ -89,6 +92,9 @@ void setup()
   mpu.setYGyroOffset(1185);
   mpu.setZGyroOffset(-85);
   mpu.setZAccelOffset(1788); // 1788 factory default for my test chip.
+  
+  // Let us know that the gyro is initialised.
+  playInitGyro();
 
   // Make sure it worked (returns 0 if so).
   if (devStatus == 0) 
@@ -103,7 +109,6 @@ void setup()
     mpuIntStatus = mpu.getIntStatus();
 
     // Set our DMP Ready flag so the main loop() function knows it's okay to use it.
-    Serial.println(F("DMP ready! Waiting for first interrupt..."));
     dmpReady = true;
 
     // Get expected DMP packet size for later comparison.
@@ -122,44 +127,115 @@ void setup()
     while (true) // Go it an infinite loop because we failed.
     {
       Serial.println("DMP failed...");
-      delay(1000);
+      playError();
+      delay(ERROR_CYCLE * 2);
     }
   }
-
-  Serial.println("\nReady\n");
 }
 
 void loop()
 {
-  // Wait for MPU interrupt or extra packet(s) available.
-  while (!mpuInterrupt && fifoCount < packetSize) 
-  {
-    if (Serial.available())
+  Serial.println(F("DMP ready! Waiting for first interrupt..."));
+  
+  // Do some initial gryo processing because the MPU6050 takes a couple of seconds
+  // to settle down and give the correct readings.
+  double lastReading = -1;
+  timer = millis();
+
+  while (true)
+  { 
+    while (!mpuInterrupt && fifoCount < packetSize)
     {
-      processSerial(); 
+      // Busy wait. 
     }
 
-    if (millis() - timer >= messageRate)
+    double currentReading = processGyro();
+    currentReading = processGyro();
+    
+    if (millis() - timer >= messageRate * 15)
     {
-      sendOdometry();     
       timer = millis();
-
-#if 0
-      Serial.print("left ticks: ");
-      Serial.println(leftTicks);
-      Serial.print("right ticks: ");
-      Serial.println(rightTicks);
-#endif
+      
+      if (currentReading > -1)
+      {
+        if (currentReading == lastReading) 
+        {
+          break; // It has settled down.
+        }
+        else
+        {
+          lastReading = currentReading;
+        }
+      }
     }
   }
 
-  processGyro();
-  updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+  Serial.println("\nReady\n");
+  playSuccess();
+  doOperation(); // Proceed to main loop.
 }
 
 /************************************************************
  * Rover Functions
  ************************************************************/
+
+void doOperation()
+{
+  while(true)
+  {
+    // Wait for MPU interrupt or extra packet(s) available.
+    while (!mpuInterrupt && fifoCount < packetSize) 
+    {
+      if (Serial.available())
+      {
+        processSerial(); 
+      }
+  
+      if (millis() - timer >= messageRate)
+      {
+        sendOdometry();     
+        timer = millis();
+  
+  #if 0
+        Serial.print("left ticks: ");
+        Serial.println(leftTicks);
+        Serial.print("right ticks: ");
+        Serial.println(rightTicks);
+  #endif
+      }
+    }
+  
+    processGyro();
+    updateOdometry(leftTicks - lastLeftTicks, rightTicks - lastRightTicks);
+  }
+}
+
+void playInitGyro()
+{
+  for (int i = 1; i <= GYRO_LENGTH; i++) 
+  { 
+    tone(BUZZER_PIN, 1, GYRO_CYCLE * 10);
+    delay(GYRO_CYCLE);
+  }
+}
+
+void playSuccess()
+{
+  for (int i = 1; i <= SUCCESS_LENGTH; i++) 
+  { 
+    tone(BUZZER_PIN, 1, SUCCESS_CYCLE * 10);
+    delay(SUCCESS_CYCLE);
+  }
+}
+
+void playError()
+{
+  for (int i = 1; i <= ERROR_LENGTH; i++) 
+  { 
+    tone(BUZZER_PIN, 10, ERROR_CYCLE * 10);
+    delay(ERROR_CYCLE); 
+  }
+}
 
 void processSerial()
 {
@@ -231,7 +307,7 @@ void processCommand(char command[])
   }
 }
 
-void processGyro()
+double processGyro()
 {
   // Reset interrupt flag and get INT_STATUS byte.
   mpuInterrupt = false;
@@ -246,6 +322,8 @@ void processGyro()
     // Reset so we can continue cleanly.
     mpu.resetFIFO();
     Serial.println(F("FIFO overflow!"));
+
+    return -1;
   } 
   else if (mpuIntStatus & 0x02) // Otherwise, check for DMP data ready interrupt (this should happen frequently).
   {
@@ -279,6 +357,8 @@ void processGyro()
     {
       theta -= 6.28;
     }
+
+    return theta;
   }
 }
 
@@ -687,7 +767,7 @@ void changeOdometry(char command[MAX_CHARACTERS])
 
     if (theta != newTheta)
     {
-       offset = newTheta - theta;
+      offset += newTheta - theta;
     }
   }
 }
@@ -791,3 +871,5 @@ double roundDigit(double number, int digits)
 
   return number;
 }
+
+

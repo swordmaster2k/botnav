@@ -13,6 +13,15 @@
 
 #define DEBUG 1
 
+// Buzzer constants.
+#define BUZZER_PIN 9
+#define GYRO_LENGTH 2
+#define GYRO_CYCLE 500
+#define SUCCESS_LENGTH 1
+#define SUCCESS_CYCLE 500
+#define ERROR_LENGTH 3
+#define ERROR_CYCLE 1000
+
 // Encoder interrupts.
 #define LEFT_INTERRUPT 0
 #define RIGHT_INTERRUPT 1
