@@ -89,7 +89,7 @@ Since threaded programming is notoriously difficult to understand the threading 
 \item Planner - Path Planning
 \end{itemize} 
 
-\subsection{Communications Protocol}
+\subsection{Communications Protocol}\label{sec:protocol}
 Very important section that covers the communication channel that a robot must implement and understand to interact with the navigation system, some of it will be covered here while the full specification along with example code should appear in the Appendix.
 
 %-------------------------------------------------------------------------------------------------------
@@ -103,31 +103,41 @@ By default the system is independent of any user interface and is designed aroun
 
 \section{Programming Platforms}
 
-\subsection{Unix Flavours}
-Target platform is Unix and its derivatives Linux and OSX, particularly Linux in this case. Choice was made because:
+\subsection{Linux Architecture}
+\noindent
+The Linux kernel is to date driving an increasing number of commercial and research robotic platforms all over the world including Google's Self Car Project \cite{•}, Baxter \cite{•}, Nao \cite{•}, EV3 Lego Mindstorms \cite{•}, and the horde of robots that use ROS \cite{•}. Linux is unique as it is mature, stable, customisable, embeddable, and freely available \cite{•}, making it a suitable candidate for powering the robot revolution. \\
+
+\noindent
+\textbf{INSERT PICTURE OF MENTIONED ROBOTS HERE WITH CITATIONS!} \\
+
+\noindent
+Considering all of the points previously mentioned Linux was picked as the target programming platform over any other alternatives. Linux's embeddable nature is important to this project as at least one of the physical robots may be equipped with the \textit{Raspberry Pi} \cite{•} a credit card size computer capable of running Linux. The system will be tested on two distributions of Linux, one embedded on the robot(s), the other connected externally:
 
 \begin{itemize}
-\item Unix is a mature standard and Linux is an open implementation of that standard.
-\item Linux lends itself to robotics as it is embeddable, ROS uses it.
-\item Candidates programming skills are predominantly Linux based.
+\item Raspbian ???? (Embedded)
+\item Ubuntu Linux 14.10 (External)
 \end{itemize} 
 
-Note the Linux distributions.
+\newpage
 
 \subsection{Python3}
-Provide a couple of reasons for using python like:
+Python version 3 (Python3) has been selected as the most appropriate core programming language for the implementation stage for the following reasons:
 
 \begin{itemize}
-\item Speed of development - no need to compile constantly to machine code.
-\item Interactive shell makes it very easy to test code on the fly.
-\item Also a key language missing from my skill set invaluable learning opportunity.
-\item Widely used in robotics ROS, Thrun's Udacity program .
+\item Development Speed - Python is an interpreted bytecode language which is compiled ``on the fly" eliminating lengthy build overheads.
+\item Interactive Shell - Python's shell facilitates interactive programming which lends itself to test driven coding.
+\item Python and Robotics - already widely used in the robotics field, Sebastian Thurn's Udacity program is done purely using Python \cite{•}.
 \end{itemize} 
 
-Note the version of Python.
+\noindent
+Python's syntax is also extremely lenient when compared to compiled languages such as C where every variable must explicitly declares its type before it can be used, making the equivalent Python code more visually compact. The implementation could have been carried out using C, C++, Java, or C$\sharp$ as the author already has the experience in those languages, however using Python instead presents a unique learning opportunity. 
 
 \subsection{Cython Modules}
-State that one drawback to python's flexibility is the potential loss of execution speed as it is an interpreted language. Thankfully Python can be extended using C with tools like Cython implementing the core algorithms this way gets around Python's performance issues. Note the version of GCC.
+\noindent
+A major drawback of interpreted languages is the speed of their execution when compared to compiled languages, since Python is implemented using a virtual machine it will nearly always be slower than pure machine code. It is important to take this issue into account at design time as the planning algorithms are computationally complex and as the state space increases Python will become less adapt at handling it compared to a compiled language. \\
+
+\noindent
+Fortunately as Python is wrote in C it can also be extend using C. Implementing the planning algorithms as Cython modules shall significantly increase their performance while still enabling the rest of the system to use Python. At the time of writing GCC (GNU C Compiler) version 4.9.1 has been selected for compilation purposes.
 
 \newpage
 
@@ -137,23 +147,40 @@ State that one drawback to python's flexibility is the potential loss of executi
 This section covers how the project was managed, the source control system used, frequency off commits, total commits, and any branching.
 
 \subsection{Git}
-Mention the fact that the project was controlled throughout its development with the Git source control version system. Give some reasons for this advantages, roll back, open standard, and a clear work history.
-
-\subsection{Open Repository}
-Project is hosted on Github and has a open repository under my user swordmaster2k, mention the ReadMe file and Licensing.
+\noindent
+Throughout the projects development all work undertaken including everything from the code base, poster, modelling, and thesis was managed and controlled using the Git source control tool. This decision was taken at design time as it came with a number of distinct advantages such as providing a clear work history and the ability to roll back changes if the need arose. Another important reason for choosing Git over other systems is that it maintains a local copy in addition to the working head in the remote repository \cite{•}. An open repository was set-up and maintained in the cloud at the GitHub \href{https://www.github.com/swordmaster2k/botnav}{BotNav}.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Hardware Agent Specification}
-Discuss the hardware requirements for a mobile agent that will use this system, include:
+\noindent
+As the path planning system implemented on the Linux host is designed to be independent from the hardware specifics of the robot it is necessary that all robots communicate with the planner in a predefined way. We have all ready discussed this mechanism under \ref{sec:protocol} from the software side now it is time to specify a generic robot that implements the interface. \\
+
+\noindent
+In order to be compatible with the planner a robot must have software/hardware:
 
 \begin{itemize}
-\item Odometers
-\item Communications
-\item External Sensors
+\item Odometers - capable of establishing an $(x, y)$ position in meters and $\theta$ in radians.
+\item Communications - a channel for processing text based data to and from the planner.
+\item External Sensors - at least one proximity sensor for detecting obstacles in the environment.
 \end{itemize}
 
-Also possibly mention some suitable components Arduino and Raspberry Pi in particular. 
+\newpage
+
+\noindent
+How accurate this hardware needs to be is completely dependent on the application, the planning system can only assume that any data it receives is valid. Any hardware inaccuracies i.e. drift must be dealt with at a lower level, the purpose of this approach is to decouple the planner from the robot's implementation details. This enables the planning system to be tested across a wide variety of platforms without having to account for each individual hardware configuration (Figure \ref{Figure: Hardware Agent Specification.}). It is perfectly possible that the planner and robot hardware control be implemented on the same physical system rather than externally this could be done via IP using the \textit{localhost} address.
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=400pt]{illustrations/hardware_agent_specification}\\
+\caption{The planner on the Linux host and robot platform communicate via a common communications bridge that they both understand regardless of implementation details.} 
+\label{Figure: Hardware Agent Specification.}
+
+\end{figure}
+
+\noindent
+Talk about a specific case for a robot probably the microbot or something here...
+
 
 \subsection{Motion Model}
 Very important that the motion model be mentioned here. This system assumes that the agent/robot can turn on the spot which differentiates it from most cars that are based on rack-and-pinion models.

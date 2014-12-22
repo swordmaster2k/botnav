@@ -7,7 +7,6 @@ import threading
 
 from pathlib import Path
 from threading import Thread
-from threading import Lock
 
 from proxy import Proxy
 from model.map import Map
