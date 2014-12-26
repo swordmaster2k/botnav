@@ -89,13 +89,25 @@ Since threaded programming is notoriously difficult to understand the threading 
 \item Planner - Path Planning
 \end{itemize} 
 
-\subsection{Communications Protocol}\label{sec:protocol}
-Very important section that covers the communication channel that a robot must implement and understand to interact with the navigation system, some of it will be covered here while the full specification along with example code should appear in the Appendix.
+\newpage
 
 %-------------------------------------------------------------------------------------------------------
 
-\section{User Interface Independence}
-By default the system is independent of any user interface and is designed around a core. User interfaces can be plugged in to tap into the functionality of that core while it remains independent, discuss this concept.
+\section{Communications Protocol}\label{sec:protocol}
+\noindent
+This section briefly discusses the communications protocol that a physical hardware robot must implement in order to be compatible with the planning system. The protocol covered here is an extension of the simple communications mechanism from \cite{JMD14} that was used to drive a tele-operated mapping robot. It is based on plain text strings terminated by new line characters ($\backslash$`n') and was designed with simplicity in mind. All commands are synchronous in behaviour and cannot be completed until the appropriate response has been returned. The complete specification is available in the Appendices under section \ref{Appendix: Communications Protocol Specification}.
+
+\subsection{Message Structure}
+\noindent
+
+\subsection{Travelling a Predefined Distance}
+\noindent
+
+\subsection{Rotating to a Given Heading}
+\noindent
+
+\subsection{Initiating a Scan}
+\noindent
 
 \newpage
 
@@ -168,7 +180,7 @@ In order to be compatible with the planner a robot must have software/hardware:
 \newpage
 
 \noindent
-How accurate this hardware needs to be is completely dependent on the application, the planning system can only assume that any data it receives is valid. Any hardware inaccuracies i.e. drift must be dealt with at a lower level, the purpose of this approach is to decouple the planner from the robot's implementation details. This enables the planning system to be tested across a wide variety of platforms without having to account for each individual hardware configuration (Figure \ref{Figure: Hardware Agent Specification.}). It is perfectly possible that the planner and robot hardware control be implemented on the same physical system rather than externally this could be done via IP using the \textit{localhost} address.
+How accurate this hardware needs to be is completely dependent on the application, the planning system can only assume that any data it receives is valid. Any hardware inaccuracies i.e. drift must be dealt with at a lower level, the purpose of this approach is to decouple the planner from a robot's implementation details. This enables the planning system to be tested across a wide variety of platforms without having to account for each individual hardware configuration (Figure \ref{Figure: Hardware Agent Specification.}). It is perfectly possible that the planner and robot hardware control be implemented on the same physical system rather than externally this could be done via IP using the \textit{localhost} address.
 
 \begin{figure}[htbp]
 
@@ -183,7 +195,8 @@ Talk about a specific case for a robot probably the microbot or something here..
 
 
 \subsection{Motion Model}
-Very important that the motion model be mentioned here. This system assumes that the agent/robot can turn on the spot which differentiates it from most cars that are based on rack-and-pinion models.
+\noindent
+The planner will impose some restrictions on the motion model that a robot must use to be compatible with the paths it produces. It will be assumed that the robot can perform on the spot rotations, this is necessary as all of the path planning algorithms \textit{may} produce paths that require this kind of motion. In wheeled and tracked vehicles this is typically referred to as \textit{skid steering} \cite{building robot drive trains}, on the spot rotations are achieved by running the drive systems on either side in opposite directions, a tank is good example of this. Legged robots are also capable of performing such turns, however the heading changes can be too extreme for rack-and-pinion based agents i.e. cars and trucks. 
 
 \newpage
 
