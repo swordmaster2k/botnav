@@ -95,19 +95,31 @@ Since threaded programming is notoriously difficult to understand the threading 
 
 \section{Communications Protocol}\label{sec:protocol}
 \noindent
-This section briefly discusses the communications protocol that a physical hardware robot must implement in order to be compatible with the planning system. The protocol covered here is an extension of the simple communications mechanism from \cite{JMD14} that was used to drive a tele-operated mapping robot. It is based on plain text strings terminated by new line characters ($\backslash$`n') and was designed with simplicity in mind. All commands are synchronous in behaviour and cannot be completed until the appropriate response has been returned. The complete specification is available in the Appendices under section \ref{Appendix: Communications Protocol Specification}.
-
-\subsection{Message Structure}
-\noindent
+This section briefly discusses the communications protocol that a physical hardware robot must implement in order to be compatible with the planning system. The protocol covered here is an extension of the simple communications mechanism from \cite{JMD14} that was used to drive a tele-operated mapping robot. It is based on plain text strings terminated by new line characters (`$\backslash$n') and was designed with simplicity in mind. All commands are synchronous in behaviour and cannot be completed until the appropriate response has been returned. The full specification is available in the Appendices under section \ref{Appendix: Communications Protocol Specification}.
 
 \subsection{Travelling a Predefined Distance}
 \noindent
+To instruct the robot to travel forward for a straight line distance of 1.3 metres the command is simply: \\
+
+\textit{t,1.3$\backslash$n} \\
+
+\noindent
+The `t' character literally stands for \textit{``travel"}, the distance specified as a decimal number comes immediately after the `,' character and can be any \textbf{positive} value, it must be terminated by a newline character. When the robot has completed the command it simply responses with the string: \\
+
+\textit{Travelled$\backslash$n} \\
+
+\noindent
+This informs the planner that the robot is no longer in motion and that the next planning step can now be processed. It is possible for a robot's local planner or obstacle avoidance system to abort the action by simply returning this response at any stage in the journey due to unforeseen obstacles. In these cases the robot should return the location of the obstacle(s) in its next scan report.
+
+\newpage
 
 \subsection{Rotating to a Given Heading}
 \noindent
 
+
 \subsection{Initiating a Scan}
 \noindent
+
 
 \newpage
 
