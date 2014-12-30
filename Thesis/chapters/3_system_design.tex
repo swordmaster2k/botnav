@@ -115,7 +115,15 @@ This informs the planner that the robot is no longer in motion and that the next
 
 \subsection{Rotating to a Given Heading}
 \noindent
+Valid headings run from 0 to 6.27 radians in a circular fashion, they increase from right to left around the circle. To instruct the robot to face a heading of 1.57 radians ($90^{\circ}$) the command is: \\
 
+\textit{r,1.57$\backslash$n} \\
+
+\noindent
+There is no explicit return value instead the planner waits until the odometry reports from the robot are within 0.02 radians ($1^{\circ}$) of the requested heading, the robot is then instructed to stop if it has not already done so. The planner uses both the travel and rotation commands in conjunction to navigate to specific points. \\
+
+\noindent
+First the robot is commanded to face a given point then the distance between its position and the target are calculated, secondly the robot is sent a travel command containing this information. Using this mechanism the robot is able to navigate complex environments with only the basic knowledge it requires, the rest is done by the planner.
 
 \subsection{Initiating a Scan}
 \noindent
