@@ -50,7 +50,7 @@ class Map:
             column = []
 
             for y in range(self.cells_square):
-                column.append(Cell(x, y, "", 0))  # Add an unknown cell.
+                column.append(Cell(x, y, "", 1))  # Add a free cell.
 
             self.grid.append(column)
 

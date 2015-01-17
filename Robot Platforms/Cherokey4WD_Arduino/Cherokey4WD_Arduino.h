@@ -41,7 +41,7 @@
 #define SERVO_PIN 8
 
 // Speed to run motors at.
-#define MOTOR_SPEED 255
+#define MOTOR_SPEED 150
 
 // Motor pin connections.
 #define M1 4

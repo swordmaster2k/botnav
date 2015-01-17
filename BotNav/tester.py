@@ -71,7 +71,7 @@ class Tester(threading.Thread):
         while y >= 0:
             line = infile.readline()
 
-            for x in range(self.grid_size - 1):
+            for x in range(self.grid_size):
                 if line[x] == "#":
                     self.map.grid[x][y].state = 2
                 elif line[x] == "R":
@@ -88,6 +88,8 @@ class Tester(threading.Thread):
                 elif line[x] == "G":
                     self.map.goal_x = x
                     self.map.goal_y = y
+                elif line[x] == " ":
+                    self.map.grid[x][y].state = 1
 
             y -= 1
 
@@ -169,7 +171,9 @@ class Tester(threading.Thread):
 
         command = ""
 
-        if NUMBER_OF_RUNS == 1:
+        if self.mode == "physical":
+            self.setup_output()
+
             print("Type \"begin\" to start run...")
 
             while command != "quit":
@@ -187,14 +191,32 @@ class Tester(threading.Thread):
                             self.planner.start()
                     elif command == "quit":
                         self.planner.finished = True
+
+            self.write_results()
         elif self.mode == "simulated":
-            self.planner.start()
-        else:
-            sys.stdout.write("Number of runs greater than 1 and not in simulated mode!")
+            # Ignore specified start for now and just plan from every cell
+            # that is not occupied excluding the goal.
+            for x in range(self.map.cells_square):
+                for y in range(self.map.cells_square):
+                    if self.map.grid[x][y].state == 1 and (self.map.goal_x != x or self.map.goal_y != y):
+                        self.setup_output()
 
-        while not self.planner.finished:
-            continue
+                        # Attempt to plan a path from this free cell.
+                        self.robot.trail = []
+                        self.robot.change_odometry(x * self.cell_size, y * self.cell_size, 1.57)
+                        self.planner = Planner(self.map, self.algorithm, self.proxy, self.output_file,
+                                               self.planner_paths_file)
+                        self.planner.start()
 
+                        while not self.planner.finished:
+                            continue
+
+                        self.write_results()
+                        self.algorithm.total_plan_steps = 0
+
+        self.lock.acquire()
+
+    def write_results(self):
         # Write out the actual path the robot took.
         result_generator.write_paths(self.robot_path_file, [self.robot.trail])
 
@@ -212,9 +234,7 @@ class Tester(threading.Thread):
         self.planner_paths_file.close()
 
         result_generator.generate_gnuplot(self.output_path, self.algorithm.total_plan_steps, self.grid_size,
-                                         GNU_PLOT_OUTPUT)
-
-        self.lock.acquire()
+                                          GNU_PLOT_OUTPUT)
 
 
 def load_config(config_file):
@@ -233,7 +253,7 @@ def load_config(config_file):
     algorithm = ""
     connection = None
     parameter_1 = None  # First connection parameter.
-    parameter_2 = None  # Second connection paramter.
+    parameter_2 = None  # Second connection parameter.
     config_file = p.open()
 
     while True:
@@ -303,7 +323,6 @@ def load_config(config_file):
     test.mode = mode
 
     test.open_map()
-    test.setup_output()
 
     if algorithm == "grid_nav":
         test.algorithm = GridNav(test.map)
