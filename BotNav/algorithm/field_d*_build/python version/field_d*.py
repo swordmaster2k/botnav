@@ -15,14 +15,15 @@ class Node:
         self.key = [None, None]
 
     def __str__(self):
-        return "x: " + str(self.x) + " y: " + str(self.y)
+        return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " rhs: " + str(self.rhs)
 
 
-s_goal = Node(2, 2)
+s_goal = Node(0, 0)
+s_start = Node(2, 2)
 
 # Sample set of 9 nodes.
-nodes = [[Node(0, 0), Node(0, 1), Node(0, 2)], [Node(1, 0), Node(2, 0), Node(2, 1)],
-         [Node(1, 1), Node(1, 2), Node(2, 2)]]
+nodes = [[s_goal, Node(0, 1), Node(0, 2)], [Node(1, 0), Node(1, 1), Node(1, 2)],
+         [Node(2, 0), Node(2, 1), s_start]]
 
 # Simple 2x2 grid with every cell cost set to 1.
 grid = [[1, 1], [1, 1]]
@@ -49,7 +50,7 @@ def get_neighbours(s):
         try:
             neighbours.append(nodes[s.x + direction[0]][s.y + direction[1]])
         except IndexError:
-            neighbours.append(None)
+            pass
 
     return neighbours
 
@@ -69,7 +70,9 @@ def get_consecutive_neighbours(s):
                      nodes[s.x + NEIGHBOUR_DIRECTIONS[i + 1][0]][s.y + NEIGHBOUR_DIRECTIONS[i + 1][1]]))
 
         except IndexError:
-            consecutive_neighbours.append(None)
+            pass
+        except AttributeError:
+            pass
 
     return consecutive_neighbours
 
@@ -159,29 +162,70 @@ def compute_cost(s, sa, sb):
 
 def update_state(s):
     if s is not s_goal:
-        rhs = LARGE
+        rhs = s.rhs
 
         for edge in get_consecutive_neighbours(s):
-            if edge is not None:
-                cost = compute_cost(s, edge[0], edge[1])  # s, sa, sb
+            cost = compute_cost(s, edge[0], edge[1])  # s, sa, sb
 
-                if cost < rhs:
-                    rhs = cost
+            if cost < rhs:
+                rhs = cost
 
-        s.rhs = cost
+        s.rhs = rhs
 
-    return None
+    if OPEN.count(s) > 0:
+        OPEN.remove(s)
+
+    if s.g != s.rhs:
+        key(s)
+        if len(OPEN) == 0:
+            OPEN.append(s)
+        else:
+            for i in range(len(OPEN)):
+                if s.key[0] <= OPEN[i].key[0] and s.key[1] <= OPEN[i].key[1]:
+                    OPEN.insert(i, s)
+                    return
+
+            OPEN.append(s)
 
 
 def compute_shortest_path():
-    return None
+    while (OPEN[0].key[0] < s_start.key[0] or OPEN[0].key[1] < s_start.key[1]) or s_start.rhs != s_start.g:
+        s = OPEN.pop()
 
-# Test Field D*.		
-s = Node(0, 0)
-sa = Node(2, 1)
-sb = Node(2, 2)
+        if s.g > s.rhs:
+            s.g = s.rhs
 
-print(compute_cost(s, sa, sb))
-print(get_neighbours(s))
-print(get_consecutive_neighbours(s))
-print(h(s))
+            for neighbour in get_neighbours(s):
+                if neighbour is not s_goal:
+                    update_state(neighbour)
+        else:
+            s.g = LARGE
+
+            for neighbour in get_neighbours(s):
+                if neighbour is not s_goal:
+                    update_state(neighbour)
+
+        if len(OPEN) == 0:
+            break
+
+
+def main():
+    s_start.g = LARGE
+    s_start.rhs = LARGE
+    key(s_start)
+
+    s_goal.g = LARGE
+    s_goal.rhs = 0
+    key(s_goal)
+    s_goal.key[1] = 0
+
+    OPEN.append(s_goal)
+
+    compute_shortest_path()
+
+    for column in nodes:
+        for node in column:
+            print(str(node))
+
+
+main()
