@@ -1,5 +1,6 @@
 import math
 
+PATH = []
 OPEN = []
 LARGE = 10000000000
 SQRT_2 = 1.414213562
@@ -31,7 +32,7 @@ grid = [[1, 1], [1, 1]]
 
 def h(s):
     # Heuristic based on straight line distance between two points.
-    return math.sqrt((s.y - s_goal.y) ** 2 + (s.x - s_goal.x) ** 2)
+    return round(math.sqrt((s.y - s_goal.y) ** 2 + (s.x - s_goal.x) ** 2), 3)
 
 
 def key(s):
@@ -61,13 +62,25 @@ def get_consecutive_neighbours(s):
     for i in range(len(NEIGHBOUR_DIRECTIONS)):
         try:
             if i == len(NEIGHBOUR_DIRECTIONS) - 1:  # Edge s8 -> s1
-                consecutive_neighbours.append(
-                    (nodes[s.x + NEIGHBOUR_DIRECTIONS[i][0]][s.y + NEIGHBOUR_DIRECTIONS[i][1]],
-                     nodes[s.x + NEIGHBOUR_DIRECTIONS[0][0]][s.y + NEIGHBOUR_DIRECTIONS[0][1]]))
+                x1 = s.x + NEIGHBOUR_DIRECTIONS[i][0]
+                y1 = s.y + NEIGHBOUR_DIRECTIONS[i][1]
+                x2 = s.x + NEIGHBOUR_DIRECTIONS[0][0]
+                y2 = s.y + NEIGHBOUR_DIRECTIONS[0][1]
+
+                if x1 > -1 and y1 > -1 and x2 > -1 and y2 > -1:
+                    consecutive_neighbours.append(
+                        (nodes[s.x + NEIGHBOUR_DIRECTIONS[i][0]][s.y + NEIGHBOUR_DIRECTIONS[i][1]],
+                         nodes[s.x + NEIGHBOUR_DIRECTIONS[0][0]][s.y + NEIGHBOUR_DIRECTIONS[0][1]]))
             else:  # All other edges.
-                consecutive_neighbours.append(
-                    (nodes[s.x + NEIGHBOUR_DIRECTIONS[i][0]][s.y + NEIGHBOUR_DIRECTIONS[i][1]],
-                     nodes[s.x + NEIGHBOUR_DIRECTIONS[i + 1][0]][s.y + NEIGHBOUR_DIRECTIONS[i + 1][1]]))
+                x1 = s.x + NEIGHBOUR_DIRECTIONS[i][0]
+                y1 = s.y + NEIGHBOUR_DIRECTIONS[i][1]
+                x2 = s.x + NEIGHBOUR_DIRECTIONS[i + 1][0]
+                y2 = s.y + NEIGHBOUR_DIRECTIONS[i + 1][1]
+
+                if x1 > -1 and y1 > -1 and x2 > -1 and y2 > -1:
+                    consecutive_neighbours.append(
+                        (nodes[s.x + NEIGHBOUR_DIRECTIONS[i][0]][s.y + NEIGHBOUR_DIRECTIONS[i][1]],
+                         nodes[s.x + NEIGHBOUR_DIRECTIONS[i + 1][0]][s.y + NEIGHBOUR_DIRECTIONS[i + 1][1]]))
 
         except IndexError:
             pass
@@ -157,7 +170,7 @@ def compute_cost(s, sa, sb):
     if vs > LARGE:
         vs = LARGE
 
-    return vs
+    return round(vs, 3)
 
 
 def update_state(s):
@@ -208,10 +221,54 @@ def compute_shortest_path():
         if len(OPEN) == 0:
             break
 
+    for column in nodes:
+        for node in column:
+            print(str(node))
+
+    # Extract the path.
+    while s_start.x != s_goal.y or s_start.y != s_goal.y:
+        consecutive_neighbours = get_consecutive_neighbours(Node(math.floor(s_start.x), math.floor(s_start.y)))
+
+        if len(consecutive_neighbours) > 0:
+            lowest_edge_cost = LARGE
+            lowest_pair = None
+
+            for edge in consecutive_neighbours:
+                if edge[0].g + edge[1].g < lowest_edge_cost:
+                    lowest_edge_cost = edge[0].g + edge[1].g
+                    lowest_pair = edge
+
+        # Always ensure that s1 has the highest g-value.
+        if lowest_pair[1].g < lowest_pair[0].g:
+            s1 = lowest_pair[1]
+            s2 = lowest_pair[0]
+        else:
+            s1 = lowest_pair[0]
+            s2 = lowest_pair[1]
+
+        f = s1.g - s2.g  # f = g(s1) - g(s2)
+
+        x_difference = s1.x - s2.x  # s1.x - s2
+
+        if x_difference != 0:
+            if x_difference > 0:
+                f = -f
+
+            s_start.x = s1.x + f
+            s_start.y = s1.y
+        else:
+            y_difference = s1.y - s2.y  # s1.y - s2.y
+
+            if y_difference > 0:
+                f = -f
+
+            s_start.x = s1.x
+            s_start.y = s2.y + f
+
+            PATH.append((s_start.x, s_start.y))
+
 
 def main():
-    s_start.g = LARGE
-    s_start.rhs = LARGE
     key(s_start)
 
     s_goal.g = LARGE
@@ -223,9 +280,10 @@ def main():
 
     compute_shortest_path()
 
-    for column in nodes:
-        for node in column:
-            print(str(node))
+    print('\n')
+
+    for point in PATH:
+        print(point)
 
 
 main()
