@@ -35,7 +35,7 @@ class GridNav(AbstractAlgorithm):
     Shortest Path soultion presented by Dijkstra.
     """
 
-    def __init__(self, map):
+    def __init__(self, map_state):
         """
         Initialises the GridNav algorithm with its default settings.
 
@@ -43,7 +43,7 @@ class GridNav(AbstractAlgorithm):
         :return: a new GridNav planner
         """
 
-        AbstractAlgorithm.__init__(self, map)
+        AbstractAlgorithm.__init__(self, map_state)
 
         self.planner_name = "GridNav"
 

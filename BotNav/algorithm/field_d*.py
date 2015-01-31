@@ -1,5 +1,7 @@
 import math
 
+from .abstract_algorithm import AbstractAlgorithm
+
 PATH = []
 OPEN = []
 LARGE = 10000000000
@@ -18,16 +20,39 @@ class Node:
     def __str__(self):
         return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " rhs: " + str(self.rhs)
 
+class FieldDStar(AbstractAlgorithm):
+    """
 
-s_goal = Node(0, 0)
-s_start = Node(2, 2)
+    """
 
-# Sample set of 9 nodes.
-nodes = [[s_goal, Node(0, 1), Node(0, 2)], [Node(1, 0), Node(1, 1), Node(1, 2)],
-         [Node(2, 0), Node(2, 1), s_start]]
+    def _init__(self, map_state):
+        AbstractAlgorithm.__init__(self, map_state)
+        self.planner_name = "Field D*"
 
-# Simple 2x2 grid with every cell cost set to 1.
-grid = [[1, 1], [1, 1]]
+        self.BIG_COST = 1000000
+        self.NEIGHBOUR_DIRECTIONS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1,), (1, -1)]
+
+        self.s_goal = Node(map_state.goal_x, map_state.goal_y)
+        self.s_start = Node(map_state.robot.x, map_state.robot.y)
+
+        self.nodes = []
+        self.setup_nodes()
+
+        self.open_list = []
+
+    def setup_nodes(self):
+        return
+
+s_goal = Node(0, 1)
+s_start = Node(3, 3)
+
+nodes = [[Node(0, 0), s_goal, Node(0, 2), Node(0, 3)],
+         [Node(1, 0), Node(1, 1), Node(1, 2), Node(1, 3)],
+         [Node(2, 0), Node(2, 1), Node(2, 2), Node(2, 3)],
+         [Node(3, 0), Node(3, 1), Node(3, 2), s_start]]
+
+# Simple 3x3 grid with every cell cost set to 1.
+grid = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
 
 
 def h(s):
@@ -226,7 +251,7 @@ def compute_shortest_path():
             print(str(node))
 
     # Extract the path.
-    while s_start.x != s_goal.y or s_start.y != s_goal.y:
+    while s_start.x != s_goal.x or s_start.y != s_goal.y:
         consecutive_neighbours = get_consecutive_neighbours(Node(math.floor(s_start.x), math.floor(s_start.y)))
 
         if len(consecutive_neighbours) > 0:
