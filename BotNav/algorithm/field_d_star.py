@@ -23,7 +23,7 @@ class FieldDStar(AbstractAlgorithm):
 
     """
 
-    def _init__(self, map_state):
+    def __init__(self, map_state):
         AbstractAlgorithm.__init__(self, map_state)
         self.planner_name = "Field D*"
 
@@ -40,6 +40,8 @@ class FieldDStar(AbstractAlgorithm):
 
         self.open_list = []
 
+        self.key(self.s_start)
+
         self.s_goal.g = self.BIG_COST
         self.s_goal.rhs = 0
         self.key(self.s_goal)
@@ -55,13 +57,15 @@ class FieldDStar(AbstractAlgorithm):
         """
 
         for x in range(self.map_state.cells_square + 1):
+            column = []
             for y in range(self.map_state.cells_square + 1):
                 if x == self.map_state.goal_x and y == self.map_state.goal_y:  # Goal
-                    self.nodes.append(self.s_goal)
+                    column.append(self.s_goal)
                 elif x == self.map_state.goal_x and y == self.map_state.goal_y:  # Start
-                    self.nodes.append(self.s_start)
+                    column.append(self.s_start)
                 else:
-                    self.nodes.append(Node(x, y))
+                    column.append(Node(x, y))
+            self.nodes.append(column)
 
     def setup_occupancy_grid(self):
         """
@@ -282,7 +286,7 @@ class FieldDStar(AbstractAlgorithm):
             if len(self.open_list) == 0:
                 break
 
-        for column in nodes:
+        for column in self.nodes:
             for node in column:
                 print(str(node))
 
@@ -300,39 +304,42 @@ class FieldDStar(AbstractAlgorithm):
                         lowest_edge_cost = edge[0].g + edge[1].g
                         lowest_pair = edge
 
-            # Always ensure that s1 has the highest g-value.
-            if lowest_pair[1].g < lowest_pair[0].g:
-                s1 = lowest_pair[1]
-                s2 = lowest_pair[0]
-            else:
-                s1 = lowest_pair[0]
-                s2 = lowest_pair[1]
+                if lowest_pair is not None:
+                    # Always ensure that s1 has the highest g-value.
+                    if lowest_pair[1].g < lowest_pair[0].g:
+                        s1 = lowest_pair[1]
+                        s2 = lowest_pair[0]
+                    else:
+                        s1 = lowest_pair[0]
+                        s2 = lowest_pair[1]
 
-            f = s1.g - s2.g  # f = g(s1) - g(s2)
+                    f = s1.g - s2.g  # f = g(s1) - g(s2)
 
-            x_difference = s1.x - s2.x  # s1.x - s2
+                    x_difference = s1.x - s2.x  # s1.x - s2
 
-            if x_difference != 0:
-                if x_difference > 0:
-                    f = -f
+                    if x_difference != 0:
+                        if x_difference > 0:
+                            f = -f
 
-                self.s_start.x = s1.x + f
-                self.s_start.y = s1.y
-            else:
-                y_difference = s1.y - s2.y  # s1.y - s2.y
+                        self.s_start.x = s1.x + f
+                        self.s_start.y = s1.y
+                    else:
+                        y_difference = s1.y - s2.y  # s1.y - s2.y
 
-                if y_difference > 0:
-                    f = -f
+                        if y_difference > 0:
+                            f = -f
 
-                self.s_start.x = s1.x
-                self.s_start.y = s2.y + f
+                        self.s_start.x = s1.x
+                        self.s_start.y = s2.y + f
 
-            self.path.append((self.s_start.x, self.s_start.y))
+                    self.path.append((self.s_start.x, self.s_start.y))
 
     def update_occupancy_grid(self, cells):
         """
         Updates the occupancy grid based on the cells that were updated on
         the map.
+
+        NOTE: NEEDS WORK BUT CURRENTLY NOT BEING USED!!!
 
         :param cells: affected cells
         :return: none
@@ -399,7 +406,7 @@ class FieldDStar(AbstractAlgorithm):
             footer += start_spacing + str((self.map_state.cells_square - 1) - y) + end_spacing
 
             for x in range(self.map_state.cells_square):
-                cost = grid[x][y].data.cost
+                cost = grid[x][y].data
                 padding = ""
 
                 if cost < 10:
@@ -464,7 +471,7 @@ class FieldDStar(AbstractAlgorithm):
                     symbol = "ROBOT"
                 elif x == self.map_state.goal_x and y == self.map_state.goal_y:
                     symbol = "GOAL "
-                elif grid[x][y].data.occupancy == self.FULL:
+                elif grid[x][y].state == 2:
                     symbol = "#####"
                 else:
                     for point in self.path:
@@ -481,35 +488,3 @@ class FieldDStar(AbstractAlgorithm):
 
         stream.write(rows + "\n")
         stream.write(footer + "\n\n")
-
-
-s_goal = Node(0, 1)
-s_start = Node(3, 3)
-
-nodes = [[Node(0, 0), s_goal, Node(0, 2), Node(0, 3)],
-         [Node(1, 0), Node(1, 1), Node(1, 2), Node(1, 3)],
-         [Node(2, 0), Node(2, 1), Node(2, 2), Node(2, 3)],
-         [Node(3, 0), Node(3, 1), Node(3, 2), s_start]]
-
-# Simple 3x3 grid with every cell cost set to 1.
-grid = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-
-def main():
-    key(s_start)
-
-    s_goal.g = LARGE
-    s_goal.rhs = 0
-    key(s_goal)
-    s_goal.key[1] = 0
-
-    OPEN.append(s_goal)
-
-    compute_shortest_path()
-
-    print('\n')
-
-    for point in PATH:
-        print(point)
-
-
-main()
