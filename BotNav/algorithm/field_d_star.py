@@ -31,7 +31,7 @@ class FieldDStar(AbstractAlgorithm):
         self.NEIGHBOUR_DIRECTIONS = [(1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1,), (1, -1)]
 
         self.s_goal = Node(map_state.goal_x, map_state.goal_y)
-        self.s_start = Node(map_state.robot.x, map_state.robot.y)
+        self.s_start = Node(map_state.robot.get_cell_x(), map_state.robot.get_cell_y())
 
         self.nodes = []
         self.setup_nodes()
@@ -95,7 +95,8 @@ class FieldDStar(AbstractAlgorithm):
 
     def h(self, s):
         # Heuristic based on straight line distance between two points.
-        return round(math.sqrt((s.y - self.s_goal.y) ** 2 + (s.x - self.s_goal.x) ** 2), 3)
+        return abs(s.y - self.s_goal.y) + abs(s.x - self.s_goal.x)
+        #return round(math.sqrt((s.y - self.s_goal.y) ** 2 + (s.x - self.s_goal.x) ** 2), 3)
 
     def key(self, s):
         if s.g < s.rhs:
@@ -295,6 +296,12 @@ class FieldDStar(AbstractAlgorithm):
             consecutive_neighbours = self.get_consecutive_neighbours(Node(math.floor(self.s_start.x),
                                                                           math.floor(self.s_start.y)))
 
+            print(self.s_start.x)
+            print(self.s_start.y)
+            print(math.floor(self.s_start.x))
+            print(math.floor(self.s_start.y))
+            print('\n')
+
             if len(consecutive_neighbours) > 0:
                 lowest_edge_cost = self.BIG_COST
                 lowest_pair = None
@@ -305,8 +312,12 @@ class FieldDStar(AbstractAlgorithm):
                         lowest_pair = edge
 
                 if lowest_pair is not None:
+                    print('\n')
+                    print(str(lowest_pair[0]))
+                    print(str(lowest_pair[1]))
+
                     # Always ensure that s1 has the highest g-value.
-                    if lowest_pair[1].g < lowest_pair[0].g:
+                    if lowest_pair[0].g < lowest_pair[1].g:
                         s1 = lowest_pair[1]
                         s2 = lowest_pair[0]
                     else:
@@ -314,6 +325,7 @@ class FieldDStar(AbstractAlgorithm):
                         s2 = lowest_pair[1]
 
                     f = s1.g - s2.g  # f = g(s1) - g(s2)
+                    print("f: " + str(f))
 
                     x_difference = s1.x - s2.x  # s1.x - s2
 
@@ -321,7 +333,7 @@ class FieldDStar(AbstractAlgorithm):
                         if x_difference > 0:
                             f = -f
 
-                        self.s_start.x = s1.x + f
+                        self.s_start.x = self.s_start.x + f
                         self.s_start.y = s1.y
                     else:
                         y_difference = s1.y - s2.y  # s1.y - s2.y
@@ -330,7 +342,7 @@ class FieldDStar(AbstractAlgorithm):
                             f = -f
 
                         self.s_start.x = s1.x
-                        self.s_start.y = s2.y + f
+                        self.s_start.y = self.s_start.y + f
 
                     self.path.append((self.s_start.x, self.s_start.y))
 
