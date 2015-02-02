@@ -81,13 +81,25 @@ Class diagrams showing relationships between entities such as inheritance, each 
 \subsection{Threaded Architecture}
 
 \noindent
-Since threaded programming is notoriously difficult to understand the threading model that the system uses will be covered here in detail, around 1-2 pages. Include a high level diagram and state how each thread interacts with the others. Likely to be around three threads:
+The \textit{BotNav} navigation system contains three separate threads of execution each of which perform a specific task, they are the central, proxy, and planner threads. As threaded programming is notoriously difficult to understand we will cover the architecture here in detail. The task of the three threads can be summarised as follows: 
 
 \begin{itemize}
-\item Main - User interaction
-\item Proxy - Robot Communications
-\item Planner - Path Planning
+\item \textbf{Central} - Deals with user input, configuration, initial execution, and pre-emptive termination. 
+\item \textbf{Proxy} - Provides a two way communications channel to a physical robot for sending commands and receiving updates.
+\item \textbf{Planner} - Interacts with the planning algorithm and produces a string of points that the robot iteratively navigates to.
 \end{itemize} 
+
+\subsubsection*{Central Thread}
+\noindent
+The central thread deals with user input i.e. the configuration file, based on the parameters in the configuration file it may spawn both the proxy \textit{and} planner threads or just the planner thread. In simulation mode the central thread will spawn $n$ planner threads one after another, where $n$ is the total number of traversable cells, as each planner finishes another begins. In physical mode only one planner thread is spawned as it is only practical to carry out one journey with a real robot. \textit{BotNav} terminates execution after all of the central thread's children complete. 
+
+\subsubsection*{Proxy Thread}
+\noindent
+...
+
+\subsubsection*{Planner Thread}
+\noindent
+...
 
 \newpage
 
