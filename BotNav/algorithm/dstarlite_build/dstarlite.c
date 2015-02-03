@@ -36,7 +36,7 @@ setup(PyObject *self, PyObject *args)
 	const char *filepath;
 	
 	result = PyArg_ParseTuple(args, "s", &filepath);
-	
+
 	if (result)
 	{
 		FILE *file;
@@ -126,13 +126,13 @@ getoccupancygrid(PyObject *self, PyObject *args)
 			{
 			    PyList_SetItem(column, x, Py_BuildValue("s", "G"));
 			}
-			else if (maze[y][x].obstacle)
+			else if (!maze[y][x].obstacle)
 			{
-			    PyList_SetItem(column, x, Py_BuildValue("s", "#"));
+			    PyList_SetItem(column, x, Py_BuildValue("s", " "));
 			}
 			else
 			{
-			    PyList_SetItem(column, x, Py_BuildValue("s", " "));
+			    PyList_SetItem(column, x, Py_BuildValue("s", "#"));
 			}
 		}
 

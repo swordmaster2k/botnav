@@ -127,7 +127,7 @@ void establishmaze(FILE *file)
 	
 	fpos_t pos;
 	result = fgetpos(file, &pos);
-	
+
 	char	c;
 	int	x, y, k;
 	short foundrobot = 0, foundgoal = 0;
@@ -136,7 +136,7 @@ void establishmaze(FILE *file)
 	 * positions */
 	for (y = mazesize; y >= 0; --y)
 	{
-		for (x = 0; x < mazesize; ++x) 
+		for (x = 0; x < mazesize; ++x)
 		{
 			/*--- Get a character ---*/
 			k = fscanf(file, "%c", &c);
@@ -155,6 +155,8 @@ void establishmaze(FILE *file)
 				startx = x;
 				starty = y;
 				foundgoal = 1;
+
+				fprintf(stdout, "%i", y);
 			}
 
 			/*--- If it's the end of a line ---*/
@@ -175,9 +177,9 @@ void establishmaze(FILE *file)
 	preprocessmaze();
 
 	/* run back over the file looking for obstacles and free space */
-	for (y = mazesize; y >= 0; --y)
+	for (y = mazesize; y > 0; --y)
 	{
-		for (x = 0; x < mazesize; ++x) 
+		for (x = 0; x < mazesize; ++x)
 		{
 			/*--- Get a character ---*/
 			k = fscanf(file, "%c", &c);

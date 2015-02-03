@@ -12,7 +12,7 @@
 #   elif connection == serial
 #       baud=
 #       port=
-map=maps/simple30.map
+map=maps/board30.map
 planner=field_d_star
 mode=simulated
 #mode=physical
