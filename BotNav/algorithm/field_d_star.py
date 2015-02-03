@@ -85,7 +85,7 @@ class FieldDStar(AbstractAlgorithm):
                         (y == 0) or (y == (self.map_state.cells_square - 1))):
                     data = self.BIG_COST
                 elif x == self.map_state.goal_x and y == self.map_state.goal_y:
-                    data = 0
+                    data = 1
                 elif self.map_state.grid[x][y].state == 2:  # Occupied
                     data = self.BIG_COST
                 else:

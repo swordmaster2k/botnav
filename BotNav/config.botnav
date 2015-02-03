@@ -13,7 +13,7 @@
 #       baud=
 #       port=
 map=maps/simple30.map
-planner=d_star_lite
+planner=field_d_star
 mode=simulated
 #mode=physical
 #connection=bluetooth
