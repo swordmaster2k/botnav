@@ -205,6 +205,7 @@ class Tester(threading.Thread):
                         # Attempt to plan a path from this free cell.
                         self.robot.trail = []
                         self.robot.change_odometry(x * self.cell_size, y * self.cell_size, 1.57)
+                        self.algorithm.__init__(self.map)
                         self.planner = Planner(self.map, self.algorithm, self.proxy, self.output_file,
                                                self.planner_paths_file)
                         self.planner.start()
@@ -213,7 +214,6 @@ class Tester(threading.Thread):
                             continue
 
                         self.write_results()
-                        self.algorithm.total_plan_steps = 0
 
         self.lock.acquire()
 

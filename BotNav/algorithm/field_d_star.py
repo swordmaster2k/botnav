@@ -291,6 +291,17 @@ class FieldDStar(AbstractAlgorithm):
             for node in column:
                 print(str(node))
 
+        print("s_x:" + str(self.s_start.x))
+        print("s_y:" + str(self.s_start.y))
+
+        # Post process nodes ensure all occupied nodes have a cost of BIG_COST.
+        for x in range(self.map_state.cells_square):
+            for y in range(self.map_state.cells_square):
+                if self.map_state.grid[x][y].data == self.BIG_COST:
+                    self.nodes[x][y].g = self.BIG_COST
+                    self.nodes[x][y].rhs = self.BIG_COST
+                    print(self.nodes[x][y])
+
         # Extract the path.
         while self.s_start.x != self.s_goal.x or self.s_start.y != self.s_goal.y:
             consecutive_neighbours = self.get_consecutive_neighbours(Node(math.floor(self.s_start.x),
@@ -312,37 +323,44 @@ class FieldDStar(AbstractAlgorithm):
                         lowest_pair = edge
 
                 if lowest_pair is not None:
-                    print('\n')
-                    print(str(lowest_pair[0]))
-                    print(str(lowest_pair[1]))
-
-                    # Always ensure that s1 has the highest g-value.
-                    if lowest_pair[0].g < lowest_pair[1].g:
-                        s1 = lowest_pair[1]
-                        s2 = lowest_pair[0]
+                    if lowest_pair[0] == self.s_goal:
+                        self.s_start.x = lowest_pair[0].x
+                        self.s_start.y = lowest_pair[0].y
+                    elif lowest_pair[1] == self.s_goal:
+                        self.s_start.x = lowest_pair[1].x
+                        self.s_start.y = lowest_pair[1].y
                     else:
-                        s1 = lowest_pair[0]
-                        s2 = lowest_pair[1]
+                        print('\n')
+                        print(str(lowest_pair[0]))
+                        print(str(lowest_pair[1]))
 
-                    f = s1.g - s2.g  # f = g(s1) - g(s2)
-                    print("f: " + str(f))
+                        # Always ensure that s1 has the highest g-value.
+                        if lowest_pair[0].g < lowest_pair[1].g:
+                            s1 = lowest_pair[1]
+                            s2 = lowest_pair[0]
+                        else:
+                            s1 = lowest_pair[0]
+                            s2 = lowest_pair[1]
 
-                    x_difference = s1.x - s2.x  # s1.x - s2
+                        f = s1.g - s2.g  # f = g(s1) - g(s2)
+                        print("f: " + str(f))
 
-                    if x_difference != 0:
-                        if x_difference > 0:
-                            f = -f
+                        x_difference = s1.x - s2.x  # s1.x - s2
 
-                        self.s_start.x = self.s_start.x + f
-                        self.s_start.y = s1.y
-                    else:
-                        y_difference = s1.y - s2.y  # s1.y - s2.y
+                        if x_difference != 0:
+                            if x_difference > 0:
+                                f = -f
 
-                        if y_difference > 0:
-                            f = -f
+                            self.s_start.x = self.s_start.x + f
+                            self.s_start.y = s1.y
+                        else:
+                            y_difference = s1.y - s2.y  # s1.y - s2.y
 
-                        self.s_start.x = s1.x
-                        self.s_start.y = self.s_start.y + f
+                            if y_difference > 0:
+                                f = -f
+
+                            self.s_start.x = s1.x
+                            self.s_start.y = self.s_start.y + f
 
                     self.path.append((self.s_start.x, self.s_start.y))
 
