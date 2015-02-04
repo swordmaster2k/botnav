@@ -126,6 +126,10 @@ getoccupancygrid(PyObject *self, PyObject *args)
 			{
 			    PyList_SetItem(column, x, Py_BuildValue("s", "G"));
 			}
+			else if (x == 0 || x == mazesize - 1 || y == 0 || y == mazesize - 1)
+			{
+			    PyList_SetItem(column, x, Py_BuildValue("s", "#"));
+			}
 			else if (!maze[y][x].obstacle)
 			{
 			    PyList_SetItem(column, x, Py_BuildValue("s", " "));

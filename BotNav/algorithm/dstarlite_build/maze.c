@@ -155,8 +155,6 @@ void establishmaze(FILE *file)
 				startx = x;
 				starty = y;
 				foundgoal = 1;
-
-				fprintf(stdout, "%i", y);
 			}
 
 			/*--- If it's the end of a line ---*/
