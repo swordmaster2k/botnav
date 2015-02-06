@@ -14,6 +14,7 @@ class Node:
         self.rhs = 1000000
         self.key = [None, None]
 
+    @property
     def __str__(self):
         return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " rhs: " + str(self.rhs)
 
@@ -56,6 +57,7 @@ class FieldDStar(AbstractAlgorithm):
         :return: none
         """
 
+        # +1 here as nodes sit a cell corners meaning that there are n + 1 nodes where n is the number of cells.
         for x in range(self.map_state.cells_square + 1):
             column = []
             for y in range(self.map_state.cells_square + 1):
@@ -78,25 +80,24 @@ class FieldDStar(AbstractAlgorithm):
         for x in range(self.map_state.cells_square):
             for y in range(self.map_state.cells_square):
                 '''
-                If it's a cell on the boundary, set it up to be an obstacle,
-                and scheduled. This will prevent expanding nodes out of bounds.
+                If it's a cell on the boundary or occupied set it to a high cost.
                 '''
                 if ((x == 0) or (x == (self.map_state.cells_square - 1)) or
-                        (y == 0) or (y == (self.map_state.cells_square - 1))):
-                    data = self.BIG_COST
-                elif x == self.map_state.goal_x and y == self.map_state.goal_y:
-                    data = 1
-                elif self.map_state.grid[x][y].state == 2:  # Occupied
+                        (y == 0) or (y == (self.map_state.cells_square - 1))) or \
+                        self.map_state.grid[x][y].state == 2:
                     data = self.BIG_COST
                 else:
                     data = 1
 
                 self.map_state.grid[x][y].data = data
 
+    @staticmethod
+    def get_distance(s, s1):
+        return round(math.sqrt((s.y - s1.y) ** 2 + (s.x - s1.x) ** 2), 3)
+
     def h(self, s):
         # Heuristic based on straight line (euclidean) distance between two points.
         return round(math.sqrt((s.y - self.s_start.y) ** 2 + (s.x - self.s_start.x) ** 2), 3)
-        #return abs(s.y - self.s_goal.y) + abs(s.x - self.s_goal.x)
 
     def key(self, s):
         if s.g < s.rhs:
@@ -168,6 +169,8 @@ class FieldDStar(AbstractAlgorithm):
             return self.BIG_COST
 
     def compute_cost(self, s, sa, sb):
+        self.vertex_accesses += 1
+
         if self.is_diagonal_neighbour(s, sa):
             s1 = sb
             s2 = sa
@@ -271,20 +274,6 @@ class FieldDStar(AbstractAlgorithm):
                 self.s_start.rhs != self.s_start.g:
             s = self.open_list.pop()
 
-            '''
-            if s is not self.s_goal:
-                x_difference = self.s_start.x - s.x
-                y_difference = self.s_start.y - s.y
-
-                if x_difference < 0:
-                    x_difference = -x_difference
-
-                if y_difference < 0:
-                    y_difference = -y_difference
-
-                s.g = x_difference + y_difference
-            '''
-
             if s.g > s.rhs:
                 s.g = s.rhs
 
@@ -298,8 +287,8 @@ class FieldDStar(AbstractAlgorithm):
                     if neighbour is not self.s_goal:
                         self.update_state(neighbour)
 
-            if len(self.open_list) == 0:
-                break
+            #if len(self.open_list) == 0:
+            #    break
 
         for column in self.nodes:
             for node in column:
