@@ -40,6 +40,9 @@ class DStarLite(AbstractAlgorithm):
         self.path = dstarlite_c.getrobotpath()
         self.vertex_accesses = dstarlite_c.getvertexaccesses()
 
+        if self.do_smooth_path:
+            self.smooth()
+
     def update_occupancy_grid(self, cells):
         for cell in cells:
             '''

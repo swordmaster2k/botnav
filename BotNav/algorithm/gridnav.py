@@ -299,10 +299,10 @@ class GridNav(AbstractAlgorithm):
             if str(err) == "maximum recursion depth exceeded in comparison":
                 raise NoPathException("No path to Goal!")
 
-        if self.do_smooth_path:
-            self.path = self.smooth_path(self.path)
-
         self.time_taken += round(time.process_time() - start_time, 3)
+
+        if self.do_smooth_path:
+            self.smooth()
 
     def build_path(self, x, y):
         """

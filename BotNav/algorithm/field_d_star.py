@@ -14,7 +14,6 @@ class Node:
         self.rhs = 1000000
         self.key = [None, None]
 
-    @property
     def __str__(self):
         return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " rhs: " + str(self.rhs)
 
@@ -269,6 +268,9 @@ class FieldDStar(AbstractAlgorithm):
 
         self.time_taken += round(time.process_time() - start_time, 3)
 
+        if self.do_smooth_path:
+            self.smooth()
+
     def compute_shortest_path(self):
         while (self.open_list[0].key[0] < self.s_start.key[0] and self.open_list[0].key[1] < self.s_start.key[1]) or \
                 self.s_start.rhs != self.s_start.g:
@@ -287,8 +289,8 @@ class FieldDStar(AbstractAlgorithm):
                     if neighbour is not self.s_goal:
                         self.update_state(neighbour)
 
-            #if len(self.open_list) == 0:
-            #    break
+            if len(self.open_list) == 0:
+                break
 
         for column in self.nodes:
             for node in column:

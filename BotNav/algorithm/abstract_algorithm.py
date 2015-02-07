@@ -21,7 +21,7 @@ class AbstractAlgorithm:
         self.robot = self.map_state.robot
 
         self.path = []  # Contains a list of (x, y) points in cell units.
-        self.do_smooth_path = False  # Enable global path smoothing?
+        self.do_smooth_path = True  # Enable global path smoothing?
 
         # For debugging.
         self.vertex_accesses = 0  # Number of times any vertex is accessed.
@@ -71,35 +71,42 @@ class AbstractAlgorithm:
 
         raise NotImplementedError
 
-    @staticmethod
-    def smooth_path(path, weight_data=0.5, weight_smooth=0.5, tolerance=0.000001):
+    def smooth(self, weight_data=0.1, weight_smooth=0.1,
+               tolerance=0.000001):
         """
-        Smooths a path. Taken from Sebastian Thurn's Udacity lectures on self driving cars.
+        Taken from Sebastian Thrun's Udacity program code.
 
-        :param path:
         :param weight_data:
         :param weight_smooth:
         :param tolerance:
         :return:
         """
 
-        # Make a deep copy of path into newpath.
-        newpath = [[0 for col in range(len(path[0]))] for row in range(len(path))]
-        for i in range(len(path)):
-            for j in range(len(path[0])):
-                newpath[i][j] = path[i][j]
+        if self.path is []:
+            return
+
+        spath = [[0 for row in range(len(self.path[0]))]for col in range(len(self.path))]
+
+        for i in range(len(self.path)):
+            for j in range(len(self.path[0])):
+                spath[i][j] = self.path[i][j]
 
         change = tolerance
         while change >= tolerance:
             change = 0.0
-            for i in range(1, len(path) - 1):
-                for j in range(len(path[0])):
-                    aux = newpath[i][j]
-                    newpath[i][j] += weight_data * (path[i][j] - newpath[i][j])
-                    newpath[i][j] += weight_smooth * (newpath[i - 1][j] + newpath[i + 1][j] - (2.0 * newpath[i][j]))
-                    change +- abs(aux - newpath[i][j])
+            for i in range(1, len(self.path) - 1):
+                for j in range(len(self.path[0])):
+                    aux = spath[i][j]
 
-        return newpath
+                    spath[i][j] += weight_data * (self.path[i][j] - spath[i][j])
+
+                    spath[i][j] += weight_smooth * (spath[i - 1][j] + spath[i + 1][j] - (2.0 * spath[i][j]))
+                    if i >= 2:
+                        spath[i][j] += 0.5 * weight_smooth * (2.0 * spath[i - 1][j] - spath[i - 2][j] - spath[i][j])
+                    if i <= len(self.path) - 3:
+                        spath[i][j] += 0.5 * weight_smooth * (2.0 * spath[i + 1][j] - spath[i + 2][j] - spath[i][j])
+
+            change += abs(aux - spath[i][j])
 
     def print_path(self, stream):
         """
