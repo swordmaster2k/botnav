@@ -276,7 +276,6 @@ class GridNav(AbstractAlgorithm):
         self.total_plan_steps += 1
         start_time = time.process_time()
 
-        result = self.EMPTY
         self.insert_node(self.map_state.goal_x, self.map_state.goal_y, 0.0)
 
         while self.open_head != self.EMPTY:

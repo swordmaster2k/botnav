@@ -13,9 +13,11 @@ class Node:
         self.g = 1000000
         self.rhs = 1000000
         self.key = [None, None]
+        self.evaluations = 0
 
     def __str__(self):
-        return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " rhs: " + str(self.rhs)
+        return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " rhs: " + str(self.rhs) + \
+               " evaluations: " + str(self.evaluations)
 
 
 class FieldDStar(AbstractAlgorithm):
@@ -83,7 +85,7 @@ class FieldDStar(AbstractAlgorithm):
                 '''
                 if ((x == 0) or (x == (self.map_state.cells_square - 1)) or
                         (y == 0) or (y == (self.map_state.cells_square - 1))) or \
-                        self.map_state.grid[x][y].state == 2:
+                                self.map_state.grid[x][y].state == 2:
                     data = self.BIG_COST
                 else:
                     data = 1
@@ -141,7 +143,8 @@ class FieldDStar(AbstractAlgorithm):
                     if x1 > -1 and y1 > -1 and x2 > -1 and y2 > -1:
                         consecutive_neighbours.append(
                             (self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[i][0]][s.y + self.NEIGHBOUR_DIRECTIONS[i][1]],
-                             self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[i + 1][0]][s.y + self.NEIGHBOUR_DIRECTIONS[i + 1][1]]))
+                             self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[i + 1][0]][
+                                 s.y + self.NEIGHBOUR_DIRECTIONS[i + 1][1]]))
 
             except IndexError:
                 pass
@@ -169,6 +172,7 @@ class FieldDStar(AbstractAlgorithm):
 
     def compute_cost(self, s, sa, sb):
         self.vertex_accesses += 1
+        s.evaluations += 1
 
         if self.is_diagonal_neighbour(s, sa):
             s1 = sb
@@ -232,18 +236,23 @@ class FieldDStar(AbstractAlgorithm):
             vs = self.BIG_COST
 
         return round(vs, 3)
+        #return round(math.sqrt((s.y - self.s_goal.y) ** 2 + (s.x - self.s_goal.x) ** 2), 3)
 
     def update_state(self, s):
         if s is not self.s_goal:
             rhs = s.rhs
 
             for edge in self.get_consecutive_neighbours(s):
-                cost = self.compute_cost(s, edge[0], edge[1])  # s, sa, sb
+                if edge[0].g != self.BIG_COST or edge[1].g != self.BIG_COST:
+                    if edge[0].g < s.g:
+                        cost = self.compute_cost(s, edge[0], edge[1])  # s, sa, sb
 
-                if cost < rhs:
-                    rhs = cost
+                        if cost < rhs:
+                            rhs = cost
 
-            s.rhs = rhs
+            if rhs < s.rhs:
+                s.rhs = rhs
+                print("lowered cost of " + str(s) + "\n")
 
         if self.open_list.count(s) > 0:
             self.open_list.remove(s)
@@ -281,13 +290,19 @@ class FieldDStar(AbstractAlgorithm):
 
                 for neighbour in self.get_neighbours(s):
                     if neighbour is not self.s_goal:
-                        self.update_state(neighbour)
+                        if neighbour.x != 0 and neighbour.y != 0 and \
+                                        neighbour.x != self.map_state.cells_square and neighbour.y != self.map_state.cells_square:
+                            if neighbour.rhs > s.rhs:
+                                self.update_state(neighbour)
             else:
                 s.g = self.BIG_COST
 
                 for neighbour in self.get_neighbours(s):
                     if neighbour is not self.s_goal:
-                        self.update_state(neighbour)
+                        if neighbour.x != 0 and neighbour.y != 0 and \
+                                        neighbour.x != self.map_state.cells_square and neighbour.y != self.map_state.cells_square:
+                            if neighbour.rhs > s.rhs:
+                                self.update_state(neighbour)
 
             if len(self.open_list) == 0:
                 break
@@ -296,8 +311,8 @@ class FieldDStar(AbstractAlgorithm):
             for node in column:
                 print(str(node))
 
-        print("s_x:" + str(self.s_start.x))
-        print("s_y:" + str(self.s_start.y))
+        #print("s_x:" + str(self.s_start.x))
+        #print("s_y:" + str(self.s_start.y))
 
         # Post process nodes ensure all occupied nodes have a cost of BIG_COST.
         for x in range(self.map_state.cells_square):
@@ -316,20 +331,15 @@ class FieldDStar(AbstractAlgorithm):
                         self.nodes[x][y + 1].g = self.BIG_COST
                         self.nodes[x][y + 1].rhs = self.BIG_COST
 
-                    print(self.nodes[x][y])
-                    print(self.nodes[x + 1][y])
-                    print(self.nodes[x + 1][y + 1])
-                    print(self.nodes[x][y + 1])
-
         # Extract the path.
         while self.s_start.x != self.s_goal.x or self.s_start.y != self.s_goal.y:
             consecutive_neighbours = self.get_consecutive_neighbours(Node(int(round(self.s_start.x, 0)),
                                                                           int(round(self.s_start.y, 0))))
 
-            print(self.s_start.x)
-            print(self.s_start.y)
-            print(int(round(self.s_start.x, 0)))
-            print(int(round(self.s_start.y, 0)))
+            #print(self.s_start.x)
+            #print(self.s_start.y)
+            #print(int(round(self.s_start.x, 0)))
+            #print(int(round(self.s_start.y, 0)))
 
             if len(consecutive_neighbours) > 0:
                 lowest_edge_cost = self.BIG_COST
@@ -349,8 +359,8 @@ class FieldDStar(AbstractAlgorithm):
                         self.s_start.y = lowest_pair[1].y
                     else:
 
-                        print(str(lowest_pair[0]))
-                        print(str(lowest_pair[1]))
+                        #print(str(lowest_pair[0]))
+                        #print(str(lowest_pair[1]))
 
                         # Always ensure that s1 has the highest g-value.
                         if lowest_pair[0].g < lowest_pair[1].g:
@@ -361,8 +371,8 @@ class FieldDStar(AbstractAlgorithm):
                             s2 = lowest_pair[1]
 
                         f = s1.g - s2.g  # f = g(s1) - g(s2)
-                        print("f: " + str(f))
-                        print('\n')
+                        #print("f: " + str(f))
+                        #print('\n')
 
                         x_difference = s1.x - s2.x
                         y_difference = s1.y - s2.y
@@ -531,7 +541,7 @@ class FieldDStar(AbstractAlgorithm):
                 else:
                     for point in self.path:
                         if (math.floor(point[0]) == x and
-                                math.floor(point[1]) == y):
+                                    math.floor(point[1]) == y):
                             symbol = "  *  "
 
                 rows += "[ " + symbol + " ]"
@@ -543,3 +553,23 @@ class FieldDStar(AbstractAlgorithm):
 
         stream.write(rows + "\n")
         stream.write(footer + "\n\n")
+
+    def print_debug(self, stream):
+        """
+        Prints the final state of all debugging information to a stream.
+
+        :param stream:
+        :return:
+        """
+
+        stream.write(('-' * 120) + "\n\n")
+        stream.write("Planner: " + self.planner_name + "\n\n")
+
+        stream.write("Total Planning Steps: " + str(self.total_plan_steps) + "\n")
+        stream.write("Total Vertices: " + str(len(self.nodes) * len(self.nodes[0])) + "\n\n")
+
+        stream.write("Vertex Accesses: " + str(self.vertex_accesses) + "\n")
+        stream.write("Average: " + str(self.vertex_accesses / self.total_plan_steps) + "\n\n")
+
+        stream.write("Total Planning Time (seconds): " + str(self.time_taken) + "\n")
+        stream.write("Average Planning Time (seconds): " + str(self.time_taken / self.total_plan_steps) + "\n\n")

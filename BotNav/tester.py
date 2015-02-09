@@ -16,6 +16,7 @@ from model.robot import Robot
 from algorithm.gridnav import GridNav
 from algorithm.dstarlite import DStarLite
 from algorithm.field_d_star import FieldDStar
+from algorithm.theta_star import ThetaStar
 from connection.bluetooth_connection import BluetoothConnection
 from connection.ip_connection import IPConnection
 from events import OdometryReport, ScanResult, StateEvent
@@ -331,7 +332,7 @@ def load_config(config_file):
         test.algorithm = DStarLite(test.map)
         test.algorithm.setup(test.map_file)
     elif algorithm == "field_d_star":
-        test.algorithm = FieldDStar(test.map)
+        test.algorithm = ThetaStar(test.map)
     else:
         raise RuntimeError("unsupported planner in config file")
 
