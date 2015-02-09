@@ -332,6 +332,8 @@ def load_config(config_file):
         test.algorithm = DStarLite(test.map)
         test.algorithm.setup(test.map_file)
     elif algorithm == "field_d_star":
+        test.algorithm = FieldDStar(test.map)
+    elif algorithm == "theta_star":
         test.algorithm = ThetaStar(test.map)
     else:
         raise RuntimeError("unsupported planner in config file")

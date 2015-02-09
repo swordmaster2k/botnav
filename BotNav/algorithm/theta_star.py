@@ -39,11 +39,17 @@ class ThetaStar(AbstractAlgorithm):
         self.straight_cost = 1
         self.diagonal_cost = 2
 
-        self.start_node = Node(self.map_state.robot.x, self.map_state.robot.y)
+        self.start_node = Node(self.get_cell_x(self.map_state.robot.x), self.get_cell_y(self.map_state.robot.y))
         self.goal_node = Node(self.map_state.goal_x, self.map_state.goal_y)
 
         self.nodes = []
         self.setup_nodes()
+
+    def get_cell_x(self, x):
+        return int(x / self.map_state.cell_size)
+
+    def get_cell_y(self, y):
+        return int(y / self.map_state.cell_size)
 
     def setup_nodes(self):
         """

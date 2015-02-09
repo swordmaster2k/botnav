@@ -13,7 +13,7 @@
 #       baud=
 #       port=
 map=maps/bedroom30.map
-planner=field_d_star
+planner=theta_star
 mode=simulated
 #mode=physical
 #connection=bluetooth
