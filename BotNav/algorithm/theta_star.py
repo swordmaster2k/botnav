@@ -100,13 +100,14 @@ class ThetaStar(AbstractAlgorithm):
                 for y in range(int(start_y), int(end_y + 1)):
                     neighbour = self.nodes[x][y]
 
+                    self.vertex_accesses += 1
+
                     if neighbour == node or not neighbour.walkable:
                         continue
 
                     previous = node
 
                     if self.raytrace(node.previous, neighbour):
-                        self.vertex_accesses += 1
                         cost = self.euclidean(node.previous, neighbour)
                         g = node.previous.g + cost
                         h = self.euclidean(neighbour)
