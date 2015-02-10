@@ -140,7 +140,7 @@ class Planner(threading.Thread):
 
             # Stick the starting position of the robot into
             # the first path.
-            paths[0].insert(0, (self.robot.get_cell_x(), self.robot.get_cell_y()))
+            paths[0].insert(0, [self.robot.get_cell_x(), self.robot.get_cell_y()])
 
             # Calculate our initial distance from the goal.
             x_difference = self.map.goal_x - self.robot.get_cell_x()
@@ -155,7 +155,7 @@ class Planner(threading.Thread):
             # Write some debugging info.
             self.write_debug_info()
 
-            # While we are not within 0.5 cells of the goal in both x and y.
+            # While we are not within 0.7 cells of the goal in both x and y.
             while not (0.5 >= x_difference >= -0.5 and 0.5 >= y_difference >= -0.5):
                 '''
                 Step 2: Scan the immediate area for obstacles and free space.
@@ -189,6 +189,9 @@ class Planner(threading.Thread):
                 '''
                 Step 4: Pop the next point from the current path.
                 '''
+                if len(self.algorithm.path) == 0:  # Make there is a point.
+                    break
+
                 next_point = self.algorithm.pop_next_point()
                 self.robot.go_to(next_point[0], next_point[1])
 
@@ -214,6 +217,8 @@ class Planner(threading.Thread):
             self.robot.halt()
 
         except exceptions.NoPathException as ex:
+            print(ex)
+        except Exception as ex:
             print(ex)
         finally:
             execution_time = round(time.process_time() - start_time, 3)

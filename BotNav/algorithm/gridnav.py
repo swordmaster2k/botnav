@@ -391,7 +391,7 @@ class GridNav(AbstractAlgorithm):
         x_difference = self.map_state.goal_x - next_x
         y_difference = self.map_state.goal_y - next_y
 
-        if 0.5 >= x_difference >= -0.5 and 0.5 >= y_difference >= -0.5:
+        if 0.4 >= x_difference >= -0.4 and 0.4 >= y_difference >= -0.4:
             return
         else:
             # Ensure that the next more will be into another cell

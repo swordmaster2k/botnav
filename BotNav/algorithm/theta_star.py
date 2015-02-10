@@ -39,11 +39,9 @@ class ThetaStar(AbstractAlgorithm):
         self.straight_cost = 1
         self.diagonal_cost = 2
 
-        self.start_node = Node(self.get_cell_x(self.map_state.robot.x), self.get_cell_y(self.map_state.robot.y))
-        self.goal_node = Node(self.map_state.goal_x, self.map_state.goal_y)
-
-        self.nodes = []
-        self.setup_nodes()
+        self.start_node = None
+        self.goal_node = None
+        self.nodes = None
 
     def get_cell_x(self, x):
         return int(x / self.map_state.cell_size)
@@ -75,6 +73,12 @@ class ThetaStar(AbstractAlgorithm):
         self.open = []
         self.closed = []
 
+        self.start_node = Node(self.robot.get_cell_x(), self.robot.get_cell_y())
+        self.goal_node = Node(self.map_state.goal_x, self.map_state.goal_y)
+
+        self.nodes = []
+        self.setup_nodes()
+
         self.start_node.previous = self.start_node
         self.start_node.g = 0
         self.start_node.h = self.euclidean(self.start_node)
@@ -86,6 +90,9 @@ class ThetaStar(AbstractAlgorithm):
         self.compute_shortest_path()
 
         self.time_taken += round(time.process_time() - start_time, 3)
+
+        if self.do_smooth_path:
+            self.smooth()
 
     def compute_shortest_path(self):
         node = self.start_node
@@ -149,12 +156,12 @@ class ThetaStar(AbstractAlgorithm):
 
     def build_path(self):
         self.path = []
-        node = self.goal_node
+        node = self.goal_node.previous
         self.path.insert(0, (self.goal_node.x, self.goal_node.y))
 
         while node != self.start_node:
-            node = node.previous
             self.path.insert(0, (node.x, node.y))
+            node = node.previous
 
     def euclidean(self, node, end_tile=None):
         if end_tile is None:

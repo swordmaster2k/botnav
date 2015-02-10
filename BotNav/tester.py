@@ -175,6 +175,7 @@ class Tester(threading.Thread):
 
         if self.mode == "physical":
             self.setup_output()
+            self.planner.gnuplot_file = self.planner_paths_file
 
             print("Type \"begin\" to start run...")
 
