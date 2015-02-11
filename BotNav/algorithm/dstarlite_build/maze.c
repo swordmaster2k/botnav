@@ -121,20 +121,21 @@ void establishmaze(FILE *file)
 	 
 	result = fscanf(file, "%f", &mazedimension);
 	result = fscanf(file, "%f", &cellsize);
-	
-	mazesize = (int)(mazedimension / cellsize);
-	//mazesize++; // for boundary cells
-	
-	fpos_t pos;
-	result = fgetpos(file, &pos);
+
+	mazesize = (int)ceil(mazedimension / cellsize);
 
 	char	c;
 	int	x, y, k;
 	short foundrobot = 0, foundgoal = 0;
 
+	k = fscanf(file, "%c", &c); // Consume random '\n'.
+
+	fpos_t pos;
+	result = fgetpos(file, &pos);
+
 	/* do an initial run over the file looking for the robot and goal
 	 * positions */
-	for (y = mazesize; y >= 0; --y)
+	for (y = mazesize - 1; y >= 0; --y)
 	{
 		for (x = 0; x < mazesize; ++x)
 		{
@@ -157,9 +158,7 @@ void establishmaze(FILE *file)
 				foundgoal = 1;
 			}
 
-			/*--- If it's the end of a line ---*/
-			if (c == '\n')
-				break;
+			//fprintf(stderr, "%c", c);
 		}
 		
 		if (foundrobot == 1 && foundgoal == 1)
@@ -167,25 +166,36 @@ void establishmaze(FILE *file)
 
 		/*--- Scan til the end of line char ---*/
 		while ( c != '\n' )
-			k = fscanf(file,"%c",&c);
+			k = fscanf(file, "%c", &c);
+
+		//fprintf(stderr, "%c", '\n');
 	}
+
+	//fprintf(stderr, "\n\nRx%d\n", goalx);
+	//fprintf(stderr, "Ry%d\n", goaly);
+	//fprintf(stderr, "Gx%d\n", startx);
+	//fprintf(stderr, "Gy%d\n\n", startx);
 	
 	result = fsetpos(file, &pos); /* rewind */ 
 	
 	preprocessmaze();
 
 	/* run back over the file looking for obstacles and free space */
-	for (y = mazesize; y > 0; --y)
+	for (y = mazesize - 1; y >= 0; --y)
 	{
 		for (x = 0; x < mazesize; ++x)
 		{
 			/*--- Get a character ---*/
 			k = fscanf(file, "%c", &c);
+			//fprintf(stderr, "%c", c);
 
 			/*--- If an obstacle ---*/
 			if (c == '#')
 			{ 
 				maze[y][x].obstacle = 1;
+
+				//fprintf(stderr, "\nx:%d ", x);
+				//fprintf(stderr, "y:%d\n", y);
 			}
 
 			/*--- If it's free space ---*/
@@ -197,13 +207,20 @@ void establishmaze(FILE *file)
 			/*--- If it's the end of a line ---*/
 			if (c == '\n')
 				break;
+
+			//fprintf(stderr, "x%d", x);
 		}
+
+        if (y - 1 < 0) // End of grid.
+            break;
 
 		/*--- Scan til the end of line char ---*/
 		while ( c != '\n' )
-			k = fscanf(file,"%c",&c);
+			k = fscanf(file, "%c", &c);
+
+		//fprintf(stderr, "%c", '\n');
 	}
-	
+
 	mazestart->obstacle = 0;
 	mazegoal->obstacle = 0;
 	

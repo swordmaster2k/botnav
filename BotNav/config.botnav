@@ -13,9 +13,9 @@
 #       baud=
 #       port=
 map=maps/bedroom30.map
-planner=grid_nav
-#mode=simulated
-mode=physical
-connection=bluetooth
-mac=00:00:12:06:56:83
-port=0x1001
+planner=d_star_lite
+mode=simulated
+#mode=physical
+#connection=bluetooth
+#mac=00:00:12:06:56:83
+#port=0x1001

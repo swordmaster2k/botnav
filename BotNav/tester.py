@@ -1,4 +1,5 @@
 import sys
+import math
 import time
 import select
 import _thread
@@ -79,13 +80,13 @@ class Tester(threading.Thread):
                 elif line[x] == "R":
                     self.robot.change_odometry(round(x * self.cell_size, 2), round(y * self.cell_size, 2), 1.57)
 
-                    print("Waiting for odometry change...")
+                    #print("Waiting for odometry change...")
 
                     # Wait for odometry change to take affect.
                     #while self.robot.x != round(x * self.cell_size, 2) and self.robot.y != round(y * self.cell_size, 2):
                     #    continue
 
-                    print("Odometry change successful!")
+                    #print("Odometry change successful!")
 
                 elif line[x] == "G":
                     self.map.goal_x = x
@@ -201,7 +202,7 @@ class Tester(threading.Thread):
             # that is not occupied excluding the goal.
             for x in range(self.map.cells_square):
                 for y in range(self.map.cells_square):
-                    if self.map.grid[x][y].state == 1 and (self.map.goal_x != x or self.map.goal_y != y):
+                    if self.map.grid[x][y].state == 1 and math.hypot(self.map.goal_x - x, self.map.goal_y - y) > 3:
                         self.setup_output()
 
                         # Attempt to plan a path from this free cell.

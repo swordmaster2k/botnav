@@ -22,7 +22,8 @@ class DStarLite(AbstractAlgorithm):
         :return:
         """
 
-        dstarlite_c.setup(file_path)
+        result = dstarlite_c.setup(file_path)
+        #print(result)
 
     def plan(self):
         # D* Lite expects the position in cell coordinates.
