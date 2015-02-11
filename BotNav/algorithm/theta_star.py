@@ -17,7 +17,7 @@ class Node:
 
     def __str__(self):
         return "x: " + str(self.x) + " y: " + str(self.y) + " g: " + str(self.g) + " h: " + str(self.h) + \
-               + " f: " + self.f + " evaluations: " + str(self.evaluations)
+               " f: " + str(self.f) + " evaluations: " + str(self.evaluations)
 
     def __gt__(self, other):
         return self.f < other.f
@@ -33,8 +33,8 @@ class ThetaStar(AbstractAlgorithm):
 
         self.BIG_COST = 1000000
 
-        self.open = None
-        self.closed = None
+        self.open = []
+        self.closed = []
 
         self.straight_cost = 1
         self.diagonal_cost = 2
@@ -214,12 +214,126 @@ class ThetaStar(AbstractAlgorithm):
 
         return True
 
-    @staticmethod
-    def sort_f(*, kw_only1, kw_only2):
-        return kw_only1.f - kw_only2.f
-
     def print_cost_grid(self, stream):
-        return
+        """
+        Prints the contents of the cost grid to the standard output.
+
+        :param stream: output stream
+        :return:
+        """
+
+        y = self.map_state.cells_square - 1
+        footer = ""
+        rows = ""
+        start_spacing = ""
+        end_spacing = ""
+        grid = self.map_state.grid
+
+        while y >= 0:
+            if y < 10:
+                rows += str(y) + "  "
+            elif 10 <= y < 100:
+                rows += str(y) + " "
+            else:
+                rows += str(y)
+
+            cell = (self.map_state.cells_square - 1) - y
+
+            if cell < 1:
+                start_spacing = "        "
+                end_spacing = "     "
+            elif cell < 10:
+                start_spacing = "    "
+                end_spacing = "     "
+            elif 10 < cell < 100:
+                start_spacing = "   "
+                end_spacing = "     "
+            elif 100 < cell < 1000:
+                start_spacing = "  "
+                end_spacing = "      "
+
+            footer += start_spacing + str((self.map_state.cells_square - 1) - y) + end_spacing
+
+            for x in range(self.map_state.cells_square):
+                cost = self.nodes[x][y].h
+                padding = ""
+
+                if cost < 10:
+                    padding = "  "
+                elif cost < 100:
+                    padding = " "
+
+                rows += "[ %.2f" % cost + padding + " ]"
+
+            y -= 1
+
+            if y >= 0:
+                rows += "\n\n"
+
+        stream.write(rows + "\n")
+        stream.write(footer + "\n\n")
 
     def print_occupancy_grid(self, stream):
-        return
+        """
+        Prints the contents of the occupancy grid to the standard output.
+
+        :param stream: output stream
+        :return: none
+        """
+
+        y = self.map_state.cells_square - 1
+        footer = ""
+        rows = ""
+        start_spacing = ""
+        end_spacing = ""
+        grid = self.map_state.grid
+
+        while y >= 0:
+            if y < 10:
+                rows += str(y) + "  "
+            elif 10 <= y < 100:
+                rows += str(y) + " "
+            else:
+                rows += str(y)
+
+            cell = (self.map_state.cells_square - 1) - y
+
+            if cell < 1:
+                start_spacing = "       "
+                end_spacing = "    "
+            elif cell < 10:
+                start_spacing = "    "
+                end_spacing = start_spacing
+            elif 10 < cell < 100:
+                start_spacing = "   "
+                end_spacing = "    "
+            elif 100 < cell < 1000:
+                start_spacing = "  "
+                end_spacing = "     "
+
+            footer += start_spacing + str((self.map_state.cells_square - 1) - y) + end_spacing
+
+            for x in range(self.map_state.cells_square):
+                symbol = "     "
+
+                if x == int(self.robot.get_cell_x()) and y == int(self.robot.get_cell_y()):
+                    symbol = "ROBOT"
+                elif x == self.map_state.goal_x and y == self.map_state.goal_y:
+                    symbol = "GOAL "
+                elif not self.nodes[x][y].walkable:
+                    symbol = "#####"
+                else:
+                    for point in self.path:
+                        if (math.floor(point[0]) == x and
+                                math.floor(point[1]) == y):
+                            symbol = "  *  "
+
+                rows += "[ " + symbol + " ]"
+
+            y -= 1
+
+            if y >= 0:
+                rows += "\n\n"
+
+        stream.write(rows + "\n")
+        stream.write(footer + "\n\n")

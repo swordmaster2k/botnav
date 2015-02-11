@@ -122,7 +122,7 @@ class Planner(threading.Thread):
         paths = []
 
         # Write the initial state.
-        self.write_state()
+        #self.write_state()
 
         start_time = time.process_time()
 
