@@ -202,7 +202,7 @@ class Tester(threading.Thread):
             # that is not occupied excluding the goal.
             for x in range(self.map.cells_square):
                 for y in range(self.map.cells_square):
-                    if self.map.grid[x][y].state == 1 and math.hypot(self.map.goal_x - x, self.map.goal_y - y) > 3:
+                    if self.map.grid[x][y].state == 1: #and math.hypot(self.map.goal_x - x, self.map.goal_y - y) > 3:
                         self.setup_output()
 
                         # Attempt to plan a path from this free cell.

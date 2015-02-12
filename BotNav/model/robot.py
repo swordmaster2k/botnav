@@ -52,14 +52,14 @@ class Robot:
     '''
 
     def get_cell_x(self):
-        return self.x / self.cell_size
+        return int(self.x / self.cell_size)
 
     '''
     Gets the robots y position in cells.
     '''
 
     def get_cell_y(self):
-        return self.y / self.cell_size
+        return int(self.y / self.cell_size)
 
     '''
     Instructs the robot to go forward.

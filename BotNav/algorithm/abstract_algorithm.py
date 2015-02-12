@@ -82,7 +82,7 @@ class AbstractAlgorithm:
         :return:
         """
 
-        if self.path is []:
+        if len(self.path) < 5:
             return
 
         spath = [[0 for row in range(len(self.path[0]))]for col in range(len(self.path))]

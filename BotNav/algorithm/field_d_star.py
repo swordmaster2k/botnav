@@ -62,9 +62,9 @@ class FieldDStar(AbstractAlgorithm):
         for x in range(self.map_state.cells_square + 1):
             column = []
             for y in range(self.map_state.cells_square + 1):
-                if x == self.map_state.goal_x and y == self.map_state.goal_y:  # Goal
+                if x == self.s_goal.x and y == self.s_goal.y:  # Goal
                     column.append(self.s_goal)
-                elif x == self.map_state.goal_x and y == self.map_state.goal_y:  # Start
+                elif x == self.s_start.x and y == self.s_start.y:  # Start
                     column.append(self.s_start)
                 else:
                     column.append(Node(x, y))
@@ -85,12 +85,16 @@ class FieldDStar(AbstractAlgorithm):
                 '''
                 if ((x == 0) or (x == (self.map_state.cells_square - 1)) or
                         (y == 0) or (y == (self.map_state.cells_square - 1))) or \
-                                self.map_state.grid[x][y].state == 2:
-                    data = self.BIG_COST
+                        self.map_state.grid[x][y].state == 2:
+                    data = 1
                 else:
                     data = 1
 
                 self.map_state.grid[x][y].data = data
+
+    @staticmethod
+    def get_manhattan(s, s1):
+        return abs(s.y - s1.y) + abs(s.x - s1.x)
 
     @staticmethod
     def get_distance(s, s1):
@@ -236,19 +240,19 @@ class FieldDStar(AbstractAlgorithm):
             vs = self.BIG_COST
 
         return round(vs, 3)
-        #return round(math.sqrt((s.y - self.s_goal.y) ** 2 + (s.x - self.s_goal.x) ** 2), 3)
 
     def update_state(self, s):
+        if s.g == self.BIG_COST:
+            s.g = self.get_manhattan(s, self.s_goal)
+
         if s is not self.s_goal:
             rhs = s.rhs
 
             for edge in self.get_consecutive_neighbours(s):
-                if edge[0].g != self.BIG_COST or edge[1].g != self.BIG_COST:
-                    if edge[0].g < s.g:
-                        cost = self.compute_cost(s, edge[0], edge[1])  # s, sa, sb
+                cost = self.compute_cost(s, edge[0], edge[1])  # s, sa, sb
 
-                        if cost < rhs:
-                            rhs = cost
+                if cost < rhs:
+                    rhs = cost
 
             if rhs < s.rhs:
                 s.rhs = rhs
@@ -259,11 +263,12 @@ class FieldDStar(AbstractAlgorithm):
 
         if s.g != s.rhs:
             self.key(s)
+
             if len(self.open_list) == 0:
                 self.open_list.append(s)
             else:
                 for i in range(len(self.open_list)):
-                    if s.key[0] <= self.open_list[i].key[0] and s.key[1] <= self.open_list[i].key[1]:
+                    if s.key[0] > self.open_list[i].key[0] and s.key[1] > self.open_list[i].key[1]:
                         self.open_list.insert(i, s)
                         return
 
@@ -289,57 +294,26 @@ class FieldDStar(AbstractAlgorithm):
                 s.g = s.rhs
 
                 for neighbour in self.get_neighbours(s):
-                    if neighbour is not self.s_goal:
-                        if neighbour.x != 0 and neighbour.y != 0 and \
-                                        neighbour.x != self.map_state.cells_square and neighbour.y != self.map_state.cells_square:
-                            if neighbour.rhs > s.rhs:
-                                self.update_state(neighbour)
+                    self.update_state(neighbour)
             else:
                 s.g = self.BIG_COST
 
                 for neighbour in self.get_neighbours(s):
-                    if neighbour is not self.s_goal:
-                        if neighbour.x != 0 and neighbour.y != 0 and \
-                                        neighbour.x != self.map_state.cells_square and neighbour.y != self.map_state.cells_square:
-                            if neighbour.rhs > s.rhs:
-                                self.update_state(neighbour)
+                    self.update_state(neighbour)
 
             if len(self.open_list) == 0:
                 break
+
+            s = self.open_list.pop()
 
         for column in self.nodes:
             for node in column:
                 print(str(node))
 
-        #print("s_x:" + str(self.s_start.x))
-        #print("s_y:" + str(self.s_start.y))
-
-        # Post process nodes ensure all occupied nodes have a cost of BIG_COST.
-        for x in range(self.map_state.cells_square):
-            for y in range(self.map_state.cells_square):
-                if self.map_state.grid[x][y].data == self.BIG_COST:
-                    if x == 0 or y == 0 or x == self.map_state.cells_square or y == self.map_state.cells_square:
-                        self.nodes[x][y].g = self.BIG_COST
-                        self.nodes[x][y].rhs = self.BIG_COST
-                    elif x != self.map_state.cells_square - 1 and y != self.map_state.cells_square - 1:
-                        self.nodes[x][y].g = self.BIG_COST
-                        self.nodes[x][y].rhs = self.BIG_COST
-                        self.nodes[x + 1][y].g = self.BIG_COST
-                        self.nodes[x + 1][y].rhs = self.BIG_COST
-                        self.nodes[x + 1][y + 1].g = self.BIG_COST
-                        self.nodes[x + 1][y + 1].rhs = self.BIG_COST
-                        self.nodes[x][y + 1].g = self.BIG_COST
-                        self.nodes[x][y + 1].rhs = self.BIG_COST
-
         # Extract the path.
         while self.s_start.x != self.s_goal.x or self.s_start.y != self.s_goal.y:
             consecutive_neighbours = self.get_consecutive_neighbours(Node(int(round(self.s_start.x, 0)),
                                                                           int(round(self.s_start.y, 0))))
-
-            #print(self.s_start.x)
-            #print(self.s_start.y)
-            #print(int(round(self.s_start.x, 0)))
-            #print(int(round(self.s_start.y, 0)))
 
             if len(consecutive_neighbours) > 0:
                 lowest_edge_cost = self.BIG_COST
@@ -370,7 +344,7 @@ class FieldDStar(AbstractAlgorithm):
                             s1 = lowest_pair[0]
                             s2 = lowest_pair[1]
 
-                        f = s1.g - s2.g  # f = g(s1) - g(s2)
+                        f = s1.g - s2.g
                         #print("f: " + str(f))
                         #print('\n')
 

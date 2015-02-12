@@ -87,8 +87,8 @@ class Planner(threading.Thread):
 
         sys.stdout.write("cell x: %.2f" % self.robot.get_cell_x() + ", cell y: %.2f" % self.robot.get_cell_y() + "\n")
         sys.stdout.write(
-            "x: %.2f" % (self.robot.x) +
-            ", y: %.2f" % (self.robot.y) + "\n"
+            "x: %.2f" % self.robot.x +
+            ", y: %.2f" % self.robot.y + "\n"
             "heading %.2f" % self.robot.heading)
         sys.stdout.write("\n\n" + ('-' * 120) + "\n\n")
 
@@ -96,8 +96,8 @@ class Planner(threading.Thread):
             if not self.output_file.closed:
                 self.output_file.write("cell x: %.2f" % self.robot.get_cell_x() + ", cell y: %.2f" % self.robot.get_cell_y() + "\n")
                 self.output_file.write(
-                    "x: %.2f" % (self.robot.x) +
-                    ", y: %.2f" % (self.robot.y) + "\n" +
+                    "x: %.2f" % self.robot.x +
+                    ", y: %.2f" % self.robot.y + "\n" +
                     "heading %.2f" % self.robot.heading)
                 self.output_file.write("\n\n" + ('-' * 120) + "\n\n")
 
