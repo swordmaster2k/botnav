@@ -23,6 +23,29 @@
 \usepackage{subfigure}
 \usepackage{times}
 \usepackage[hidelinks]{hyperref}
+%\usepackage{color}
+\usepackage{listings}
+
+%\definecolor{dkgreen}{rgb}{0,0.6,0}
+%\definecolor{gray}{rgb}{0.5,0.5,0.5}
+%\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  %numberstyle=\tiny\color{gray},
+  %keywordstyle=\color{blue},
+  %commentstyle=\color{dkgreen},
+  %stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
 
 \bibliographystyle{ieeetr}
 
@@ -56,7 +79,6 @@
  }%
 }%
 \makeatother
-
 %%% ----------------------------------------------------------------------
 
 \begin{document}
@@ -104,16 +126,16 @@ An Analysis of the Field D* Algorithm for Path Planning in the Return and Delive
 \pagestyle{fancy}
 \setcounter{page}{1}
 
-\include{chapters/1_introduction}
-\include{chapters/2_literature_review}
+%\include{chapters/1_introduction}
+%\include{chapters/2_literature_review}
 \include{chapters/3_system_design}
-\include{chapters/4_core_implementation}
-\include{chapters/5_results}
-\include{chapters/6_conclusion}
-\include{chapters/7_further_work}
+%\include{chapters/4_core_implementation}
+%\include{chapters/5_results}
+%\include{chapters/6_conclusion}
+%\include{chapters/7_further_work}
 
-\bibliography{bibliography}
+%\bibliography{bibliography}
 
-\include{appendix}
+%\include{appendix}
 
 \end{document}

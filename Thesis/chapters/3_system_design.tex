@@ -99,7 +99,36 @@ Two way communication with a physical robot that implements the communications p
 
 \subsubsection*{Planner Thread}
 \noindent
-...
+It is in the execution of the Planner Thread where the must crucial work takes place, the Planner brings together a map, robot, proxy, and planning algorithm. All of this is achieved in such a way that it is possible to plug any one of the planning algorithms implemented for this project (GridNav, D* Lite, Field D*, Theta*) into it. \\
+
+\noindent
+During a planning cycle the Planner Thread calls upon the planning algorithms \textit{plan} routine which uses a combination of the robot's current position, a goal, and an occupancy grid to produce a path. The actual implementation behind a particular algorithm's planning functionality is hidden from the Planner Thread. If there is a valid path the result of the call to \textit{plan} will be a trail of points which the robot can then iteratively traverse. In the case where no path exists to the goal execution is immediately terminated. \\
+
+\noindent
+Once a path has been generated and returned it processed as follows: \\
+
+\begin{lstlisting}
+while we are not within 0.7 cells of the goal in both x and y:
+	# Scan the immediate area.
+	robot.scan()
+	
+	# Check for a change in the map.
+	if there is a change:
+		path = algorithm.plan()
+		
+	# Pop the next point from the current path.
+	if path length is 0:  # Make sure there is a point.
+		break
+
+	point = path.pop() # Get the next point.
+	robot.go(point.x, point.y)
+	
+	while robot is travelling:
+		# Busy wait.
+
+	calculate x difference to goal
+	calculate y difference to goal
+\end{lstlisting}
 
 \newpage
 

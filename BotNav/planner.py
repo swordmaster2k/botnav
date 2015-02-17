@@ -189,7 +189,7 @@ class Planner(threading.Thread):
                 '''
                 Step 4: Pop the next point from the current path.
                 '''
-                if len(self.algorithm.path) == 0:  # Make there is a point.
+                if len(self.algorithm.path) == 0:  # Make sure there is a point.
                     break
 
                 next_point = self.algorithm.pop_next_point()
