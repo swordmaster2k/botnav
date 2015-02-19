@@ -102,10 +102,15 @@ Two way communication with a physical robot that implements the communications p
 It is in the execution of the Planner Thread where the must crucial work takes place, the Planner brings together a map, robot, proxy, and planning algorithm. All of this is achieved in such a way that it is possible to plug any one of the planning algorithms implemented for this project (GridNav, D* Lite, Field D*, Theta*) into it. \\
 
 \noindent
-During a planning cycle the Planner Thread calls upon the planning algorithms \textit{plan} routine which uses a combination of the robot's current position, a goal, and an occupancy grid to produce a path. The actual implementation behind a particular algorithm's planning functionality is hidden from the Planner Thread. If there is a valid path the result of the call to \textit{plan} will be a trail of points which the robot can then iteratively traverse. In the case where no path exists to the goal execution is immediately terminated. \\
+INSERT FLOW CHART OR INTERACTION DIAGRAM HERE! \\
 
 \noindent
-Once a path has been generated and returned it processed as follows: \\
+During a planning cycle the Planner Thread calls upon the planning algorithms \textit{plan} routine which uses a combination of the robot's current position, a goal, and an occupancy grid to produce a path. The actual implementation behind a particular algorithm's planning functionality is hidden from the Planner Thread. If there is a valid path the result of the call to \textit{plan} will be a trail of points which the robot can then iteratively traverse. In the case where no path exists to the goal execution is immediately terminated. \\
+
+\newpage
+
+\noindent
+Once a path has been generated and returned it is processed as follows: \\
 
 \begin{lstlisting}
 while we are not within 0.7 cells of the goal in both x and y:
@@ -227,7 +232,7 @@ Throughout the projects development all work undertaken including everything fro
 
 \section{Hardware Agent Specification}
 \noindent
-As the path planning system implemented on the Linux host is designed to be independent from the hardware specifics of the robot it is necessary that all robots communicate with the planner in a predefined way. We have all ready discussed this mechanism under \ref{sec:protocol} from the software side now it is time to specify a generic robot that implements the interface. \\
+As the path planning system implemented on the Linux host is designed to be independent from the hardware specifics of the robot it is necessary that all robots communicate with the planner in a predefined way. We have already discussed this mechanism under \ref{sec:protocol} from the software side now it is time to specify a generic robot that implements the interface. \\
 
 \noindent
 In order to be compatible with the planner a robot must have software/hardware:
