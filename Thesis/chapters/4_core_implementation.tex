@@ -3,7 +3,6 @@
 %-------------------------------------------------------------------------------------------------------
 
 \section{Building the Project}
-Section discusses the steps required to get the project up and running from raw source code, including getting the source, compiling C code, and running it from Python3. Basically a how to guide.
 
 \subsection{Obtaining the Source}
 \noindent 
@@ -15,10 +14,26 @@ The latest version of the project's source code can be checked out via \textit{g
 Or downloaded as a ZIP file from \url{https://github.com/swordmaster2k/botnav}. \\ 
 
 \noindent
-Alternatively the most update to date version at the time of printing is available on CD is located at the front of this thesis.
+Alternatively the most update to date version at the time of printing is available on the CD at the front of this thesis.
 
-\subsection{Compiling the Cython Modules}
-State that since C code is target dependent it is necessary that the compilation be explained since it can be built for x86, x64, ARM, SPARC, PowerPC, etc. Build tool that will be used is Make. Talk about the Makefile contents.
+\subsection{Compiling the D* Lite Cython Module}
+\noindent
+The planning algorithm D* Lite must be compiled as a Cython module, the original source code was provided by Maxim Likhachev of CMU and Sven Koenig of USC in C. It has been modified to make it compatible with the core Python system using Cython, as Python is implemented in C \cite{•} it is inherently compatible with the sample of D* Lite that is provided by its authors.
+
+\noindent
+To build D* Lite you will need Python3.4, the Python3.4 headers, gcc, and make. It \textbf{must} be built for each platform on which it will execute as C compiles to machine code making it \textit{target dependent}. From a terminal navigate to the source code directory \textit{BotNav/algorithm/dstarlite\_build/}. \\
+
+\indent \textit{cd BotNav/algorithm/dstarlite\_build/} \\
+
+\noindent
+The make file contains two build rules:
+\begin{enumerate}
+\item \textit{make} - \indent which builds the module \textit{dstarlite\_c.so} 
+\item \textit{make clean} - \indent cleans all previous output files from the build process
+\end{enumerate}
+
+\noindent
+Once the module file \textit{dstarlite\_c.so} has been successfully built for the target platform it can simply be dropped into the parent directory \textit{BotNav/algorithm/}. The Python source code contains a reference to the module and will automatically link it in at execution time. 
 
 \subsection{Running it in Python3}
 Explain how you go about running the project once it is compiled, by default it will run a simulation example. Give the command line arguments for running it from a terminal.
