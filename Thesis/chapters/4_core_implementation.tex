@@ -14,7 +14,7 @@ The latest version of the project's source code can be checked out via \textit{g
 Or downloaded as a ZIP file from \url{https://github.com/swordmaster2k/botnav}. \\ 
 
 \noindent
-Alternatively the most update to date version at the time of printing is available on the CD at the front of this thesis.
+Alternatively the most up to date version at the time of printing is available on the CD at the front of this thesis.
 
 \subsection{Compiling the D* Lite Cython Module}
 \noindent
@@ -23,20 +23,32 @@ The planning algorithm D* Lite must be compiled as a Cython module, the original
 \noindent
 To build D* Lite you will need Python3.4, the Python3.4 headers, gcc, and make. It \textbf{must} be built for each platform on which it will execute as C compiles to machine code making it \textit{target dependent}. From a terminal navigate to the source code directory \textit{BotNav/algorithm/dstarlite\_build/}. \\
 
-\indent \textit{cd BotNav/algorithm/dstarlite\_build/} \\
-
 \noindent
 The make file contains two build rules:
 \begin{enumerate}
 \item \textit{make} - \indent which builds the module \textit{dstarlite\_c.so} 
-\item \textit{make clean} - \indent cleans all previous output files from the build process
+\item \textit{make clean} - \indent cleans all previous output files from the build process \\
 \end{enumerate}
 
 \noindent
 Once the module file \textit{dstarlite\_c.so} has been successfully built for the target platform it can simply be dropped into the parent directory \textit{BotNav/algorithm/}. The Python source code contains a reference to the module and will automatically link it in at execution time. 
 
 \subsection{Running it in Python3}
-Explain how you go about running the project once it is compiled, by default it will run a simulation example. Give the command line arguments for running it from a terminal.
+\noindent
+By default the project is set-up to run a sample simulation with \textit{sample.map} using the GridNav path planning algorithm. It will output the results of its run to the \textit{BotNav/maps/output/} directory and is configured to compute a path from every traversable cell to the goal. To run it simply navigate to the path containing \textit{tester.py} and type: \\
+
+\indent \textit{python3 tester.py config.botnav} \\
+
+\noindent
+The argument passed to \textit{tester.py} is the path to the default configuration file, the contents of which will be discussed later in this chapter. After running the above command in a terminal the result shall look similar to Figure \ref{sample_output}.
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=435pt]{illustrations/sample_output}\\
+\caption{An example of the type of output generated after running GridNav over \textit{sample.map} in simulation mode.} 
+\label{sample_output}
+
+\end{figure}
 
 %-------------------------------------------------------------------------------------------------------
 
@@ -44,11 +56,22 @@ Explain how you go about running the project once it is compiled, by default it 
 Talk about how simulations provide an easy means to test the system against predefined use cases, speeds up the testing process, and provides a means for reproducing results. Discuss these points here.
 
 \subsection{Configuration}
-Outline the changes that need to be made to the configuration file, basically the simulation flag will need to be set.
+\noindent 
+When carrying out simulated runs three parameters must be set in the corresponding configuration file they are \textit{map}, \textit{mode}, and \textit{planner}. Below is an example of the configuration required to run a simulated trial using D* Lite: \\
+
+	\indent \textit{map=maps/simple.map \\}
+	\indent \textit{planner=d\_star\_lite \\}
+	\indent \textit{mode=simulated \\}
+
+\noindent
+The most important parameter setting here is \textit{mode} which is set to simulated. At run time this informs the \textit{Tester} class that we want to run an experimental simulation across all traversable cells and that we do not need a communications channel via \textit{Proxy}.
 
 %-------------------------------------------------------------------------------------------------------
 
 \section{Using a Real Bot}
+\noindent
+The real test for any path planning algorithm is its practical effectiveness and the only way to gauge this is using a physical robotic platform i.e.``a Real Bot''. The simulations that we have performed here are very limited in nature as they do not take into account any variability in the mechanics of the robot.
+  
 Mention how using a real robot differs by:
 
 \begin{itemize}
