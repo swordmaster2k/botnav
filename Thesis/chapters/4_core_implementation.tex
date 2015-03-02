@@ -65,7 +65,18 @@ When carrying out simulated runs three parameters must be set in the correspondi
 	\indent \textit{mode=simulated \\}
 
 \noindent
-The most important parameter setting here is \textit{mode} which is set to simulated. At run time this informs the \textit{Tester} class that we want to run an experimental simulation across all traversable cells and that we do not need a communications channel via \textit{Proxy}.
+The most important parameter setting here is \textit{mode} which is set to simulated. At run time this informs the \textit{Tester} class that we want to run an experimental simulation across all traversable cells and that we do not need a communications channel via \textit{Proxy}. In simulation mode all of the instructions are invoked on the ``dummy'' robot class \textit{SimulatedRobot}, the method \textit{go\_to(self, x, y)} simply takes the $x$ and $y$ coordinates, introduces some random drift, and assigns them: \\
+
+\begin{lstlisting}
+def go_to(self, x, y):
+	# Introduce a little uncertainty.
+    self.x = (x + random.uniform(-0.2, 0.2)) * self.cell_size  
+    self.y = (y + random.uniform(-0.2, 0.2)) * self.cell_size
+    
+    self.trail.append([self.get_cell_x(), self.get_cell_y()])
+    
+    self.state = "Travelled"
+\end{lstlisting}
 
 %-------------------------------------------------------------------------------------------------------
 
