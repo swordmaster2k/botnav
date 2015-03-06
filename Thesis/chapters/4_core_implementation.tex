@@ -82,15 +82,10 @@ def go_to(self, x, y):
 
 \section{Using a Real Bot}
 \noindent
-The real test for any path planning algorithm is its practical effectiveness and the only way to gauge this is using a physical robotic platform i.e.``a Real Bot''. The simulations that we have performed here are very limited in nature as they do not take into account any variability in the mechanics of the robot. \\
+The real test for any path planning algorithm is its practical effectiveness and the only way to gauge this is using a physical robotic platform i.e.``a Real Bot''. The simulations that we have performed here are very limited in nature as they do not take into account any variability in the mechanics of the robot. While it is perfectly possible to model variations such as drift, odometry error, friction, and battery drain in a simulation it is far more practical to simply use a physical platform.  \\
   
-Mention how using a real robot differs by:
-
-\begin{itemize}
-\item The need for communications.
-\item Introducing drift wheel slippage etc.
-\item By proving the practical application of the planner.
-\end{itemize}
+\noindent
+There are a number of factors that we must consider when using a physical platform, to begin with we will need some form of communications mechanism be it wired (USB, Ethernet, Serial) or wireless (ZigBee, WiFi, Bluetooth). It is through this medium that the \textit{Proxy} class will process data to and from the robot. Then there is drift, occurrences such as wheel slippage can lead to the robot veering of course, we will assume that this issue is dealt with at a lower level than the path planning system.
 
 \subsection{Configuration}
 Outline the changes that need to be made to the configuration file, highlight the fact that communications medium is required USB, Bluetooth, or Wifi. Explain the different variations.
