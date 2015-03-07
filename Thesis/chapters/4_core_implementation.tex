@@ -82,13 +82,35 @@ def go_to(self, x, y):
 
 \section{Using a Real Bot}
 \noindent
-The real test for any path planning algorithm is its practical effectiveness and the only way to gauge this is using a physical robotic platform i.e.``a Real Bot''. The simulations that we have performed here are very limited in nature as they do not take into account any variability in the mechanics of the robot. While it is perfectly possible to model variations such as drift, odometry error, friction, and battery drain in a simulation it is far more practical to simply use a physical platform.  \\
+The real test for any path planning algorithm is its practical effectiveness \cite{FIELD} and the only way to gauge this is using a physical robotic platform i.e.``a Real Bot''. The simulations that we have performed here are very limited in nature as they do not take into account any variability in the mechanics of the robot. While it is perfectly possible to model variations such as drift, odometry error, friction, and battery drain in a simulation it is far more practical to simply use a physical platform.  \\
   
 \noindent
-There are a number of factors that we must consider when using a physical platform, to begin with we will need some form of communications mechanism be it wired (USB, Ethernet, Serial) or wireless (ZigBee, WiFi, Bluetooth). It is through this medium that the \textit{Proxy} class will process data to and from the robot. Then there is drift, occurrences such as wheel slippage can lead to the robot veering of course, we will assume that this issue is dealt with at a lower level than the path planning system.
+There are a number of factors that we must consider when using a physical robot, to begin with we will need some form of communications mechanism be it wired (USB, Ethernet, Serial) or wireless (ZigBee, WiFi, Bluetooth). It is through this medium that the \textit{Proxy} class will process the data to and from the robot. Then there is drift, occurrences such as wheel slippage can lead to the robot veering off course, we will assume that this issue is dealt with at a lower level than the path planning system.
 
 \subsection{Configuration}
-Outline the changes that need to be made to the configuration file, highlight the fact that communications medium is required USB, Bluetooth, or Wifi. Explain the different variations.
+\noindent
+The contents of the configuration file for a hardware robot depends on the communications medium being employed. At present the system supports three forms of communication Bluetooth, IP, and Serial. Before any of these can be used the run mode must set to \textit{physical}. Below is an example configuration using Bluetooth which requires the MAC address of the device and a port number: \\
+
+	\indent \textit{map=maps/sample.map\\}
+	\indent \textit{planner=grid\_nav\\}
+	\indent \textit{mode=physical\\}
+	\indent \textit{connection=bluetooth\\}
+	\indent \textit{mac=00:00:12:06:56:83\\}
+	\indent \textit{port=0x1001\\}
+	
+\noindent 
+For IP based configurations an \textit{ip}, \textit{mac}, and \textit{port} setting will be required. Serial based connections need only a \textit{baud}, and \textit{port}, examples of both are available in the comments of the default configuration file: \\
+
+	\indent \#   	\textit{if connection == bluetooth\\}
+	\indent \#		\indent \textit{mac=\\}
+	\indent \#      \indent \textit{port=\\}
+	\indent \#   	\textit{elif connection == ip\\}
+	\indent \#      \indent \textit{ip=\\}
+	\indent \#      \indent \textit{mac=\\}
+	\indent \#      \indent \textit{port=\\}
+	\indent \#   	\textit{elif connection == serial\\}
+	\indent \#      \indent \textit{baud=\\}
+	\indent \#      \indent \textit{port=}
 
 %-------------------------------------------------------------------------------------------------------
 
