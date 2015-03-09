@@ -121,6 +121,9 @@ Explain how the planner was implemented in code, the control logic, looping stru
 Every planner in robotics splits the problem into five simple steps, include them under this section as numbered items. State any recursive operations that take place. Also include a flowchart or diagram in some form.
 
 \subsection{Abstracting Away from the Algorithm}
+\noindent
+Art the heart of the object oriented patterns used in this project is \textit{abstraction} , which is a technique that enables a developer to generalise the functionality of a class through abstract inheritance. Through this process the complexity of an object can be reduced and its efficiency greatly increased \cite{http://whatis.techtarget.com/definition/abstraction}. It has been used extensively in the implementation of the path planning algorithms which all inherit from the base class \textit{AbstractAlgorithm}.
+
 This section will cover the abstract model that the Algorithm class enforces, every planning algorithm has a common interface which allows them to be interchanged. Explain how this is achieved using abstraction and talk about the advantages.
 
 %-------------------------------------------------------------------------------------------------------
