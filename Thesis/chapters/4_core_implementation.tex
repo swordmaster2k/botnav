@@ -78,6 +78,10 @@ def go_to(self, x, y):
     self.state = "Travelled"
 \end{lstlisting}
 
+\subsection{Sample Output}
+
+\newpage
+
 %-------------------------------------------------------------------------------------------------------
 
 \section{Using a Real Bot}
@@ -114,6 +118,8 @@ For IP based configurations an \textit{ip}, \textit{mac}, and \textit{port} sett
 
 %-------------------------------------------------------------------------------------------------------
 
+\newpage
+
 \section{How the Planner Works}
 Explain how the planner was implemented in code, the control logic, looping structure, reacting to change, and the conditions for terminating the planner.
 
@@ -122,11 +128,21 @@ Every planner in robotics splits the problem into five simple steps, include the
 
 \subsection{Abstracting Away from the Algorithm}
 \noindent
-Art the heart of the object oriented patterns used in this project is \textit{abstraction} , which is a technique that enables a developer to generalise the functionality of a class through abstract inheritance. Through this process the complexity of an object can be reduced and its efficiency greatly increased \cite{http://whatis.techtarget.com/definition/abstraction}. It has been used extensively in the implementation of the path planning algorithms which all inherit from the base class \textit{AbstractAlgorithm}.
+Art the heart of the object oriented patterns used in this project is \textit{abstraction}, a technique that enables a developer to generalise the functionality of a class through abstract inheritance. Through this process the complexity of an object can be reduced and its efficiency greatly increased \cite{http://whatis.techtarget.com/definition/abstraction}. It has been used extensively in the implementation of the path planning algorithms which all inherit from the base class \textit{AbstractAlgorithm}. From this class each algorithm inherits a series of default behaviours some of which are listed here:
 
-This section will cover the abstract model that the Algorithm class enforces, every planning algorithm has a common interface which allows them to be interchanged. Explain how this is achieved using abstraction and talk about the advantages.
+\begin{itemize}
+\item plan(self) -
+\item pop\_next\_point(self) -
+\item update\_occupancy\_grid(self, cells) - 
+\item print\_debug(self, stream) - 
+\end{itemize}
+
+\noindent
+The real advantage to using abstraction here is the \textit{pluggable} nature it provides. Every algorithm that inherits from the \textit{AbstractAlgorithm} base class implements a common set of behaviours and properties. Regardless of which algorithm is currently being used for planning we simply access the same behaviour or property. The implementation details of each algorithm is hidden from the \textit{Planner} whom only cares about the results.
 
 %-------------------------------------------------------------------------------------------------------
+
+\newpage
 
 \section{Open Field D*}
 Core of the project very important, state that every implementation of Field D* to date is closed source NASA's code is not available, nor is Carnegie Mellon's. Open Field D* is significant because it bucks this trend making it open to ITB students and others.
