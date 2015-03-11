@@ -117,7 +117,7 @@ def generate_gnuplot(directory, paths, grid_size, output_type):
 
             # Second command is for the actual path the robot took.
             commands2 = '\"' + directory + '/robot_path.gnuplot\"' + " using " + str(1) + ":" + str(2) + \
-                        " title \'robot path\' with linespoints"
+                       " title \'robot path\' with linespoints"
 
             # Third command contains the obstacles in the environment.
             commands3 = '\"' + directory + '/occupancy.gnuplot\"' + " using " + str(1) + ":" + str(2) + \
