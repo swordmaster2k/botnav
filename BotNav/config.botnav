@@ -12,8 +12,8 @@
 #   elif connection == serial
 #       baud=
 #       port=
-map=maps/sample.map
-planner=grid_nav
+map=maps/bedroom15.map
+planner=d_star_lite
 mode=simulated
 #mode=physical
 #connection=bluetooth
