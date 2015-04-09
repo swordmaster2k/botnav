@@ -126,17 +126,61 @@ For IP based configurations an \textit{ip}, \textit{mac}, and \textit{port} sett
 
 %-------------------------------------------------------------------------------------------------------
 
+\section{How the Planner Works}
+\noindent
+As we have already seen our \textit{Planner} is implemented on its own separate thread which is designed to handle the bulk of the processing required to get our mobile robot from point a to b. All of this work is carried out within the \textit{run} method which is invoked when the thread is started. Below is a snippet of the code from the start of this method: \\
+
+\begin{lstlisting}
+'''
+Step 1: Plan.
+'''
+self.algorithm.plan()
+
+# Write the state after first planning step.
+self.write_state()
+
+# Append a copy of the path to our paths record.
+paths.append(self.algorithm.path[:])
+
+# Stick the starting position of the robot into
+# the first path.
+paths[0].insert(0, [self.robot.get_cell_x(), self.robot.get_cell_y()])
+
+# Calculate our initial distance from the goal.
+[output omitted]
+
+# Write some debugging info.
+self.write_debug_info()
+\end{lstlisting}
+
+\noindent
+During the planning process the \textit{Planner} goes through a number of steps, part of the first step is outlined in the above code snippet. After the initial planning step that is used to evaluate if a path to the goal exists the planner immediately writes the state to our output files. Then some additions to the path collection are made including the robot's start position, the goal distance is calculated and checked, and lastly debugging information is recorded. This is just the first of five steps involved during the planning process this particular step only runs once per test. In the next section we will discuss all five steps together in \ref{steps}.
+
+\subsection{Five Simple Steps}\label{steps}
+\noindent
+The planning process presented in this work was inspired by \cite{GRIDNAV95}. In \cite{GRIDNAV95} T. Balch established a simple methodology that enabled a mobile robot equipped with grid based planner to successfully navigate towards its goal in an iterative manner using seven steps. Those steps can be seen on page 7 of his paper. Our planning process was originally derived from these steps and later simplified by reducing it from seven steps to five:
+
 \newpage
 
-\section{How the Planner Works}
-Explain how the planner was implemented in code, the control logic, looping structure, reacting to change, and the conditions for terminating the planner.
+\begin{enumerate}
+\item Plan.
+\item Scan the immediate area for obstacles and free space.
+\item Update the map if necessary.
+\begin{enumerate}
+\item Recompute the plan if necessary.
+\end{enumerate}
+\item Pop the next point from the current path and travel.
+\item Go to 2.
+\end{enumerate}
 
-\subsection{Five Simple Steps}
-Every planner in robotics splits the problem into five simple steps, include them under this section as numbered items. State any recursive operations that take place. Also include a flowchart or diagram in some form.
+\noindent
+In the original version the initialisation of variables and the reading of the map file were included as a step, this is not included in the \textit{Planner} directly so it was removed. Also step 5 from \cite{GRIDNAV95} became the optional step 3(a) as this step will only ever be taken if the condition for step 3 becomes \textit{true}. This process will iteratively execute from step 2 through 5 until either the goal is reached \textit{or} when no path can be found. Essentially all of the work in this entire project evolved from this methodology. By reading over \cite{GRIDNAV95} we can gain a fundamental understanding of everything that grid based path planning involves from start to finish. 
 
 \subsection{Abstracting Away from the Algorithm}
 \noindent
 Art the heart of the object oriented patterns used in this project is \textit{abstraction}, a technique that enables a developer to generalise the functionality of a class through abstract inheritance. Through this process the complexity of an object can be reduced and its efficiency greatly increased \cite{http://whatis.techtarget.com/definition/abstraction}. It has been used extensively in the implementation of the path planning algorithms which all inherit from the base class \textit{AbstractAlgorithm}. From this class each algorithm inherits a series of default behaviours some of which are listed here:
+
+\newpage
 
 \begin{itemize}
 \item plan(self) -
@@ -146,19 +190,27 @@ Art the heart of the object oriented patterns used in this project is \textit{ab
 \end{itemize}
 
 \noindent
-The real advantage to using abstraction here is the \textit{pluggable} nature it provides. Every algorithm that inherits from the \textit{AbstractAlgorithm} base class implements a common set of behaviours and properties. Regardless of which algorithm is currently being used for planning we simply access the same behaviour or property. The implementation details of each algorithm is hidden from the \textit{Planner} whom only cares about the results.
+The real advantage to using abstraction here is the \textit{pluggable} nature it provides. Every algorithm that inherits from the \textit{AbstractAlgorithm} base class implements a common set of behaviours and properties. Regardless of which algorithm is currently being used for planning we simply access the same behaviour or property (see Figure \ref{abstraction_method}). The implementation details of each algorithm is hidden from the \textit{Planner} whom only cares about the results.
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=290pt]{illustrations/abstraction}\\
+\caption{The current algorithm acts as a black box to the \textit{Planner} whom calls a set of public abstract methods. Any planning algorithm can be swapped in for testing without having to account for any implementation specifics.} 
+\label{abstraction_method}
+
+\end{figure}
 
 %-------------------------------------------------------------------------------------------------------
 
 \newpage
 
-\section{Open Field D*}
-Core of the project very important, state that every implementation of Field D* to date is closed source NASA's code is not available, nor is Carnegie Mellon's. Open Field D* is significant because it bucks this trend making it open to ITB students and others.
+%\section{Open Field D*}
+%Core of the project very important, state that every implementation of Field D* to date is closed source NASA's code is %not available, nor is Carnegie Mellon's. Open Field D* is significant because it bucks this trend making it open to ITB %students and others.
 
-\subsection{Modifying D* Lite}
-Point out the key differences between D* Lite and Field D* from a coding perspective, nodes to cell corners how this is represented, linear interpolation. Using Georgia Institute of Technologies D* Lite code state the modifications required to get Field D*.
+%\subsection{Modifying D* Lite}
+%Point out the key differences between D* Lite and Field D* from a coding perspective, nodes to cell corners how this is %represented, linear interpolation. Using Georgia Institute of Technologies D* Lite code state the modifications %required to get Field D*.
 
-\subsection{Basic Implementation}
-Cover basic implementation of Field D*, most importantly state any problems encountered, or variations/optimisations made during the coding stage.
+%\subsection{Basic Implementation}
+%Cover basic implementation of Field D*, most importantly state any problems encountered, or variations/optimisations %made during the coding stage.
 
 %-------------------------------------------------------------------------------------------------------
