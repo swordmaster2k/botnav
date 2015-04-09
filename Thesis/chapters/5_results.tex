@@ -1,30 +1,34 @@
-\chapter{Results}
+\chapter{Analysis}
 
 \noindent
 The purpose of this section is to define the testing methodology used to compare D* Lite and Field D* to each other. It is split into two sections one covering the tests carried for simulations and the other for actual physical testing and their results.
 
-%-------------------------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------------------------------------
 
-\section{Simulated Runs}
-
-\noindent
-Simulated runs are those performed using a software robot, basically a dummy. The real differences is that unlike hardware dependent tests they should be straight forward to reproduce, all except Test 3.
-
-\subsection{Sample Environments}
+\section{Test Cases}
 
 \noindent
 Provide all of the necessary details surrounding the sample environments used, file names, physical and cell size, and an example of one possibly a picture or a scaled text version. These environments should be based on real ones however they will remain unchanged during the planning process.
 
-\subsection{Test 1: Path Length}
+\newpage
+
+\subsection{Test Case 1: Path Length}
+
+\noindent 
+Each of the planners produce one key output and that is a path from our start position to the goal. A property that all of these paths share in common is their physical length in metres. The goal of all of these planners is to compute the shortest path from the robot's current position to the goal. One fundamental test that we can undertake to evaluate the performance of each planner is to take the shortest suggested path and compare every other path with it. \\
 
 \noindent
-\textbf{Test 1:} is concerned with the actual length of the path that both planners produce for the same environment. The length will be some absolute value which will be accompanied by a percentage that indicates how much shorter one is from the other.\\
+What we will be able gather from this kind of test is a percentage that tells how costly a suboptimal path is to traverse in comparison with the planner that produced the shortest path. Based on a large number of evaluations from every possible starting position to the goal for a given map it will be possible to say which planning algorithm on average produces the shortest path. This is a good indicator for when comes to deciding upon best planner however it does not account for the length of time it took to compute that optimal path. \\
 
 \noindent
 \textbf{Expected:} based on Field D*'s authors it is expected that Field D*'s result will be shorted for any paths involve headings other than $\dfrac{\pi}{4}$.\\
 
 \noindent
 \textbf{Output:} a plot file containing the full path for use with gnuplot.
+
+\subsubsection{Evaluation}
+
+\newpage
 
 \subsection{Test 2: Vertex Accesses}
 
@@ -37,6 +41,10 @@ Provide all of the necessary details surrounding the sample environments used, f
 \noindent
 \textbf{Output:} absolute number of vertex accesses wrote to the debug file.
 
+\subsubsection{Evaluation}
+
+\newpage
+
 \subsection{Test 3: Execution Time}
 
 \noindent
@@ -48,48 +56,11 @@ Provide all of the necessary details surrounding the sample environments used, f
 \noindent
 \textbf{Output:} absolute total planning time wrote to the debug file.
 
-%-------------------------------------------------------------------------------------------------------
+\subsubsection{Evaluation}
 
-\section{Courier Robot Runs}
+\subsection{Test 4: Heading Changes}
 
-Covers the tests conducted on physical robots these are designed to cover specific cases that are difficult to reproduce in simulations such as collisions and the real delivery time. They are completely implementation dependent and will vary from robot to robot making them difficult to reproduce.
-
-\subsection{Real Environments}
-
-Give a quick summary of the real environments that the courier robot(s) had to navigate through include some floor plans and pictures. Highlight any obstacles that were not included in the initial map, these environments will not containing moving entities.
-
-\subsection{Test 1: Navigating Unknown Terrain}
-
-\noindent
-\textbf{Test 1:} is concerned with the robots ability to navigate a completely unknown terrain when given only its dimensions. Obstacles shall be placed along the robots initial path to force replanning steps, the robot will have to rely on the accuracy of its sensors.\\
-
-\noindent
-\textbf{Expected:} the robots sensors should enable it to detect any obstructions and plan around these. The resulting map should closely reassemble the floor plan.\\
-
-\noindent
-\textbf{Output:} a map file of the discovered terrain.
-
-\subsection{Test 2: Collision Frequency}
-
-\noindent
-\textbf{Test 2:} is concerned with how frequent the proposed path results in the robot colliding with an obstacle. The likely cause for this will be that the planner produces a path that brings the robot very close to an obstacle.\\
-
-\noindent
-\textbf{Expected:} collisions should be kept to a minimum.\\
-
-\noindent
-\textbf{Output:} the number of disabling collisions a robot makes when following a path.
-
-\subsection{Test 3: Delivery Time}
-
-\noindent
-\textbf{Test 2:} is concerned with the time it takes the robot to travel from the start location to the goal. This includes all of the operations: planning, driving, turning, and scanning.\\
-
-\noindent
-\textbf{Expected:} the robot should be able to complete the task with in a justifiable time frame.\\
-
-\noindent
-\textbf{Output:} time it took to reach the goal wrote to the debug file.
+\subsubsection{Evaluation}
 
 \section{Discussion}
 Discuss the findings, highlight any particularly interesting trends or patterns, also mention any difficulties encountered during testing. State the significance of the results
