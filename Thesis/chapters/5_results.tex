@@ -15,22 +15,29 @@ Provide all of the necessary details surrounding the sample environments used, f
 \subsection{Test Case 1: Path Length}
 
 \noindent 
-Each of the planners produce one key output and that is a path from our start position to the goal. A property that all of these paths share in common is their physical length in metres. The goal of all of these planners is to compute the shortest path from the robot's current position to the goal. One fundamental test that we can undertake to evaluate the performance of each planner is to take the shortest suggested path and compare every other path with it. \\
+Each of the planners produce one key output and that is a path from our start position to the goal. A property that all of these paths share in common is their physical length in metres. The goal of all of these planners is to compute the shortest path from the robot's current position to the goal. One fundamental test that we can undertake to evaluate the performance of each planner is to take the shortest suggested path and compare every other path to it. \\
 
 \noindent
-What we will be able gather from this kind of test is a percentage that tells how costly a suboptimal path is to traverse in comparison with the planner that produced the shortest path. Based on a large number of evaluations from every possible starting position to the goal for a given map it will be possible to say which planning algorithm on average produces the shortest path. This is a good indicator for when comes to deciding upon best planner however it does not account for the length of time it took to compute that optimal path. \\
+What we will be able gather from this kind of test is a percentage that tells how costly a suboptimal path is to traverse in comparison with the planner that produced the shortest path. Based on a large number of evaluations from every possible starting position to the goal for a given map it will be possible to say which planning algorithm on average produces the shortest path. This is a good indicator for when it comes to deciding upon the best planner to use however it does not account for the length of time it took to compute that optimal path. \\
 
 \noindent
-\textbf{Expected:} based on Field D*'s authors it is expected that Field D*'s result will be shorted for any paths involve headings other than $\dfrac{\pi}{4}$.\\
+\textbf{Expected:} based on the claims of the authors of Field D* and Theta* we expect that the planners capable of dealing with headings other than $\dfrac{\pi}{4}$ will perform better.\\
 
 \noindent
-\textbf{Output:} a plot file containing the full path for use with gnuplot.
+\textbf{Input:} map grid, start position, end position
+\textbf{Output:} path of points OR an empty path
 
 \subsubsection{Evaluation}
 
 \newpage
 
 \subsection{Test 2: Vertex Accesses}
+
+\noindent
+While execution time seems like an obvious measure that can help determine the most capable path planner it is highly subjective and variable. The time the planner spends in a processor can vary hugely based on the hardware configuration and the operating systems thread manager. For example a robot running around on a single core 700mhz processor will not have the same computing power as a quad core clocked at 2.2Ghz. The time spent calculating the path on the 700mhz processor could be significantly higher, yet the steps involved are exactly the same. \\
+
+\noindent
+An alternative to clocking the execution time is to keep track of the number of operations it takes to reach a certain goal. When it comes to path planning algorithms the highest costing operation is anything that involves accessing a \textit{vertex}. Depending of the representation a vertex can either be an entire cell or an edge, vertices are accessed during cost calculation, updates, and traversals.  \\
 
 \noindent
 \textbf{Test 2:} is concerned with how many vertices (cells) need to be accessed to build a shortest path. This is different from expansion which looks at all the vertices at once.\\
