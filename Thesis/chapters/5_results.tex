@@ -12,7 +12,7 @@ Provide all of the necessary details surrounding the sample environments used, f
 
 \newpage
 
-\subsection{Test Case 1: Path Length}
+\subsection{Test Case 1: Path Length}\label{test 1}
 
 \noindent 
 Each of the planners produce one key output and that is a path from our start position to the goal. A property that all of these paths share in common is their physical length in metres. The goal of all of these planners is to compute the shortest path from the robot's current position to the goal. In order to determine on average which of the planners produces the best result for a given scenario we will examine the time it takes to traverse. \\
@@ -26,14 +26,14 @@ Based on a large number of evaluations from every possible starting position to 
 \end{itemize} 
 
 \noindent
-These figures were gathered from the performance of the DFRobot Cherokey 4WD platform during path traversals. It is important to note here that we are assigning a time penalty for turning which requires deceleration. Calculating the cost using this theoretical model reduces the error rate in our results as we do not have to deal with drift or other physical properties that affect real robot platforms. It also reduces the time it takes to test as we can now perform thousands of simulated runs at once. Our physical robot can be used to complement the results of this test. \\
+These figures were gathered from the performance of the DFRobot Cherokey 4WD platform during path traversals. It is important to note here that we are assigning a time penalty for turning which requires deceleration. Calculating the cost using this theoretical model reduces the error rate in our results as we do not have to deal with drift or other physical properties that affect real robot platforms. It also reduces the time it takes to test as we can now perform thousands of simulated runs at once. \\
 
 \noindent
 \textbf{Expected Result:} based on the claims of the authors of Field D* and Theta* we expect that the planners capable of dealing with headings other than $\dfrac{\pi}{4}$ will perform better.
 
 \newpage
 
-\subsubsection{Cost Computation}
+\subsubsection{Cost Calculation}
 
 \noindent
 The time it takes to traverse a path is then based on two inputs:
@@ -84,27 +84,39 @@ Based on the equation we just defined we can get the path cost by substitution: 
 \noindent
 We can use the result from this simple computation during our comparative analysis to determine which planner is producing the lowest costing path. The result can also help in calculating the resources required to reach the goal \textit{i.e.} battery drain, as time spent moving costs a significant amount of energy.
 
-\subsection{Test 2: Vertex Accesses}
+\subsection{Test Case 2: Vertex Accesses}\label{test 2}
 
 \noindent
-In order to completely address our main research question we must look at one other function that all the path planners perform during the planning process.  
-While execution time seems like an obvious measure that can help determine the most capable path planner it is highly subjective and variable. The time the planner spends in a processor can vary hugely based on the hardware configuration and the operating systems thread manager. For example a robot running around on a single core 700mhz processor will not have the same computing power as a quad core clocked at 2.2Ghz. The time spent calculating the path on the 700mhz processor could be significantly higher, yet the steps involved are exactly the same. \\
+In order to properly address our main research question we must look at one other function that all the path planners perform during the planning process. When it comes to path planning algorithms the highest costing operation is anything that involves accessing a \textit{vertex}. Depending on the planners representation a vertex can either be a cell or an edge, vertices are accessed during cost calculation, updates, and traversals. It makes sense then to take into account the time spent accessing vertices while the path is being generated. \\
 
 \noindent
-An alternative to clocking the execution time is to keep track of the number of operations it takes to reach a certain goal. When it comes to path planning algorithms the highest costing operation is anything that involves accessing a \textit{vertex}. Depending on the planners representation a vertex can either be a cell or an edge, vertices are accessed during cost calculation, updates, and traversals. Given this figure when can assign a constant time cost for every access independently of the processor. This works in practice as all of the planners use simple mathematical calculations when working with vertices. This allows us to safely establish a theoretical execution time. \\   
+While raw execution time may seem like a more obvious measure, the problem with it is that it depends on the underlying computer architecture. If we were to base our tests on the time the process spends in the processor they would be \textit{machine dependent} and difficult to reproduce \cite{FIELD2}. Instead we will adopt the same approach as in Test Case 1. \\
 
 \noindent
-\textbf{Test 2:} is concerned with how many vertices (cells) need to be accessed to build a shortest path. This is different from expansion which looks at all the vertices at once.\\
+Given the number of vertices accessed during the planning we can assign a constant time cost for every access independently of the processor. This works in practice as all of the planners use simple mathematical calculations when working with vertices. This allows us to safely establish a theoretical execution time. The value of this constant is not important as long as it is realistic and consistent across all tests:
+
+\begin{itemize}
+\item Cost per access: 100$\mu$s
+\end{itemize}   
 
 \noindent
-\textbf{Expected:} since Field D* can deal with more headings it should produce a shorter path and therefore pass through less vertices than D* Lite.\\
+\textbf{Expected:} it is expected the planners that focus their search will access less vertices and therefore use less computation time.
+
+\subsubsection{Cost Calculation}
 
 \noindent
-\textbf{Output:} absolute number of vertex accesses wrote to the debug file.
+Calculating the time cost for accessing vertices requires the following formula: \\
 
-\subsubsection{Evaluation}
+\indent $time = total\_accesses \times cost\_per\_access$
 
-\newpage
+\subsubsection{Example}
 
-\section{Discussion}
-Discuss the findings, highlight any particularly interesting trends or patterns, also mention any difficulties encountered during testing. State the significance of the results
+\noindent
+\textbf{Given:} the planner evaluated 400 of 2500 vertices for Test Case 1. \\
+
+\indent $\Rightarrow time = total\_accesses \times cost\_per\_access$ \\
+\indent $\Rightarrow time = (400) \times 100$ \\
+\indent $\Rightarrow time = 0.04s$ \\
+
+\noindent
+The total time spent for both Test Case 1 and 2 is 6.04s, as a percentage the time spent planning is 1.51\%.  What we shall be looking to establish during the testing phase is which is more proportionally important fast planning or a shorter path.
