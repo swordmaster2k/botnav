@@ -15,25 +15,79 @@ Provide all of the necessary details surrounding the sample environments used, f
 \subsection{Test Case 1: Path Length}
 
 \noindent 
-Each of the planners produce one key output and that is a path from our start position to the goal. A property that all of these paths share in common is their physical length in metres. The goal of all of these planners is to compute the shortest path from the robot's current position to the goal. One fundamental test that we can undertake to evaluate the performance of each planner is to take the shortest suggested path and compare every other path to it. \\
+Each of the planners produce one key output and that is a path from our start position to the goal. A property that all of these paths share in common is their physical length in metres. The goal of all of these planners is to compute the shortest path from the robot's current position to the goal. In order to determine on average which of the planners produces the best result for a given scenario we will examine the time it takes to traverse. \\
 
 \noindent
-What we will be able gather from this kind of test is a percentage that tells how costly a suboptimal path is to traverse in comparison with the planner that produced the shortest path. Based on a large number of evaluations from every possible starting position to the goal for a given map it will be possible to say which planning algorithm on average produces the shortest path. This is a good indicator for when it comes to deciding upon the best planner to use however it does not account for the length of time it took to compute that optimal path. \\
+Based on a large number of evaluations from every possible starting position to the goal for a given map it will be possible to say which planning algorithm on average produces the shortest path. To make this test fair it shall be based on a theoretical mobile robot with the following properties: 
+
+\begin{itemize}
+\item Average Speed: $0.6m/s$
+\item Turning Speed: $1rad/s$ 
+\end{itemize} 
 
 \noindent
-\textbf{Expected:} based on the claims of the authors of Field D* and Theta* we expect that the planners capable of dealing with headings other than $\dfrac{\pi}{4}$ will perform better.\\
+These figures were gathered from the performance of the DFRobot Cherokey 4WD platform during path traversals. It is important to note here that we are assigning a time penalty for turning which requires deceleration. Calculating the cost using this theoretical model reduces the error rate in our results as we do not have to deal with drift or other physical properties that affect real robot platforms. It also reduces the time it takes to test as we can now perform thousands of simulated runs at once. Our physical robot can be used to complement the results of this test. \\
 
 \noindent
-\textbf{Input:} map grid, start position, end position
-\textbf{Output:} path of points OR an empty path
-
-\subsubsection{Evaluation}
+\textbf{Expected Result:} based on the claims of the authors of Field D* and Theta* we expect that the planners capable of dealing with headings other than $\dfrac{\pi}{4}$ will perform better.
 
 \newpage
+
+\subsubsection{Cost Computation}
+
+\noindent
+The time it takes to traverse a path is then based on two inputs:
+
+\begin{itemize}
+\item Path length in metres.
+\item Total heading change in radians.
+\end{itemize}
+
+\noindent
+We can extract these two inputs from our raw path of points. The path length is simply the sum of all the distances between every point using the coordinate geometry distance formula: \\
+
+\indent $d = \sqrt{(x_{2} - x_{1})^{2} + (y_{2} - y_{1})^{2}}$ \\
+
+\noindent
+Which can be implemented in \textit{psuedocode} as: \\
+
+\begin{lstlisting}
+length = 0
+
+for each point in path:
+	next_point = point.next()
+	
+	if next_point is not null:
+		length += math.sqrt((next_point.x - point.x) ^ 2 + (next_point.x - point.x) ^ 2)
+\end{lstlisting}
+
+\noindent
+The total number of headings changes is just the sum of the difference between our current heading at a point and the change in direction required to face the new point. Our equation for calculating the cost of traversing a path is then: \\
+
+\indent $time = path\_length \times 0.6 + total\_rotations \times 1.0$ \\
+
+\newpage
+
+\subsubsection{Example}
+
+\noindent
+\textbf{Given:} path of $3m$ containing a total heading change of $1rad$. \\
+
+\noindent
+Based on the equation we just defined we can get the path cost by substitution: \\
+
+\indent $\Rightarrow time = path\_length \times 0.6 + total\_rotations \times 1.0$ \\
+\indent $\Rightarrow time = (3) \times 0.6 + (1) \times 1.0$ \\
+\indent $\Rightarrow time = 5 + 1$ \\
+\indent $\Rightarrow time = 6s$ \\
+
+\noindent
+We can use the result from this simple computation during our comparative analysis to determine which planner is producing the lowest costing path. The result can also help in calculating the resources required to reach the goal \textit{i.e.} battery drain, as time spent moving costs a significant amount of energy.
 
 \subsection{Test 2: Vertex Accesses}
 
 \noindent
+In order to completely address our main research question we must look at one other function that all the path planners perform during the planning process.  
 While execution time seems like an obvious measure that can help determine the most capable path planner it is highly subjective and variable. The time the planner spends in a processor can vary hugely based on the hardware configuration and the operating systems thread manager. For example a robot running around on a single core 700mhz processor will not have the same computing power as a quad core clocked at 2.2Ghz. The time spent calculating the path on the 700mhz processor could be significantly higher, yet the steps involved are exactly the same. \\
 
 \noindent
