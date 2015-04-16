@@ -1,14 +1,19 @@
-\chapter{Analysis}
-
-\noindent
-The purpose of this section is to define the testing methodology used to compare D* Lite and Field D* to each other. It is split into two sections one covering the tests carried for simulations and the other for actual physical testing and their results.
+\chapter{Testing}
 
 %----------------------------------------------------------------------------------------------------------------------
 
 \section{Test Cases}
 
 \noindent
-Provide all of the necessary details surrounding the sample environments used, file names, physical and cell size, and an example of one possibly a picture or a scaled text version. These environments should be based on real ones however they will remain unchanged during the planning process.
+In this section we will establish our testing methodology that shall be used to answer our main research question. The purpose of these tests is to discover what is more important in path planning for mobile robots, computation speed, or shorter path lengths. To achieve this we have defined two test cases that look at: 
+
+\begin{itemize}
+\item Traversal time based on the path length.
+\item Estimated computation time for vertex accesses.
+\end{itemize}
+
+\noindent
+Examining what proportion the computation time takes when compared to the travel time will help us answer our main research question. The most efficient planner will be selected based on the combined traversal and computation time. Before we carry out these tests we must be aware of potential biased scenarios, for example in a maze like environment where movement is completely restricted to headings of $\dfrac{\pi}{4}$ all planners shall have similar performances. Another case is where our path travels through wide open spaces containing large numbers of free cells. Planners that focus their search using \textit{heuristics} \cite{feurg paper} have a distinct advantage here (D* Lite, Field D*, Theta*). 
 
 \newpage
 
