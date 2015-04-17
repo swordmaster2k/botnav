@@ -1,17 +1,17 @@
 import os
 import sys
+import datetime
 
 from pathlib import Path
 
 
-def generate_dataset(directory, file_name, output=""):
-    # Look for the occurance of these strings in the files that match file_name under
+def generate_dataset(directory, file_name, output):
+    # Look for the occurrence of these strings in the files that match file_name under
     # the given path, search all subdirectories.
     separator = ':'
     spacer = "\t\t\t"
-    total_vertices = "Total Vertices"
-    vertex_accesses = "Vertex Accesses"
-    total_planning_time = "Total Planning Time"
+    traversal_time = "Traversal Time"
+    computation_time = "Computation Time"
 
     p = Path(directory)
 
@@ -19,7 +19,7 @@ def generate_dataset(directory, file_name, output=""):
         if p.is_dir():
             for child in p.iterdir():
                 if child.is_dir():
-                    generate_dataset(child, file_name, output)
+                    output = generate_dataset(child, file_name, output)
                 elif child.name == file_name:
                     # Search the file for the entries we are interested in.
                     file = child.open()
@@ -28,19 +28,20 @@ def generate_dataset(directory, file_name, output=""):
 
                     # Assumes that the file format is not corrupted.
                     for line in lines:
-                        if total_vertices in line:
+                        if traversal_time in line:
                             partition = line.partition(separator)
-                            output += partition[2].strip() + spacer
-                        elif vertex_accesses in line:
-                            partition = line.partition(separator)
-                            output += partition[2].strip() + spacer
-                        elif total_planning_time in line:
+                            output += '%.6f' % float(partition[2].strip()) + spacer
+                        elif computation_time in line:
                             partition = line.partition(separator)
                             output += '%.6f' % float(partition[2].strip()) + spacer
 
-        print(output)
+                    output += "\n"
+
+                    file.close()
     else:
         print(str(p) + " does not exist")
+
+    return output
 
 
 def write_paths(stream, paths):
@@ -124,7 +125,8 @@ def generate_gnuplot(directory, paths, grid_size, output_type):
                         " title \'obstacles\' with points"
 
             gnuplot.write(configuration)
-            gnuplot.write(commands1 + "," + commands2 + "," + commands3 + "\n")
+            #gnuplot.write(commands1 + "," + commands2 + "," + commands3 + "\n")
+            gnuplot.write(commands1 + "," + commands3 + "\n")
 
             column1 += 2
             column2 += 2
@@ -170,7 +172,14 @@ def test_write_paths():
 
 
 def test_generate_dataset():
-    generate_dataset("../maps/output", "debug_info.output")
+    output = generate_dataset("../maps/output", "debug_info.output", "")
+
+    p = Path("../maps/output" + "/dataset.output" + str(datetime.datetime.utcnow()))
+    p.touch()
+
+    file = p.open("w")
+    file.write(output)
+    file.close()
 
 #test_write_paths()
-#test_generate_dataset()
+#test_generate_dataset()  # Remove comment to activate result generator.

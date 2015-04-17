@@ -1,4 +1,5 @@
 import sys
+import math
 import time
 import threading
 
@@ -9,6 +10,9 @@ from util import result_generator
 
 import exceptions
 
+TRAVEL_SPEED = 0.6
+ROTATION_PENALTY = 1.0
+COMPUTATION_PER_ACCESS = 1e-5
 
 class Planner(threading.Thread):
     """
@@ -33,6 +37,7 @@ class Planner(threading.Thread):
         """
 
         self.map = map
+        self.paths = []
         self.robot = self.map.robot
         self.algorithm = algorithm
 
@@ -101,6 +106,22 @@ class Planner(threading.Thread):
                     "heading %.2f" % self.robot.heading)
                 self.output_file.write("\n\n" + ('-' * 120) + "\n\n")
 
+    def calculate_traversal_time(self):
+        path = self.paths[0]
+
+        path_length = 0
+
+        for i in range(len(path) - 1):
+            point = path[i]
+            next_point = path[i + 1]
+
+            path_length += math.sqrt((next_point[0] - point[0]) ** 2 + (next_point[1] - point[1]) ** 2)
+
+        # Convert from cells to metres.
+        path_length *= self.map.cell_size
+
+        return round(path_length, 3)
+
     def run(self):
         """
         The actions of the Planner using any algorithm are:
@@ -119,7 +140,7 @@ class Planner(threading.Thread):
 
         # Variable for holding all the paths that
         # are generated for later writing to gnuplot file.
-        paths = []
+        self.paths = []
 
         # Write the initial state.
         #self.write_state()
@@ -136,11 +157,11 @@ class Planner(threading.Thread):
             self.write_state()
 
             # Append a copy of the path to our paths record.
-            paths.append(self.algorithm.path[:])
+            self.paths.append(self.algorithm.path[:])
 
             # Stick the starting position of the robot into
             # the first path.
-            paths[0].insert(0, [self.robot.get_cell_x(), self.robot.get_cell_y()])
+            self.paths[0].insert(0, [self.robot.get_cell_x(), self.robot.get_cell_y()])
 
             # Calculate our initial distance from the goal.
             x_difference = self.map.goal_x - self.robot.get_cell_x()
@@ -184,7 +205,7 @@ class Planner(threading.Thread):
                         self.algorithm.plan()
 
                         # Append a copy of the path to our paths record.
-                        paths.append(self.algorithm.path[:])
+                        self.paths.append(self.algorithm.path[:])
 
                 '''
                 Step 4: Pop the next point from the current path.
@@ -234,12 +255,21 @@ class Planner(threading.Thread):
                     self.algorithm.print_cost_grid(self.output_file)
                     self.algorithm.print_occupancy_grid(self.output_file)
                     self.algorithm.print_debug(self.output_file)
-                    self.output_file.write("Total Execution Time (seconds): " + str(execution_time))
+                    self.output_file.write("Total Execution Time (seconds): " + str(execution_time) + "\n\n")
+                    self.output_file.write("Path Length: " + str(self.calculate_traversal_time()) + "\n\n")
+
+                    traversal_time = round(self.calculate_traversal_time() / TRAVEL_SPEED, 3)
+                    computation_time = self.algorithm.vertex_accesses * COMPUTATION_PER_ACCESS
+
+                    self.output_file.write("Traversal Time: " + str(traversal_time) + "\n")
+                    self.output_file.write("Computation Time: " + str(computation_time) + "\n\n")
+                    self.output_file.write("Total Time: " + str(traversal_time + computation_time))
+
 
             # Write all of the paths that were used to the gnuplot file.
             if self.gnuplot_file is not None:
                 if not self.gnuplot_file.closed:
-                    result_generator.write_paths(self.gnuplot_file, paths)
+                    result_generator.write_paths(self.gnuplot_file, self.paths)
 
             if not self.finished:
                 self.finished = True

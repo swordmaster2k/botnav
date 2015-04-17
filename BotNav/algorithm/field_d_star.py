@@ -84,9 +84,10 @@ class FieldDStar(AbstractAlgorithm):
                 If it's a cell on the boundary or occupied set it to a high cost.
                 '''
                 if ((x == 0) or (x == (self.map_state.cells_square - 1)) or
-                        (y == 0) or (y == (self.map_state.cells_square - 1))) or \
-                        self.map_state.grid[x][y].state == 2:
+                        (y == 0) or (y == (self.map_state.cells_square - 1))):
                     data = 1
+                elif self.map_state.grid[x][y].state == 2:
+                    data = 2
                 else:
                     data = 1
 
@@ -304,11 +305,27 @@ class FieldDStar(AbstractAlgorithm):
             if len(self.open_list) == 0:
                 break
 
-            s = self.open_list.pop()
+        # Do some post processing of nodes that surround occupied cells. We are effectively applying
+        # smoothing around the edges by a factor of 10%.
+        '''
+        for x in range(self.map_state.cells_square):
+            for y in range(self.map_state.cells_square):
+                if self.map_state.grid[x][y].state == 2:
+                    self.nodes[x][y].g *= 1.1
+                    self.nodes[x][y].rhs *= 1.1
+                    self.nodes[x + 1][y].g *= 1.1
+                    self.nodes[x + 1][y].rhs *= 1.1
+                    self.nodes[x + 1][y + 1].g *= 1.1
+                    self.nodes[x + 1][y + 1].rhs *= 1.1
+                    self.nodes[x][y + 1].g *= 1.1
+                    self.nodes[x][y + 1].rhs *= 1.1
+        '''
 
         for column in self.nodes:
             for node in column:
                 print(str(node))
+
+        print('h')
 
         # Extract the path.
         while self.s_start.x != self.s_goal.x or self.s_start.y != self.s_goal.y:
@@ -332,21 +349,25 @@ class FieldDStar(AbstractAlgorithm):
                         self.s_start.x = lowest_pair[1].x
                         self.s_start.y = lowest_pair[1].y
                     else:
-
                         #print(str(lowest_pair[0]))
                         #print(str(lowest_pair[1]))
 
                         # Always ensure that s1 has the highest g-value.
-                        if lowest_pair[0].g < lowest_pair[1].g:
+                        if lowest_pair[0].rhs < lowest_pair[1].rhs:
                             s1 = lowest_pair[1]
                             s2 = lowest_pair[0]
                         else:
                             s1 = lowest_pair[0]
                             s2 = lowest_pair[1]
 
-                        f = s1.g - s2.g
+                        f = s1.rhs - s2.rhs
                         #print("f: " + str(f))
                         #print('\n')
+
+                        if f > 1:
+                            f = 1
+                        elif f < -1:
+                            f = -1
 
                         x_difference = s1.x - s2.x
                         y_difference = s1.y - s2.y
