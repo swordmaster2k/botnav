@@ -8,14 +8,14 @@
 #   elif connection == ip
 #       ip=
 #       mac=
-#       port=
+#       port=be
 #   elif connection == serial
 #       baud=
 #       port=
-map=maps/bedroom30.map
-planner=field_d_star
-mode=simulated
-#mode=physical
-#connection=bluetooth
-#mac=00:00:12:06:56:83
-#port=0x1001
+map=maps/board30.map
+planner=theta_star
+#mode=simulated
+mode=physical
+connection=bluetooth
+mac=00:00:12:06:56:83
+port=0x1001

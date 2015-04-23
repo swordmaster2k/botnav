@@ -622,7 +622,7 @@ void travel(double distance)
   double startX = x;
   double startY = y;
   double travelled = 0;
-  distance -= 0.09; // Stop 0.09m short so we halt in time.
+  distance -= 0.40; // Stop 0.09m short so we halt in time.
 
   boolean interrupted = false;
   char command[MAX_CHARACTERS];
@@ -821,9 +821,9 @@ void goBackward()
 
 void turnLeft()
 {
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
+  analogWrite (M1_SPEED_CONTROL, ROTATION_SPEED);
   digitalWrite(M1, LOW);    
-  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
+  analogWrite (M2_SPEED_CONTROL, ROTATION_SPEED);    
   digitalWrite(M2, HIGH);
 
   state = TURNING_LEFT;
@@ -833,9 +833,9 @@ void turnLeft()
 
 void turnRight()
 {
-  analogWrite (M1_SPEED_CONTROL, MOTOR_SPEED);
+  analogWrite (M1_SPEED_CONTROL, ROTATION_SPEED);
   digitalWrite(M1, HIGH);    
-  analogWrite (M2_SPEED_CONTROL, MOTOR_SPEED);    
+  analogWrite (M2_SPEED_CONTROL, ROTATION_SPEED);    
   digitalWrite(M2, LOW);
 
   state = TURNING_RIGHT;

@@ -9,7 +9,7 @@ def generate_dataset(directory, file_name, output):
     # Look for the occurrence of these strings in the files that match file_name under
     # the given path, search all subdirectories.
     separator = ':'
-    spacer = "\t\t\t"
+    spacer = "\t"
     traversal_time = "Traversal Time"
     computation_time = "Computation Time"
 
@@ -172,7 +172,7 @@ def test_write_paths():
 
 
 def test_generate_dataset():
-    output = generate_dataset("../maps/output", "debug_info.output", "")
+    output = generate_dataset("../maps/output", "debug_info.output", "accesses\ttraverse\n")
 
     p = Path("../maps/output" + "/dataset.output" + str(datetime.datetime.utcnow()))
     p.touch()
