@@ -203,7 +203,148 @@ The real advantage to using abstraction here is the \textit{pluggable} nature it
 
 \newpage
 
-%\section{Open Field D*}
+\section{Open Field D*}
+\noindent
+For implementation purposes we modified sample implementations of Dijkstra's Algorithm, D* Lite, Theta*, and then plugged them into the path planning system. This made perfect sense as we saw no point in reinventing the wheel and coding all of these algorithms from scratch. However there was one algorithm for which no \textit{public} implementation existed. Field D* has provided advance path planning capabilities to some of the most sophisticated robots ever made including NASA's Curiosity rover and the GDRS XUV \cite{FIELD}. Its authors claim that Field D* is an efficient planning and replanning algorithm that can produce smooth paths costing on average 4\% less than traditional planners \cite{FIELD}. \\
+
+\noindent
+Verifying the claim made by the authors of Field D* requires a working implementation, the problem is that all existing work on Field D* has been carried out behind closed doors mostly at NASA. To the best of our knowledge the work presented here contains the first openly available version of Field D* nicknamed appropriately \textit{Open Field D*}. In order to derive our version of this novel path planner we based it on the basic D* Lite version presented on the $8^{th}$ page of \cite{FIELD} which can be seen below:
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=200pt]{illustrations/field_d_basic}\\
+\caption{} 
+\label{field_d_basic}
+
+\end{figure}
+
+\subsection{Basic Implementation}
+
+\noindent
+The basic version of Field D* differs little from the original specification of D* Lite except when it comes to updates. In the literature review we mentioned how Field D* shifts nodes from cell centres to cell edges which can be seen in Figure \ref{Figure: Optimal.}. Equipped with this modification Field D* can produce smooth paths using linear interpolation techniques that enable a path to intersect any point on the edge of a cell. Calculating the cost of a node requires all its consecutive neighbours (node pairs) that represent the neighbouring edges. This operation can be seen on line 4 in Figure \ref{field_d_basic}. After a detailed analysis of the \textit{pseudo code} we came up with the following solution in Python: \\
+
+\begin{lstlisting}
+def get_consecutive_neighbours(self, s):
+        consecutive_neighbours = []
+
+        for i in range(len(self.NEIGHBOUR_DIRECTIONS)):
+            try:
+                if i == len(self.NEIGHBOUR_DIRECTIONS) - 1:  # Edge s8 -> s1
+                    x1 = s.x + self.NEIGHBOUR_DIRECTIONS[i][0]
+                    y1 = s.y + self.NEIGHBOUR_DIRECTIONS[i][1]
+                    x2 = s.x + self.NEIGHBOUR_DIRECTIONS[0][0]
+                    y2 = s.y + self.NEIGHBOUR_DIRECTIONS[0][1]
+
+                    if x1 > -1 and y1 > -1 and x2 > -1 and y2 > -1:
+                        consecutive_neighbours.append(
+                            (self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[i][0]][s.y + self.NEIGHBOUR_DIRECTIONS[i][1]],
+                             self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[0][0]][s.y + self.NEIGHBOUR_DIRECTIONS[0][1]]))
+                else:  # All other edges.
+                    x1 = s.x + self.NEIGHBOUR_DIRECTIONS[i][0]
+                    y1 = s.y + self.NEIGHBOUR_DIRECTIONS[i][1]
+                    x2 = s.x + self.NEIGHBOUR_DIRECTIONS[i + 1][0]
+                    y2 = s.y + self.NEIGHBOUR_DIRECTIONS[i + 1][1]
+
+                    if x1 > -1 and y1 > -1 and x2 > -1 and y2 > -1:
+                        consecutive_neighbours.append(
+                            (self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[i][0]][s.y + self.NEIGHBOUR_DIRECTIONS[i][1]],
+                             self.nodes[s.x + self.NEIGHBOUR_DIRECTIONS[i + 1][0]][
+                                 s.y + self.NEIGHBOUR_DIRECTIONS[i + 1][1]]))
+
+            except IndexError:
+                pass
+            except AttributeError:
+                pass
+
+        return consecutive_neighbours
+\end{lstlisting}
+
+\noindent
+Essentially what we are doing in the above code sample is iteratively processing all the neighbouring node pairs in a clockwise direction to get the sequence $\lbrace \overrightarrow{s_{1}s_{2}}, \overrightarrow{s_{2}s_{3}}, \overrightarrow{s_{3}s_{4}}, \overrightarrow{s_{4}s_{5}}, \overrightarrow{s_{5}s_{6}},$ $\overrightarrow{s_{6}s_{7}}, \overrightarrow{s_{7}s_{8}}, \overrightarrow{s_{8}s_{1}} \rbrace$. We can then compute the cost of node \textit{s} by selecting the lowest costing neighbour pair and calling the following function: \\
+
+\begin{lstlisting}
+def compute_cost(self, s, sa, sb):
+        self.vertex_accesses += 1
+        s.evaluations += 1
+
+        [output omitted]
+
+        # Map mid_x and mid_y to a cell cost, if the x and y is out of
+        # bounds c == LARGE.
+        c = self.get_cell_cost(math.floor(mid_x), math.floor(mid_y))
+
+		[output omitted]
+
+        if min(c, b) == self.BIG_COST:
+            vs = self.BIG_COST
+        elif s1.g <= s2.g:
+            vs = min(c, b) + s1.g
+        else:
+            f = s1.g - s2.g
+
+            if f <= b:
+                if c <= f:
+                    vs = c * SQRT_2 + s2.g
+                else:
+                    y = min(f / (math.sqrt(c ** 2 - f ** 2)), 1)
+                    vs = c * math.sqrt(1 + y ** 2) + f * (1 - y) + s2.g
+            else:
+                if c <= b:
+                    vs = c * SQRT_2 + s2.g
+                else:
+                    x = 1 - min(b / (math.sqrt(c ** 2 - b ** 2)), 1)
+                    vs = c * math.sqrt(1 + ((1 - x) ** 2)) + (b * x) + s2.g
+
+        if vs > self.BIG_COST:
+            vs = self.BIG_COST
+
+        return round(vs, 3)
+\end{lstlisting}
+
+\noindent
+Cost calculation in Field D* is based on \textit{g-values} and also the estimated traversal cost of the selected neighbouring cell which can vary. The above Python code is a direct implementation of the mathematical theory presented on page 7 of \cite{FIELD}. It is not possible to cover the algorithm in-depth here due to its length, further reference should be should be sought from \cite{FIELD, FIELD2} and this project's source code.
+
+\subsection{Issues with Field D*}
+\noindent
+The most challenging part of this project was by far the implementation of Field D*. Little information on the algorithm exists beyond what is included in \cite{FIELD, FIELD2} despite the fact that it dates back to 2007 \cite{FIELD}. Thankfully Field D* was originally derived from D* Lite \cite{D*LITE} and its basic version simply extend its. With that said we encountered a large number of ambiguities that required us to mathematically reverse engineer some of its specification. One aspect that remains unclear is path extraction which is not covered in any level of detail by the authors. \\
+
+\noindent
+Every node in the Field D* cost grid can be seen as a sample point in a continuous space, when extracting a path we select the lowest costing edge. The cost of an edge is the sum of both connecting nodes, our optimal path intersects this edge at some point $(x, y)$. Exactly how this point is obtained is never clearly defined. In our implementation we extract our new point based on the \textit{rhs-values} of the nodes $s_{1}$ and $s_{2}$, which we then shift based on the direction of travel: \\
+
+\begin{lstlisting}
+f = s1.rhs - s2.rhs
+
+if f > 1:
+	f = 1
+elif f < -1:
+	f = -1
+
+x_difference = s1.x - s2.x
+y_difference = s1.y - s2.y
+x_shift = 0
+y_shift = 0
+
+if x_difference != 0:
+	if x_difference < 0:
+		x_shift = f
+	else:
+		x_shift = -f
+else:
+	if y_difference < 0:
+		y_shift = f
+	else:
+		y_shift = -f
+
+if x_shift != 0:
+	self.s_start.x += x_shift
+	self.s_start.y = s2.y
+elif y_shift != 0:
+	self.s_start.x = s2.x
+\end{lstlisting}
+
+\noindent
+This method works well for most of the cases that we tested it against, however it breaks down in complex environments that are obstacle dense. While we have not been able to solve this part of Field D*, the rest of the algorithm functions as expected. It is possible to produce smooth and low costing paths using our implementation for 80\% of the cases that we tried. Hopefully overtime the work can be improved and a fully functioning version of Field D* will exist outside of NASA.
+
 %Core of the project very important, state that every implementation of Field D* to date is closed source NASA's code is %not available, nor is Carnegie Mellon's. Open Field D* is significant because it bucks this trend making it open to ITB %students and others.
 
 %\subsection{Modifying D* Lite}
