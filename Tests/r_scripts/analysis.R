@@ -1,6 +1,7 @@
 ############################## Analysis of Grid Nav ######################################
 hist(gridnav$traverse)
 
+# Get worst case scenario
 val = max(gridnav$traverse)
 index = which(gridnav$traverse == val)
 gridnav[index, ]
