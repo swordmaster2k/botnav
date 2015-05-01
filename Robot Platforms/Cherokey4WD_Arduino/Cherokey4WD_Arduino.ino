@@ -622,7 +622,7 @@ void travel(double distance)
   double startX = x;
   double startY = y;
   double travelled = 0;
-  distance -= 0.40; // Stop 0.09m short so we halt in time.
+  distance -= 0.20; // Stop 0.09m short so we halt in time.
 
   boolean interrupted = false;
   char command[MAX_CHARACTERS];

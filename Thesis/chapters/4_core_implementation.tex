@@ -345,21 +345,57 @@ elif y_shift != 0:
 \noindent
 This method works well for most of the cases that we tested it against, however it breaks down in complex environments that are obstacle dense. While we have not been able to solve this part of Field D*, the rest of the algorithm functions as expected. It is possible to produce smooth and low costing paths using our implementation for 80\% of the cases that we tried. Hopefully overtime the work can be improved and a fully functioning version of Field D* will exist outside of NASA.
 
+\newpage
+
 \section{Hardware Platform}
-talk about in general what it is made up of arduino, cherokey, gyro, encoders, bluetooth connection. mention some of the basic configuration such as the bluetooth baud rate and gyro baud rate. code implemented in C reference repo. include some pictures here. 
+\noindent
+We will now take the time to briefly discuss the specification of the physical robot that was used through the course of this project. All of the hardware was sourced from suppliers outside of Ireland, mostly from China and the UK. The robotic platform was built upon the DFRobot Cherokey 4WD that comes with an integrated motor driver and communications circuity. The robot's computing power is based on a mounted Arduino Mega 2560, a Bluetooth link is provided by the JY-MCU module, and MPU6050 gyroscope combined with wheel encoders is used for positioning. The robot was completely custom built to meet the needs of the planning system. \\
+
+\noindent
+There are a number of pre-built robotic kits that can provide this functionality of the shelf but they are typically more expensive than building. Also by constructing the robot from the ground up we maximised our level of learning as we covered robotics from both a software and engineering perspective. However the robot is essentially ``dumb'' and blind to the world around it knowing only its position, the bulk of the processing is done on the other side of the communications link. Our platform implemented the interface that we specified in \ref{hardware_specification}.
+
+\newpage
 
 \subsection{Odometry Gathering}
-briefly discuss how odometry is gathered by combining gyro and encoder calculationsl. mention that it assumes pure rotations. how distance is calculated, how it turns to a heading.
+\noindent
+The position of the robot in its 2D environment is established using both the linear distance provided by the encoders and the current heading from the gyroscope. The wheel encoders give us the tick count for each wheel, we can come up with a distance based on the number of ticks a wheel goes through during a complete rotation. For our robot there is a total of twenty ticks each accounting for a distance of $0.010205m$. Given the distance travelled we can determine our change in position using the \textit{cos} and \textit{sin} of our current heading: \\
+
+\begin{lstlisting}
+if (deltaDistance != 0.0)
+{
+	if (state == GOING_BACKWARD)
+	{
+		deltaX = (deltaDistance) * cos(-theta);
+		deltaY = (deltaDistance) * sin(-theta);
+	}
+	else
+	{
+		deltaX = (deltaDistance) * cos(theta);
+		deltaY = (deltaDistance) * sin(theta);
+	}
+
+	x += deltaX;
+	y += deltaY;
+}
+\end{lstlisting}
+
+\newpage
 
 \subsection{Issues}
-encoders and rotations, drift, bluetooth does not always connect, power supply, battery sucker.
+\noindent
+Our hardware implementation was not without issues and during the course of its development we faced numerous challenges, perhaps the most serious one being \textit{drift}. The Cherokey's drive system is based on a set of four small geared DC motors, its wheels are attached directly to the drive shaft without any extra fixings. During travel there is a tendency for these wheels to slip, particularly during rotations. This slippage is then registered as false ticks which throws our odometry off. In an attempt to counter the drift we calculated its average effect over a carpeted surface: \\
 
-%Core of the project very important, state that every implementation of Field D* to date is closed source NASA's code is %not available, nor is Carnegie Mellon's. Open Field D* is significant because it bucks this trend making it open to ITB %students and others.
+\begin{lstlisting}
+const double DISTANCE_PER_TICK = 0.010205;
 
-%\subsection{Modifying D* Lite}
-%Point out the key differences between D* Lite and Field D* from a coding perspective, nodes to cell corners how this is %represented, linear interpolation. Using Georgia Institute of Technologies D* Lite code state the modifications %required to get Field D*.
+deltaX += X_DRIFT_CARPET * (deltaX / 0.01);
+deltaY += Y_DRIFT_CARPET * (deltaY / 0.01);
+\end{lstlisting}
 
-%\subsection{Basic Implementation}
-%Cover basic implementation of Field D*, most importantly state any problems encountered, or variations/optimisations %made during the coding stage.
+\noindent
+During rotations slippage was so bad that we were forced to use pure rotations, meaning we assume that the robot's position does not change while rotating. Another issue that progressively affects the robot is rotational drift, the MPU6050 gyroscope's heading changes by $0.01rad$ every couple of minutes. It is not a problem for our application as the robot is used for short bursts, but it is worth taking note of. \\
+
+\noindent
+Lastly as with all things electronic there is the question of battery life, our robot was powered by a 8.4v 1600mAH airsoft gun battery pack. This gave between 5-10 minutes of usable performance after that the power levels were too low to support all the electronics at the same time. When the battery level reached its low point the robot would go into random spins or simply drive aimlessly forward. This made extensive hardware based tests completely impractical, it also highlighted the fact that a robot is only as useful as its battery's charge.
 
 %-------------------------------------------------------------------------------------------------------
