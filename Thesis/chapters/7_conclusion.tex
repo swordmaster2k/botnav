@@ -1,12 +1,12 @@
 \chapter{Conclusion}
 
-Wrap up the entire project with a 1 page conclusion that covers:
+\noindent
+In this work we presented a novel approach to one of the navigation problems faced by mobile robots, path planning. We looked at four existing planning algorithms all of which use different techniques for heading computation. In terms of its success rate this project has achieved its original objectives and in some ways exceeded itself. Based on the comprehensive testing and statistical analysis that was carried we were able to formulate an objectified answer to our main research question. We found that proportionally a path's traversal time is far more significant when compared to its computation time. The time it takes to perform additional computations is considerably less costly than traversing suboptimal paths. \\
 
-\begin{itemize}
-\item The outcome of the project success or failure.
-\item Significance of the findings.
-\item Any big challenges that were overcome.
-\item Outstanding issues or bugs that remain.
-\item Anything that could have been done differently.
-\item Learning outcome of the project.
-\end{itemize}
+\noindent
+Based on these results we can safely claim that natural path planners are in general more efficient than those limited to headings of $\dfrac{\pi}{4}$. They produce shorter, more direct paths that are free from unnecessary turns which are simply artefacts of a traditional planners limited representation. However applications for planners based on $\dfrac{\pi}{4}$ do exist. Maze environments are designed specifically to limit an agent's degrees of freedom and it is here that natural path planners lose their advantage. In practice these scenario are relatively rare, although Amazon's Kiva automated shipment system is one such example \cite{AZK12}. 
+
+\newpage
+
+\noindent
+Overall the project posed enough challenges throughout ensuring that it remained interesting to its author right up to the end. The mixture of both software and hardware related tasks gave the author a chance to maximise the learning outcome, and now we have an in-depth understanding of robotics. The next step for this project would be to select one of the existing path planning algorithms and look for potential improvements. While our results put Theta* on top it does not produce smooth paths, merging GridNav's path generation with D* Lite fast planning and replanning ability is a potential next step for this work.

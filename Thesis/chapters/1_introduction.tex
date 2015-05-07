@@ -10,19 +10,19 @@ Provide a context to the reader, talk about the project, where the idea came fro
 \noindent
 The ability to select a path to a destination, negotiate obstacles, and anticipate the movement of other people is something that you probably take for granted. To a human these skills are a part of everyday life and do not at first appear to be particularly special, until you try to replicate them. Programming a machine to deal with rush hour traffic or road closures is surprisingly difficult but that has not stop us from trying \cite{MIT}.\\
 
+\newpage
+
 %-------------------------------------------------------------------------------------------------------
 
 \section{Motivation}
 
 \noindent
-This section is a combination of the \textit{Justifications and Benefits} and \textit{Feasibility} sections from the project proposal and should state the following:
+The motivation for this project was driven by the shortcomings of the last project \cite{JMD14} that we were involved in. In \cite{JMD14} the objective had been to build a fully autonomous robot capable of actively mapping and navigating its environment. Unfortunately this goal proved unrealistic given the time and resources available to the team, and due to the high learning curve and low-end hardware only the mapping functionality was implemented. Essentially this project is being driven by the failure of its predecessor, however this time it is not limited to just the implementation but also the analysis of robotic path planners and their effectiveness. \\
 
-\begin{itemize}
-\item Primary reason for undertaking this project, probably academic.
-\item Any potential benefits to society and ITB developing this technology has.
-\item The fact it evolved from a 3rd project and reuses existing equipment.
-\item Back all this up with sound evidence that suggests that this project has an achievable goal.
-\end{itemize} 
+\noindent
+Another issue that we noticed during our initial research into path planners for robotic systems was the amount of choice when it came to algorithms. Each planner claimed to be that little be better than another by being faster at planning or producing shorter paths. Selecting the ``best'' planner can be incredibly difficult for a newcomer as up until now there has been no detailed comparison of these planners. Documenting how some of the most popular planners perform against each other will not only provide us with a valuable insight but also countless other newcomers to robotic navigation. 
+
+\newpage
 
 %-------------------------------------------------------------------------------------------------------
 
@@ -47,34 +47,63 @@ The following are \textbf{outside} the scope of this project:
 \item State everything else...
 \end{itemize}
 
+\newpage
+
 %-------------------------------------------------------------------------------------------------------
 
 \section{Research Question(s)}
 
 \noindent
-State the primary research question of this project on its own line possibly in bold or italics. Then follow it with other sub research questions in bullet points:
+Primary research question
+
+\noindent
+The project will aim to address the following additional research questions:
 
 \begin{itemize}
-\item Where can mobile delivery robots be used outside of research laboratories?
+\item What advances to date have been made in navigation systems for mobile robots?
 
-\item State everything else...
+\item How important is navigation with respect to robotics?
+
+\item Will it be possible to develop a generic navigation system that is independent from the hardware architecture for delivery robots?
+
 \end{itemize}
 
 %-------------------------------------------------------------------------------------------------------
-
-\newpage
 
 \section{Objectives}
 
 \noindent
-One line introducing the purpose of these objectives followed by the objectives themselves again in bullet points:
+This project has a set number of objectives which are:
 
 \begin{itemize}
-\item To evaluate the effectiveness of path planning techniques in known and partially known environments.
+\item To produce a literature review covering the advancements in autonomous navigation in robotic systems.
 
-\item State everything else...
+\item To develop and test a generic hardware independent navigation system for ground based mobile robots. 
+
+\item To evaluate the effectiveness of path planning techniques in known environments. 
+
+\item To assess the benefits of faster planning times against path traversal lengths.
+
+\item To test the solution against a set of predefined challenges and evaluate its performance.
+
 \end{itemize}
+
+\newpage
 
 %-------------------------------------------------------------------------------------------------------
 
+\section{Feasibility}
+\noindent
+This project is being supervised by Prof. Arnold Hensman who has spent at least 3 years working in the research area and has supervised past projects in robotics including one that the candidate participated in \cite{JMD14}. It will build upon the work of a past project \cite{JMD14} whichs support the hypothesis that autonomous navigation can be implemented with similar resources. The project has well defined requirements, milestones, deliverables, and the purposed candidate has already spent over a year working in the research area. \newline
 
+\noindent
+Most of the technical resources required to achieve this project's goals are already available, including a code base, all other required equipment such as a high quality laser range finder are on order. Two separate robotic systems with the core functionality needed to implement the purposed system already exist and are ready for development (Figure: \ref{Figure: Robot Platforms.}). 
+\newline
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=230pt]{illustrations/robots}\\
+\caption{The candidate's Cherokey robot and ITB's Pirate platform.} 
+\label{Figure: Robot Platforms.}
+
+\end{figure}

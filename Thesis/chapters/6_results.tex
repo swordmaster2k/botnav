@@ -2,7 +2,16 @@
 
 %----------------------------------------------------------------------------------------------------------------------
 
-\section{Example Scenario}
+\noindent
+The results that we gather are based on a number of example environments that a mobile robot may be faced with during navigation. A large number of our tests were conducted using a mock office floor plan of $12m^{2}$ containing $0.3m^{2}$ cells seen in Figure \ref{floor_plan}. The start and end points were placed on opposite sides of the map forcing the mobile robot to traverse the longest possible paths. For each sample environment we looked at every possible path to the selected goal by considering all of the free cells. This gave us the ability to collect large amounts of data which could then later by analysed to determine which planner produced the shortest paths on average.
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=250pt]{illustrations/floor_plan}\\
+\caption{} 
+\label{floor_plan}
+
+\end{figure}
 
 \section{Statistical Analysis}
 \noindent
@@ -43,9 +52,7 @@ Based on our analysis we came up with the following ranks from the most efficien
 \end{enumerate}
 
 \noindent
-The top three planners outperformed D* Lite by at least 10\% and differed from each other by around 1\%. Theta*'s \textit{ray casting} approach produced shorter paths than either GridNav or Field D* however they were also angular in nature (see Figure \ref{}). Such direct paths require a mobile robot to perform extremely sharp changes in direction which can be impractical when operating in confined environments. While Theta* may produce the shortest possible paths GridNav's smoother paths are easier to execute.  
-
-\newpage
+The top three planners outperformed D* Lite by at least 10\% and differed from each other by around 1\%. Theta*'s \textit{ray casting} approach produced shorter paths than either GridNav or Field D* however they were also angular in nature (see Figure \ref{}). Such direct paths require a mobile robot to perform extremely sharp changes in direction which can be impractical when operating in confined environments. While Theta* may produce the shortest possible paths GridNav's smoother paths are easier to execute. \\ 
 
 \noindent
 GridNav uses a simple yet effective heading calculator based on \textit{gradient descent} which works much like the way a stream finds its way down a mountain \cite{GRIDNAV95}. It has the advantage over Field D* as gradient descent has proved easier to implement than a linear interpolation heading calculator. It also does not require significant changes to the underlying graph representation as is required with Field D*.
