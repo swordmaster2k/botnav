@@ -9,11 +9,11 @@
 The primary functional requirement for this system is the ability to plan a path through a complex environment that can then be traversed by a mobile robot. By a complex environment we refer to a 2D representation stored in some form of map that \textit{may} represent a real world environment. The complexity of the environment is determined by the number of obstacles that the planner must successfully avoid. The success of a journey shall be measured based on the length of the planned path as a percentage when compared to other solutions. \\
 
 \noindent
-Given a 2D map, start, and goal position, the planner using \textbf{a path planning algorithm must produce a traversable path}. A path will be made up of a series of points expressed in \textit{x} and \textit{y} coordinates, these can then be iteratively processed. In a case where no path to the goal exists due to obstacles the planning process must be capable of gracefully terminating which includes safely bring the robot to a halt and providing appropriate feedback. \\
+Given a 2D map, start, and goal position, the planner using \textbf{a path planning algorithm must produce a traversable path}. A path will be made up of a series of points expressed in \textit{x} and \textit{y} coordinates, these can then be iteratively processed. In a case where no path to the goal exists due to obstacles the planning process must be capable of gracefully terminating which includes safely bringing the robot to a halt and providing appropriate feedback. \\
 
 \noindent
-\textbf{Inputs:} 2D map, start position, goal position \\
-\textbf{Outputs:} A path of points OR termination feedback
+\textbf{Inputs:} 2D map, start position, goal position. \\
+\textbf{Outputs:} A path of points OR termination feedback.
 
 \newpage
 
@@ -32,7 +32,7 @@ However neither does it account for cases where these dimensions make traversing
 \noindent
 During the execution of the plannning process the system shall generate a constant stream of data, and a requirement
 of this project is to capture this information for later analysis. The type of data being produced can tell us a lot
-about the operation including the accuracy, run time, and each planners efficiency. These results must be stored in a permanent way. The data attributes that need to be gathered include the planned path, run time, length of the path, and the total number of vertex accesses. \\
+about the operation including the accuracy, run time, and each planners efficiency. These results must be stored for later analysis in text format. The data attributes that need to be gathered include the planned path, run time, length of the path, and the total number of vertex accesses. \\
 
 \noindent
 \textbf{Inputs:} planned path, run time, length of path, total vertex accesses \\
@@ -48,11 +48,10 @@ In order to be compatible with the planner a robot must have software/hardware:
 \begin{itemize}
 \item Odometers - capable of establishing an $(x, y)$ position in meters and $\theta$ in radians.
 \item Communications - a channel for processing text based data to and from the planner.
-\item External Sensors - at least one proximity sensor for detecting obstacles in the environment.
 \end{itemize}
 
 \noindent
-How accurate this hardware needs to be is completely dependent on the application, the planning system can only assume that any data it receives is valid. Any hardware inaccuracies i.e. drift must be dealt with at a lower level, the purpose of this approach is to decouple the planner from a robot's implementation details. This enables the planning system to be tested across a wide variety of platforms without having to account for each individual hardware configuration (Figure \ref{Figure: Hardware Agent Specification.}). It is perfectly possible that the planner and robot hardware control be implemented on the same physical system rather than externally this could be done via IP using the \textit{localhost} address.
+How accurate this hardware needs to be is completely dependent on the application, the planning system can only assume that any data it receives is valid. Any hardware inaccuracies \textit{i.e.} drift must be dealt with at a lower level, the purpose of this approach is to decouple the planner from a robot's implementation details. This enables the planning system to be tested across a wide variety of platforms without having to account for each individual hardware configuration (Figure \ref{Figure: Hardware Agent Specification.}). It is perfectly possible that the planner and robot hardware control be implemented on the same physical system rather than externally this could be done via IP using the \textit{localhost} address.
 
 \begin{figure}[htbp]
 
@@ -64,7 +63,7 @@ How accurate this hardware needs to be is completely dependent on the applicatio
 
 \subsubsection{Motion Model}
 \noindent
-The planner will impose some restrictions on the motion model that a robot must use to be compatible with the paths it produces. It will be assumed that the robot can perform on the spot rotations, this is necessary as all of the path planning algorithms \textit{may} produce paths that require this kind of motion. In wheeled and tracked vehicles this is typically referred to as \textit{skid steering} \cite{JMD14}, on the spot rotations are achieved by running the drive systems on either side in opposite directions, a tank is good example of this. Legged robots are also capable of performing such turns, however the heading changes can be too extreme for rack-and-pinion based agents i.e. cars and trucks. 
+The planner will impose some restrictions on the motion model that a robot must use to be compatible with the paths it produces. It will be assumed that the robot can perform on the spot rotations, this is necessary as all of the path planning algorithms \textit{may} produce paths that require this kind of motion. In wheeled and tracked vehicles this is typically referred to as \textit{skid steering} \cite{JMD14}, on the spot rotations are achieved by running the drive systems on either side in opposite directions, a tank is good example of this. Legged robots are also capable of performing such turns, however the heading changes can be too extreme for rack-and-pinion based agents \textit{i.e.} cars and trucks. 
 
 \newpage
 
@@ -77,10 +76,10 @@ The planner will impose some restrictions on the motion model that a robot must 
 The navigation system as a whole is built from four key components that when brought together can be used to evaluate the performance of the selected path planning algorithm. These four components are (Figure \ref{overview}):
 
 \begin{enumerate}
-\item \textit{Inputs} - operating map and a valid configuration
-\item \textit{System Core} - provides all of the functionality and the interface
-\item \textit{Pluggable Algorithms} - deal specifically with producing paths
-\item \textit{Physical Output} - actual movement of a mobile robot
+\item \textit{Inputs} - operating map and a valid configuration.
+\item \textit{System Core} - provides all of the functionality and the interface.
+\item \textit{Pluggable Algorithms} - deal specifically with producing paths.
+\item \textit{Physical Output} - actual movement of a mobile robot.
 \end{enumerate}
 
 \begin{figure}[htbp]
@@ -107,12 +106,12 @@ The \textit{BotNav} navigation system contains three separate threads of executi
 
 \subsubsection*{Central Thread}
 \noindent
-The Central thread deals with user input i.e. the configuration file, based on the parameters in the configuration file it may spawn both the Proxy \textit{and} Planner threads or just the Planner thread. In simulation mode the Central thread will spawn $n$ Planner threads one after another, where $n$ is the total number of traversable cells, as each Planner finishes another begins. In physical mode only one Planner thread is spawned as it is only practical to carry out one journey with a real robot. \textit{BotNav} terminates execution after all of the Central thread's children finish. Below we can see the basic process flow for the Central thread in Figure \ref{central thread}:
+The Central thread deals with user input \textit{i.e.} the configuration file, based on the parameters in the configuration file it \textit{may} spawn both the Proxy \textit{and} Planner threads or just the Planner thread. In simulation mode the Central thread will spawn $n$ Planner threads one after another, where $n$ is the total number of traversable cells, as each Planner finishes another begins. In physical mode only one Planner thread is spawned as it is only practical to carry out one journey with a real robot. \textit{BotNav} terminates execution after all of the Central thread's children finish. Below we can see the basic process flow for the Central thread in Figure \ref{central thread}:
 
 \begin{figure}[htbp]
 
 \center \includegraphics[width=200pt]{illustrations/thread_flow.png}\\
-\caption{From reading the configuration file to deciding upon which child threads to spawn, the Central thread plays a very important part in the execution of the system.} 
+\caption{From reading the configuration file, to deciding upon which child threads to spawn, the Central thread plays a very important part in the execution of the system.} 
 \label{central thread}
 
 \end{figure}
@@ -176,7 +175,7 @@ This informs the planner that the robot is no longer in motion and that the next
 
 \subsection{Rotating to a Given Heading}
 \noindent
-Valid headings run from 0 to 6.27 radians in a circular fashion, they increase from right to left around the circle. To instruct the robot to face a heading of 1.57 radians ($90^{\circ}$) the command is: \\
+Valid headings run from $0-6.27 rads$ in a circular fashion, they increase from right to left around the circle. To instruct the robot to face a heading of 1.57 radians ($90^{\circ}$) the command is: \\
 
 \textit{r,1.57$\backslash$n} \\
 
@@ -192,7 +191,7 @@ First the robot is commanded to face a given point then the distance between its
 
 \subsection{Linux Architecture}
 \noindent
-The Linux kernel is to date driving an increasing number of commercial and research robotic platforms all over the world including Google's Self Car Project, Nao, EV3 Lego Mindstorms, and the horde of robots that use ROS \cite{MIT, NAO, EV3, ROS}. Linux is unique as it is mature, stable, customisable, embeddable, and freely available, making it a suitable candidate for powering the robot revolution. \\
+The Linux kernel is to date driving an increasing number of commercial and research robotic platforms all over the world including Google's Self Car Project, Nao, EV3 Lego Mindstorms, and the horde of robots that use ROS \cite{MIT, NAO, EV3, ROS}. Linux is stable, customisable, embeddable, and freely available, making it a suitable candidate for powering robotic systems. \\
 
 \begin{figure}[htbp]
 
@@ -222,14 +221,14 @@ Python version 3 (Python3) has been selected as the most appropriate core progra
 \end{itemize} 
 
 \noindent
-Python's syntax is also extremely lenient when compared to compiled languages such as C where every variable must explicitly declares its type before it can be used, making the equivalent Python code more visually compact. The implementation could have been carried out using C, C++, Java, or C$\sharp$ as the author already has the experience in those languages, however using Python instead presents a unique learning opportunity. 
+Python's syntax is also extremely lenient when compared to compiled languages such as C where every variable must explicitly declare its type before it can be used, making the equivalent Python code more visually compact. The implementation could have been carried out using C, C++, Java, or C$\sharp$ as the author already has experience in those languages, however using Python instead presents a unique learning opportunity. 
 
 \subsection{Cython Modules}
 \noindent
 A major drawback of interpreted languages is the speed of their execution when compared to compiled languages, since Python is implemented using a virtual machine it will nearly always be slower than pure machine code. It is important to take this issue into account at design time as the planning algorithms are computationally complex and as the state space increases Python will become less adapt at handling it compared to a compiled language. \\
 
 \noindent
-Fortunately as Python is wrote in C it can also be extend using C. Implementing the planning algorithms as Cython modules shall significantly increase their performance while still enabling the rest of the system to use Python. At the time of writing GCC (GNU C Compiler) version 4.9.1 has been selected for compilation purposes.
+Fortunately as Python is wrote in C it can also be extended using C. Implementing the planning algorithms as Cython modules shall significantly increase their performance while still enabling the rest of the system to use Python. At the time of writing GCC (GNU C Compiler) version 4.9.1 has been selected for compilation purposes.
 
 %-------------------------------------------------------------------------------------------------------
 
@@ -240,7 +239,7 @@ This section covers how the project was managed, the source control system used,
 
 \subsection{Git}
 \noindent
-Throughout the projects development all work undertaken including everything from the code base, poster, modelling, and thesis was managed and controlled using the Git source control tool. This decision was taken at design time as it came with a number of distinct advantages such as providing a clear work history and the ability to roll back changes if the need arose. Another important reason for choosing Git over other systems is that it maintains a local copy in addition to the working head in the remote repository \cite{GIT}. An open repository was set-up and maintained in the cloud at the GitHub \href{https://www.github.com/swordmaster2k/botnav}{BotNav}.
+Throughout the projects development all work undertaken including everything from the code base, poster, modelling, and thesis was managed and controlled using the Git source control tool. This decision was taken at design time as it came with a number of distinct advantages such as providing a clear work history and the ability to roll back changes if the need arose. Another important reason for choosing Git over other systems is that it maintains a local copy in addition to the working head in the remote repository \cite{GIT}. An open repository was set-up and maintained in the cloud at the GitHub \href{https://www.github.com/swordmaster2k/botnav}{\textit{BotNav}}.
 
 \newpage
 

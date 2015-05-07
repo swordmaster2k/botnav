@@ -6,24 +6,24 @@
 In this literature review we will discuss path planning with respect to courier robots, mobile agents created for the sole purpose of shipping goods. Courier robots pose a unique challenge because for the companies that use them time is literally money, so they must be able to compute these paths fast. Our main research question is how efficient are the current path planners at performing this task and how do they compare to each other. What we will analysis is the length of time it takes to produce a path, its tolerance to change, and the natural appearance of the path.\\
 
 \noindent
-The scope of this document progressively narrows, to begin with it looks at the wider application of courier robots which includes their potential benefits and economic impact. It moves on to define path planning in robotics using a grid based approach. Then three unique path planners are analysed in depth, they include \textit{Dijkstra's Algorithm} \cite{DIJKSTRA} a \textit{static} planner, \textit{D* Lite} \cite{D*LITE} a \textit{dynamic} replanner, and the main algorithm in this project \textit{Field D*} an \textit{interpolation} based replanner. Finally the findings of this literature review are discussed and presented in the conclusion.
+The scope of this document progressively narrows, to begin with it looks at the wider application of courier robots which includes their potential benefits and economic impact. It moves on to define path planning in robotics using a grid based approach. Three unique path planners are then analysed in depth, they include \textit{Dijkstra's Algorithm} \cite{DIJKSTRA} a \textit{static} planner, \textit{D* Lite} a \textit{dynamic} replanner \cite{D*LITE}, and the focus of this project \textit{Field D*} an \textit{interpolation} based replanner. Finally the findings of this literature review are discussed and presented in the conclusion.
 
 \newpage
 
 %-------------------------------------------------------------------------------------------------------
 
-\section{Courier Robots}
+\section{Mobile Robots}
 
 \subsection{Field of Application}
 \noindent
-Until recently robots were mostly confined to industrial and military applications such as working on car assembly lines or delivering hellfire missiles to unsuspecting terrorists \cite{DRONE}. These `robots' have not changed society as visionaries like \textit{Isaac Asimov} predicted being effective in only narrow situations. Courier and delivery robots are part of an emerging branch of automation known as \textit{service robotics} \cite{SERVICE}. This new breed of robots are set to change the world that we live in today because unlike their predecessors they are becoming; (a) relatively affordable, (b) more intelligent, and (c) ubiquitous.\\
+Until recently robots were mostly confined to industrial and military applications such as working on car assembly lines or delivering hellfire missiles to unsuspecting terrorists \cite{DRONE}. These `robots' have not changed society as visionaries like \textit{Isaac Asimov} predicted being effective in only narrow situations. mobile and mobile robots are part of an emerging branch of automation known as \textit{service robotics} \cite{SERVICE}. This new breed of robots are set to change the world that we live in today because unlike their predecessors they are becoming; (a) relatively affordable, (b) more intelligent, and (c) ubiquitous.\\
 
 \noindent
 Examples of service robots include robotic vacuum cleaners, lawn mowers, and of course self-driving cars. Every major auto manufacturer in the world is currently developing self-driving prototypes including: BMW, Mercedes, Volvo, GM, Ford, and even Google \cite{MIT}. The benefits for society span well beyond shipping goods faster and cheaper, it has the potential to save lives. Around \textit{93\%} of road traffic accidents in the US are the result of human error, driver assisted technologies can help reduce this figure \cite{ROAD}.
 
 \subsection{Economic and Social Impact}
 \noindent
-No new technology comes without potential negatives, take courier robots in the transport industry which at its core involves moving items from point \textit{a} to \textit{b}, be it goods, post, or people. The incentive to adopt these new technologies is huge(!) self-driving auto-mobiles do not; tire, blink, fall a sleep, act irrationally, or demand the minimum wage. A study conducted by the University of Oxford predicted that \textit{47\%} of all jobs in the US are under threat from this new type of automation with `Cargo and Freight Agents' facing a \textit{99\%} probability that their jobs will be computerised \cite{OXFORD}. 
+No new technology comes without potential negatives, take mobile robots in the transport industry which at its core involves moving items from point \textit{a} to \textit{b}, be it goods, post, or people. The incentive to adopt these new technologies is huge(!) self-driving auto-mobiles do not; tire, blink, fall a sleep, act irrationally, or demand the minimum wage. A study conducted by the University of Oxford predicted that \textit{47\%} of all jobs in the US are under threat from this new type of automation with `Cargo and Freight Agents' facing a \textit{99\%} probability that their jobs will be computerised \cite{OXFORD}. 
 
 %-------------------------------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ No new technology comes without potential negatives, take courier robots in the 
 
 \subsection{Defining the Problem}
 \noindent
-Now that we have established the context for this study it is time to look at a specific task that courier robots need to accomplish. For a mobile agent to be considered useful, whether it is a vacuum cleaner, lawn mower, self-driving car, or a robotic arm, it must be able to navigate its environment. Autonomous navigation in robotics is made up of three components \cite{NEH}:
+Now that we have established the context for this study it is time to look at a specific task that mobile robots need to accomplish. For a mobile agent to be considered useful, whether it is a vacuum cleaner, lawn mower, self-driving car, or a robotic arm, it must be able to navigate its environment. Autonomous navigation in robotics is made up of three components \cite{NEH}:
 
 \begin{enumerate}
 \item Mapping
@@ -83,7 +83,7 @@ In the classic path planner \textit{Dijkstra's Algorithm} \cite{DIJKSTRA} the en
 \end{figure}
 
 \noindent
-How it computes the cost for traversing an edge is dependent on the application, in the \textit{GridNav} \cite{GRIDNAV95} system (version 1.0 and 2.0) developed by Tucker Balch horizontal and vertical transitions are assigned a constant cost of \textit{1} and diagonal transitions $\sqrt{2}$. The cost of traversing an edge (cell) is the sum of all the other nodes that must be traversed to reach the goal. In his paper Balch examines path planning techniques using a go-to-goal scenario which is the basic problem that any courier robot will have to solve.\\
+How it computes the cost for traversing an edge is dependent on the application, in the \textit{GridNav} \cite{GRIDNAV95} system (version 1.0 and 2.0) developed by Tucker Balch horizontal and vertical transitions are assigned a constant cost of \textit{1} and diagonal transitions $\sqrt{2}$. The cost of traversing an edge (cell) is the sum of all the other nodes that must be traversed to reach the goal. In his paper Balch examines path planning techniques using a go-to-goal scenario which is the basic problem that any mobile robot will have to solve.\\
 
 \noindent
 Every cell in \textit{GridNav} is mapped to a node in Dijkstra's graph representation as in Figure \ref{Figure: Optimal.}(a). Each cell contains the estimated cost of travelling from that cell to the goal, occupied cells are not traversable and are assigned a high cost of \textit{500}. This approach works fine in the event that both sides of the grid are less than \textit{500} cells long. If however this were not the case it is possible that the planner would treat an occupied cell as traversable.
@@ -106,7 +106,7 @@ The main advantage of \textit{Dijkstra's Algorithm} is its simplicity, Balch cov
 
 \subsection{D* Lite}
 \noindent
-As we have just previously discussed the task of having to solve every search from scratch, as with \textit{Dijkstra's Algorithm}, is far from practical in the dynamic environment that a courier robot is likely to operate in. Our primary concern is that such operations can be extremely computationally expensive \cite{HEURISTIC}, taking several seconds to complete when performed in large state spaces \cite{D*LITE}. A better solution would be to take the previous path and repair it based on the changes to the graph, this is the approach taken by \textit{incremental replanning algorithms}.\\
+As we have just previously discussed the task of having to solve every search from scratch, as with \textit{Dijkstra's Algorithm}, is far from practical in the dynamic environment that a mobile robot is likely to operate in. Our primary concern is that such operations can be extremely computationally expensive \cite{HEURISTIC}, taking several seconds to complete when performed in large state spaces \cite{D*LITE}. A better solution would be to take the previous path and repair it based on the changes to the graph, this is the approach taken by \textit{incremental replanning algorithms}.\\
 
 \noindent
 Two of the most widely used replanning algorithms are \textit{D*} \cite{D*} and \textit{D* Lite} \cite{D*LITE} (both derived from \textit{A*} \cite{A*}) which have been tested on real robots with great success (Figure: \ref{Figure: D* Robots.}). The \textit{A*} algorithm is considered a \textit{static} planner meaning as with \textit{Dijkstra's Algorithm} it too must recompute every cost when a change to the graph occurs. When building a path \textit{A*} uses heuristics to focus the search between the start and goal positions \cite{A*} which generally results in far less evaluations than \textit{Dijkstra's Algorithm}, making \textit{A*} more efficient. \textit{D*} and \textit{D* Lite} inherit these heuristics and are not only more efficient when searching but also \textit{dynamic} as they do not need to solve every search from scratch.\\
@@ -134,7 +134,7 @@ Since \textit{D* Lite} is both eaiser to understand and more efficient \cite{HEU
 \end{figure}
 
 \noindent
-It is the speed and efficiency of the replanning stage that gives \textit{D* Lite} an edge over its alternatives. It is both more efficient than \textit{A*} and \textit{D*}, and removing the need to recalculate the entire cost grid makes it considerably more efficient than \textit{Dijkstra's Algorithm}. While this algorithm is a suitable path planner for a courier robot there is a significant disadvantage related to how it represents the world around it which we will discuss next.
+It is the speed and efficiency of the replanning stage that gives \textit{D* Lite} an edge over its alternatives. It is both more efficient than \textit{A*} and \textit{D*}, and removing the need to recalculate the entire cost grid makes it considerably more efficient than \textit{Dijkstra's Algorithm}. While this algorithm is a suitable path planner for a mobile robot there is a significant disadvantage related to how it represents the world around it which we will discuss next.
 
 \newpage
 
@@ -143,7 +143,7 @@ It is the speed and efficiency of the replanning stage that gives \textit{D* Lit
 All of the planners that we have covered up until this point tailor an underlying graph structure to a grid, the paths they produce are therefore constrained by this limited representation. In these planners the center of every cell is connected to eight other cell centers as seen in Figure \ref{Figure: Optimal.}(a) and the robot must pass through one of these to progress. This limits the robot's headings to increments of $\dfrac{\pi}{4}$, these `optimal' paths are often unnatural, suboptimal, and difficult to traverse in practice \cite{FIELD}.\\ 
 
 \noindent
-Consider a robot in an obstacle free environment that is facing its goal, path planning is carried out using \textit{D* Lite}, and the robot's heading is $\dfrac{\pi}{8}$. The shortest path to the goal is a straight line but with planners like \textit{D* Lite} the path contains several complicated manoeuvres, this costs a delivery robot time and energy. In Figure \ref{Figure: Shortest Path.} the robot's heading is initially $\dfrac{\pi}{8}$, \textit{D* Lite} would shift this by $\dfrac{\pi}{8}$, follow $\overrightarrow{e_{1}}$, turn $\dfrac{\pi}{4}$, and continue along $\overrightarrow{e_{2}}$ to reach \textit{g}. If \textit{D* Lite} was not limited to headings of $\dfrac{\pi}{4}$ the same could be achieved simply by passing through $\overrightarrow{e_{0}}$.
+Consider a robot in an obstacle free environment that is facing its goal, path planning is carried out using \textit{D* Lite}, and the robot's heading is $\dfrac{\pi}{8}$. The shortest path to the goal is a straight line but with planners like \textit{D* Lite} the path contains several complicated manoeuvres, this costs a mobile robot time and energy. In Figure \ref{Figure: Shortest Path.} the robot's heading is initially $\dfrac{\pi}{8}$, \textit{D* Lite} would shift this by $\dfrac{\pi}{8}$, follow $\overrightarrow{e_{1}}$, turn $\dfrac{\pi}{4}$, and continue along $\overrightarrow{e_{2}}$ to reach \textit{g}. If \textit{D* Lite} was not limited to headings of $\dfrac{\pi}{4}$ the same could be achieved simply by passing through $\overrightarrow{e_{0}}$.
 
 \begin{figure}[htbp]
 
@@ -156,7 +156,7 @@ Consider a robot in an obstacle free environment that is facing its goal, path p
 \newpage
 
 \noindent
-Since courier robots typically function in human environments it is desirable that they choose what to a human would be the most natural path from point \textit{a} to \textit{b}. \textit{Field D*} \cite{FIELD2} is an algorithm capable of producing these `near natural' paths as it does not constrain a robots heading to increments of $\dfrac{\pi}{4}$. To achieve this \textit{Field D*} shifts the cell node from the center to the corners of each grid cell, resulting in the nodes \textit{s} to $s_{8}$ (Figure \ref{Figure: Optimal.}(b)). From these nodes we can establish the following edges $\lbrace \overrightarrow{s_{1}s_{2}}, \overrightarrow{s_{2}s_{3}}, \overrightarrow{s_{3}s_{4}}, \overrightarrow{s_{4}s_{5}}, \overrightarrow{s_{5}s_{6}}, \overrightarrow{s_{6}s_{7}}, \overrightarrow{s_{7}s_{8}}, \overrightarrow{s_{8}s_{1}} \rbrace$ \cite{FIELD}, and so the `optimal' path must intersect one of these edges (Figure \ref{Figure: Optimal.}(c)).
+Since mobile robots typically function in human environments it is desirable that they choose what to a human would be the most natural path from point \textit{a} to \textit{b}. \textit{Field D*} \cite{FIELD2} is an algorithm capable of producing these `near natural' paths as it does not constrain a robots heading to increments of $\dfrac{\pi}{4}$. To achieve this \textit{Field D*} shifts the cell node from the center to the corners of each grid cell, resulting in the nodes \textit{s} to $s_{8}$ (Figure \ref{Figure: Optimal.}(b)). From these nodes we can establish the following edges $\lbrace \overrightarrow{s_{1}s_{2}}, \overrightarrow{s_{2}s_{3}}, \overrightarrow{s_{3}s_{4}}, \overrightarrow{s_{4}s_{5}}, \overrightarrow{s_{5}s_{6}}, \overrightarrow{s_{6}s_{7}}, \overrightarrow{s_{7}s_{8}}, \overrightarrow{s_{8}s_{1}} \rbrace$ \cite{FIELD}, and so the `optimal' path must intersect one of these edges (Figure \ref{Figure: Optimal.}(c)).
 
 \begin{figure}[htbp]
 
@@ -203,13 +203,13 @@ The real value of \textit{Field D*} is the length of the paths it produces when 
 \newpage
 
 \section{Discussion}
-During the course of this literature review we discussed courier robots in considerable detail, covering everything from their general application to specific algorithms that enable them to operate in complex environments. As we have seen path planning is an important component in courier robots because at its simplest delivering goods is all about being able to get from \textit{a} to \textit{b}. To achieve this we need to ensure that a courier robot can reuse the knowledge it has gained during its operation and apply it efficiently to the task at hand.\\
+During the course of this literature review we discussed mobile robots in considerable detail, covering everything from their general application to specific algorithms that enable them to operate in complex environments. As we have seen path planning is an important component in mobile robots because at its simplest delivering goods is all about being able to get from \textit{a} to \textit{b}. To achieve this we need to ensure that a mobile robot can reuse the knowledge it has gained during its operation and apply it efficiently to the task at hand.\\
 
 \noindent
 We looked at three different algorithms that can be used to produce a path through a grid, each of which have their individual strengths and weaknesses. Take \textit{Dijkstra's Algorithm} a \textit{greedy} algorithm that requires that the entire cost grid be recomputed every time a change occurs. Clearly this \textit{static} planner is unsuited to the fast paced environments like the one \textit{Kiva} operates in \cite{AZK12}, though it is easy to implement. Then came \textit{D* Lite} the \textit{dynamic} replanner that is capable of dealing with broken paths or identifying short cuts efficiently, yet it too is limited not by its speed but by the headings it can deal with. Finally we arrived at \textit{Field D*}.\\
 
 \noindent
-What is really promising about \textit{Field D*} is the scope of its application, NASA's Spirit, Opportunity, and Curiosity rovers that landed on Mars all used a flavour of \textit{Field D*} \cite{MARS}. If \textit{Field D*} is capable of dealing with path planning on another planet it can then surely be applied to planning efficient routes for courier robots. As with any approach there are shortcomings to \textit{Field D*} as some of the heading changes are still unnecessary \cite{THETA*}, but the paths are still considerably smoother than before. So as a result of undertaking this literature review this project has benefited from a clearly established context and a newly narrowed the focus, which will hopefully contribute towards its successful outcome.
+What is really promising about \textit{Field D*} is the scope of its application, NASA's Spirit, Opportunity, and Curiosity rovers that landed on Mars all used a flavour of \textit{Field D*} \cite{MARS}. If \textit{Field D*} is capable of dealing with path planning on another planet it can then surely be applied to planning efficient routes for mobile robots. As with any approach there are shortcomings to \textit{Field D*} as some of the heading changes are still unnecessary \cite{THETA*}, but the paths are still considerably smoother than before. So as a result of undertaking this literature review this project has benefited from a clearly established context and a newly narrowed focus, which will hopefully contribute towards its successful outcome.
 
 %-------------------------------------------------------------------------------------------------------
 

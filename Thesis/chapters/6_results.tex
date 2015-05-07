@@ -3,13 +3,13 @@
 %----------------------------------------------------------------------------------------------------------------------
 
 \noindent
-The results that we gather are based on a number of example environments that a mobile robot may be faced with during navigation. A large number of our tests were conducted using a mock office floor plan of $12m^{2}$ containing $0.3m^{2}$ cells seen in Figure \ref{floor_plan}. The start and end points were placed on opposite sides of the map forcing the mobile robot to traverse the longest possible paths. For each sample environment we looked at every possible path to the selected goal by considering all of the free cells. This gave us the ability to collect large amounts of data which could then later by analysed to determine which planner produced the shortest paths on average.
+The results that we gathered were based on a number of sample environments which a simulated robot then traversed. A large number of our tests were conducted using a mock office floor plan of $12m^{2}$ containing $0.3m^{2}$ cells seen in Figure \ref{path_comparison}. The start and end points were placed on opposite sides of the map forcing the mobile robot to traverse the longest possible paths. For each sample environment we looked at every possible path to the selected goal by considering all of the free cells. From this we collected a large amount of data which was then analysed to determine which planner produced the shortest paths on average.
 
 \begin{figure}[htbp]
 
 \center \includegraphics[width=250pt]{illustrations/floor_plan}\\
-\caption{} 
-\label{floor_plan}
+\caption{A case analysis based on the sample office environment used during testing.} 
+\label{path_comparison}
 
 \end{figure}
 
@@ -42,7 +42,7 @@ gridnav_total_mean = gridnav_accesses_mean + gridnav_traverse_mean
 \end{lstlisting}
 
 \noindent
-Based on our analysis we came up with the following ranks from the most efficient planner to the least:
+Based on our analysis we came up with the following ranking for the planners in terms of efficiency:
 
 \begin{enumerate}
 \item Theta*
@@ -52,7 +52,15 @@ Based on our analysis we came up with the following ranks from the most efficien
 \end{enumerate}
 
 \noindent
-The top three planners outperformed D* Lite by at least 10\% and differed from each other by around 1\%. Theta*'s \textit{ray casting} approach produced shorter paths than either GridNav or Field D* however they were also angular in nature (see Figure \ref{}). Such direct paths require a mobile robot to perform extremely sharp changes in direction which can be impractical when operating in confined environments. While Theta* may produce the shortest possible paths GridNav's smoother paths are easier to execute. \\ 
+The top three planners outperformed D* Lite by at least 10\% and differed from each other by around 1\%. Theta*'s \textit{ray casting} approach produced shorter paths than either GridNav or Field D* however they were also angular in nature (see Figure \ref{}). Such direct paths require a mobile robot to perform extremely sharp changes in direction which can be impractical when operating in confined environments. While Theta* may produce the shortest possible paths GridNav's smoother paths are easier to execute.
+
+\begin{figure}[htbp]
+
+\center \includegraphics[width=250pt]{illustrations/comparison}\\
+\caption{Output from GridNav (left) and Theta* (right), Theta*'s path is shorter to traverse but also more angular which may not suit all forms of locomotion.} 
+\label{floor_plan}
+
+\end{figure}
 
 \noindent
 GridNav uses a simple yet effective heading calculator based on \textit{gradient descent} which works much like the way a stream finds its way down a mountain \cite{GRIDNAV95}. It has the advantage over Field D* as gradient descent has proved easier to implement than a linear interpolation heading calculator. It also does not require significant changes to the underlying graph representation as is required with Field D*.
@@ -60,7 +68,7 @@ GridNav uses a simple yet effective heading calculator based on \textit{gradient
 \newpage
 
 \section{Significance of Findings}
-We found that Theta*, GridNav, and Field D*, all planners that are not restricted to a small set of headings, could be up to 10\% more efficient than D* Lite. Meaning that travel time, energy consumption, and mechanical wear can be reduced significantly by adopting any planner that is not limited to headings of $\dfrac{\pi}{4}$. This is very significant if we consider journeys that require a robot to travel tens or hundreds of kilometres. For example if Theta* were to produce a path equating to 100 kilometres, D* Lite could potentially produce a path covering 110 kilometres. The mobile robot would then have to travel 10 kilometres extra simply because of D* Lite's limitations regarding heading changes. That could be the difference between saving someone's life on a search and rescue mission or delivering goods on time. \\
+We found that Theta*, GridNav, and Field D*, all planners that are not restricted to a small set of headings, could be up to 10\% more efficient than D* Lite. Meaning that travel time, energy consumption, and mechanical wear can be reduced significantly by adopting any planner that is not limited to headings of $\dfrac{\pi}{4}$. This can be very significant if we consider journeys that require a robot to travel long distances. For some of our test cases D* Lite produced paths that were several metres longer than its competitors. This meant the robot had to travel an extra distance simply because of D* Lite's limitations regarding heading changes.  \\
 
 \noindent
 One argument against these natural path planners is that computationally they are less efficient. They require complex representations of the environment and more vertex accesses, in some cases in excess of 96\% more time is spent computing a path \cite{FIELD}. For any of our tests we found that less than 1\% of a journey's time was spent planning the path, meaning the other 99\% was used on travelling. A planners computation time does not represent a significant proportion of the overall process. The difference in computation time may be measured in milliseconds but this is easily cancelled out in cases where the traversal time differs by tens of seconds. Scaling up the environment has no impact on the performance as the faster planner still suffers from suboptimal paths that are difficult to traverse in practice.

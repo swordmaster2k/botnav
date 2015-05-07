@@ -63,11 +63,11 @@ for each point in path:
 	next_point = point.next()
 	
 	if next_point is not null:
-		length += math.sqrt((next_point.x - point.x) ^ 2 + (next_point.x - point.x) ^ 2)
+		length += math.sqrt((next_point.x - point.x) ^ 2 + (next_point.y - point.y) ^ 2)
 \end{lstlisting}
 
 \noindent
-The total number of headings changes is just the sum of the difference between our current heading at a point and the change in direction required to face the new point. Our equation for calculating the cost of traversing a path is then: \\
+The total number of rotations is simply the sum of the difference between our current heading at a point and the change in direction required to face the new point. Our equation for calculating the cost of traversing a path is then: \\
 
 \indent $time = path\_length \times 0.6 + total\_rotations \times 1.0$ \\
 
