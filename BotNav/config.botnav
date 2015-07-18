@@ -13,7 +13,7 @@
 #       baud=
 #       port=
 map=maps/office15.map
-planner=theta_star
+planner=grid_nav
 mode=simulated
 #mode=physical
 #connection=bluetooth

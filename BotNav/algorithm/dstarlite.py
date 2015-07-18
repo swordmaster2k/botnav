@@ -1,7 +1,7 @@
 import time
 import math
 
-from algorithm import dstarlite_c  # Import dstarlite C module.
+from algorithm import field_d_star as dstarlite_c # Import dstarlite C module.
 from .abstract_algorithm import AbstractAlgorithm
 
 

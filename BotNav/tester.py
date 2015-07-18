@@ -15,6 +15,7 @@ from planner import Planner
 from util import result_generator
 from model.robot import Robot
 from algorithm.gridnav import GridNav
+from algorithm.gridnav_star import GridNavStar
 from algorithm.dstarlite import DStarLite
 from algorithm.field_d_star import FieldDStar
 from algorithm.theta_star import ThetaStar
@@ -202,7 +203,7 @@ class Tester(threading.Thread):
             # that is not occupied excluding the goal.
             for x in range(self.map.cells_square):
                 for y in range(self.map.cells_square):
-                    if self.map.grid[x][y].state == 1: #and math.hypot(self.map.goal_x - x, self.map.goal_y - y) > 3:
+                    if self.map.grid[x][y].state == 1 and (x != self.map.goal_x or y != self.map.goal_y):
                         self.setup_output()
 
                         # Attempt to plan a path from this free cell.
@@ -330,6 +331,8 @@ def load_config(config_file):
 
     if algorithm == "grid_nav":
         test.algorithm = GridNav(test.map)
+    elif algorithm == "grid_nav_star":
+        test.algorithm = GridNavStar(test.map)
     elif algorithm == "d_star_lite":
         test.algorithm = DStarLite(test.map)
         test.algorithm.setup(test.map_file)
